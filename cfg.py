@@ -19,6 +19,14 @@ def form_blocks(body):
     yield cur_block
 
 
+def join_blocks(blocks):
+    new_instrs = []
+    for bb in blocks:
+        for instr in bb:
+            new_instrs.append(instr)
+    return new_instrs
+
+
 def block_map(blocks):
     out = OrderedDict()
 
