@@ -1,14 +1,149 @@
+import click
+from copy import deepcopy
 import sys
 import json
 
+from cfg import form_blocks, join_blocks
+from bril_core_constants import *
+
+
+LVN_NUMBER = 0
+
+
+def gen_fresh_lvn_num():
+    global LVN_NUMBER
+    LVN_NUMBER += 1
+    return LVN_NUMBER
+
+
+def arg_to_lvn_value(arg, var_to_num):
+    if arg in var_to_num:
+        return var_to_num[arg]
+    raise RuntimeError(
+        f"LVN Pass: Variable {arg} was defined before its first use.")
+
+
+def instr_to_lvn_value(instr, var_to_num):
+    if OP in instr and instr[OP] == CONST:
+        return (CONST, instr[VALUE])
+    elif OP in instr and instr[OP] in BRIL_BINOPS + BRIL_UNOPS:
+        return (instr[OP], *list(map(lambda a: arg_to_lvn_value(a, var_to_num), instr[ARGS])))
+    elif CALL in instr:
+        return (CALL, *list(map(lambda a: arg_to_lvn_value(a, var_to_num), instr[ARGS])))
+    elif ID in instr:
+        return (ID, *list(map(lambda a: arg_to_lvn_value(a, var_to_num), instr[ARGS])))
+    raise RuntimeError(f"Requires Instruction to Assign to Variable\n{instr}.")
+
+
+def get_canonical_loc(curr_lvn_num, num_value_loc):
+    for (lvn_num, _, canonical_loc) in num_value_loc:
+        if lvn_num == curr_lvn_num:
+            return canonical_loc
+    else:
+        raise RuntimeError("LVN Num must be in num_value_loc table.")
+
+
+def get_lvn_value(curr_lvn_num, num_value_loc):
+    for (lvn_num, lvn_value, _) in num_value_loc:
+        if lvn_num == curr_lvn_num:
+            return lvn_value
+    else:
+        raise RuntimeError("LVN Num must be in num_value_loc table.")
+
+
+def lvn_value_to_instr(dst, lvn_value, num_value_loc):
+    assert type(lvn_value) == tuple
+    assert len(lvn_value) >= 2
+
+    first = lvn_value[0]
+    if first == CONST:
+        assert len(lvn_value) == 2
+        return {DEST: dst, OP: CONST, TYPE: INT, VALUE: lvn_value[1]}
+    elif first in [ADD, SUB, MUL, DIV]:
+        assert len(lvn_value) == 3
+        arg1 = get_canonical_loc(lvn_value[1], num_value_loc)
+        arg2 = get_canonical_loc(lvn_value[2], num_value_loc)
+        return {DEST: dst, OP: first, TYPE: INT, ARGS: [arg1, arg2]}
+    elif first in [EQ, LT, GT, LE, GE, AND, OR]:
+        assert len(lvn_value) == 3
+        arg1 = get_canonical_loc(lvn_value[1], num_value_loc)
+        arg2 = get_canonical_loc(lvn_value[2], num_value_loc)
+        return {DEST: dst, OP: first, TYPE: BOOL, ARGS: [arg1, arg2]}
+    elif first in [NOT]:
+        assert len(lvn_value) == 2
+        arg1 = get_canonical_loc(lvn_value[1], num_value_loc)
+        return {DEST: dst, OP: NOT, TYPE: BOOL, ARGS: [arg1]}
+    elif first in [CALL]:
+        assert len(lvn_value) >= 2
+        args = list(map(lambda a: get_canonical_loc(
+            a, num_value_loc), lvn_value[1:]))
+        return {DEST: dst, OP: ID, ARGS: args}
+    elif first in [ID]:
+        assert len(lvn_value) == 2
+        arg1 = get_canonical_loc(lvn_value[1], num_value_loc)
+        return {DEST: dst, OP: ID, ARGS: [arg1]}
+    else:
+        raise RuntimeError(f"Unmatched LVN Value type {lvn_value}")
+
+
+def instr_lvn(instr, var_to_num, num_value_loc):
+    if DEST in instr:
+        dst_var = instr[DEST]
+        new_lvn_val = instr_to_lvn_value(instr, var_to_num)
+        in_lvn_table = False
+        in_lvn_table_num = None
+        for (lvn_num, lvn_val, _) in num_value_loc:
+            if lvn_val == new_lvn_val:
+                in_lvn_table = True
+                in_lvn_table_num = lvn_num
+                break
+        if in_lvn_table:
+            assert in_lvn_table_num != None
+            var_to_num[dst_var] = in_lvn_table_num
+            return {DEST: dst_var, OP: ID, ARGS: [get_canonical_loc(in_lvn_table_num, num_value_loc)]}
+        else:
+            new_lvn_num = gen_fresh_lvn_num()
+            row_triple = (new_lvn_num, new_lvn_val, dst_var)
+            num_value_loc.append(row_triple)
+            var_to_num[dst_var] = new_lvn_num
+            return lvn_value_to_instr(dst_var, new_lvn_val, num_value_loc)
+    else:
+        if ARGS in instr and LABELS not in instr:
+            new_instr = deepcopy(instr)
+            new_instr[ARGS] = list(map(lambda v: get_canonical_loc(
+                var_to_num[v], num_value_loc), instr[ARGS]))
+            return new_instr
+        else:
+            return instr
+
 
 def lvn(program):
-    pass
+    # we ignore programs with branching due to variable definiton issues.
+    for func in program["functions"]:
+        for instr in func["instrs"]:
+            if LABELS in instr:
+                return program
+    for func in program["functions"]:
+        basic_blocks = form_blocks(func["instrs"])
+        new_basic_blocks = []
+        for bb in basic_blocks:
+            new_bb = []
+            var_to_num = {}
+            num_value_loc = []
+            for instr in bb:
+                new_instr = instr_lvn(instr, var_to_num, num_value_loc)
+                new_bb.append(new_instr)
+            new_basic_blocks.append(new_bb)
+        func["instrs"] = join_blocks(new_basic_blocks)
+    return program
 
 
+@click.command()
 def main():
     prog = json.load(sys.stdin)
-    print(json.dumps(prog))
+    print(json.dumps(prog, indent=4, sort_keys=True))
+    final_prog = lvn(prog)
+    print(json.dumps(final_prog, indent=4, sort_keys=True))
 
 
 if __name__ == "__main__":
