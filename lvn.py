@@ -42,10 +42,24 @@ def lvn_value_is_const(lvn_value):
     return lvn_value[0] == CONST
 
 
+def lvn_value_is_arg(lvn_value):
+    assert type(lvn_value) == tuple
+    assert len(lvn_value) >= 2
+    return lvn_value[0] == ARG_LVN_VALUE
+
+
+def lvn_value_is_id(lvn_value):
+    assert type(lvn_value) == tuple
+    assert len(lvn_value) >= 2
+    return lvn_value[0] == ID
+
+
 def interpret_lvn_value(lvn_value, num_value_loc):
     assert type(lvn_value) == tuple
     assert len(lvn_value) >= 2
     if lvn_value_is_const(lvn_value):
+        return lvn_value
+    elif lvn_value_is_arg(lvn_value):
         return lvn_value
     new_args = []
     for arg_lvn_num in lvn_value[1:]:
@@ -203,14 +217,6 @@ def instr_lvn(instr, remainder_bb, var_to_num, num_value_loc):
         dst_var = instr[DEST]
         new_lvn_val = instr_to_lvn_value(instr, var_to_num, num_value_loc)
 
-        # copy propagation shortcut
-        if (new_lvn_val[0] == ID):
-            assert len(new_lvn_val) == 2
-            lvn_table_num = new_lvn_val[1]
-            var_to_num[dst_var] = lvn_table_num
-            arg = get_canonical_loc(lvn_table_num, num_value_loc)
-            return {DEST: dst_var, OP: ID, TYPE: instr[TYPE], ARGS: [arg]}
-
         in_lvn_table = False
         in_lvn_table_num = None
         for (lvn_num, lvn_val, _) in num_value_loc:
@@ -218,9 +224,20 @@ def instr_lvn(instr, remainder_bb, var_to_num, num_value_loc):
                 in_lvn_table = True
                 in_lvn_table_num = lvn_num
                 break
-        if in_lvn_table:
+
+        # copy propagation shortcut
+        if lvn_value_is_id(new_lvn_val):
+            assert len(new_lvn_val) == 2
+            lvn_table_num = new_lvn_val[1]
+            var_to_num[dst_var] = lvn_table_num
+            arg = get_canonical_loc(lvn_table_num, num_value_loc)
+            return {DEST: dst_var, OP: ID, TYPE: instr[TYPE], ARGS: [arg]}
+        elif in_lvn_table:
             assert in_lvn_table_num != None
             var_to_num[dst_var] = in_lvn_table_num
+            # constant propagation shortcut:
+            if lvn_value_is_const(new_lvn_val):
+                return {DEST: dst_var, OP: CONST, TYPE: instr[TYPE], VALUE: new_lvn_val[1]}
             return {DEST: dst_var, OP: ID, TYPE: instr[TYPE], ARGS: [get_canonical_loc(in_lvn_table_num, num_value_loc)]}
         else:
             new_lvn_num = gen_fresh_lvn_num()
