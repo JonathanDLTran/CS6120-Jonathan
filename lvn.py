@@ -39,7 +39,10 @@ def instr_to_lvn_value(instr, var_to_num):
     if OP in instr and instr[OP] == CONST:
         return (CONST, instr[VALUE])
     elif OP in instr and instr[OP] in BRIL_BINOPS + BRIL_UNOPS:
-        return (instr[OP], *list(map(lambda a: arg_to_lvn_value(a, var_to_num), instr[ARGS])))
+        args = instr[ARGS]
+        if instr[OP] in BRIL_COMMUTE_BINOPS:
+            args = sorted(args)
+        return (instr[OP], *list(map(lambda a: arg_to_lvn_value(a, var_to_num), args)))
     elif OP in instr and instr[OP] in [CALL]:
         return (CALL, *list(map(lambda a: arg_to_lvn_value(a, var_to_num), instr[ARGS])))
     elif OP in instr and instr[OP] in [ID]:

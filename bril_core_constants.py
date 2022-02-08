@@ -58,6 +58,10 @@ BRIL_CORE_INSTRS = [
     ID, PRINT, NOP,
 ]
 
+BRIL_COMMUTE_BINOPS = [
+    ADD, MUL, AND, OR, EQ
+]
+
 
 def build_unop(unop, arg):
     pass
