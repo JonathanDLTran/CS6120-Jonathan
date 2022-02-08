@@ -28,24 +28,22 @@ def gen_fresh_variable(var):
     return f"{var}_{VARIABLE_NUMBER}"
 
 
-def arg_to_lvn_value(arg, func_args, var_to_num):
+def arg_to_lvn_value(arg, var_to_num):
     if arg in var_to_num:
         return var_to_num[arg]
-    elif arg in func_args:
-        return -1 * (func_args.index(arg) + 1)
     raise RuntimeError(
         f"LVN Pass: Variable {arg} was defined before its first use.")
 
 
-def instr_to_lvn_value(instr, func_args, var_to_num):
+def instr_to_lvn_value(instr, var_to_num):
     if OP in instr and instr[OP] == CONST:
         return (CONST, instr[VALUE])
     elif OP in instr and instr[OP] in BRIL_BINOPS + BRIL_UNOPS:
-        return (instr[OP], *list(map(lambda a: arg_to_lvn_value(a, func_args, var_to_num), instr[ARGS])))
+        return (instr[OP], *list(map(lambda a: arg_to_lvn_value(a, var_to_num), instr[ARGS])))
     elif OP in instr and instr[OP] in [CALL]:
-        return (CALL, *list(map(lambda a: arg_to_lvn_value(a, func_args, var_to_num), instr[ARGS])))
+        return (CALL, *list(map(lambda a: arg_to_lvn_value(a, var_to_num), instr[ARGS])))
     elif OP in instr and instr[OP] in [ID]:
-        return (ID, *list(map(lambda a: arg_to_lvn_value(a, func_args, var_to_num), instr[ARGS])))
+        return (ID, *list(map(lambda a: arg_to_lvn_value(a, var_to_num), instr[ARGS])))
     raise RuntimeError(f"Requires Instruction to Assign to Variable\n{instr}.")
 
 
@@ -100,10 +98,10 @@ def lvn_value_to_instr(dst, lvn_value, num_value_loc):
         raise RuntimeError(f"Unmatched LVN Value type {lvn_value}")
 
 
-def instr_lvn(instr, remainder_bb, func_args, var_to_num, num_value_loc):
+def instr_lvn(instr, remainder_bb, var_to_num, num_value_loc):
     if DEST in instr:
         dst_var = instr[DEST]
-        new_lvn_val = instr_to_lvn_value(instr, func_args, var_to_num)
+        new_lvn_val = instr_to_lvn_value(instr, var_to_num)
 
         # copy propagation shortcut
         if (new_lvn_val[0] == ID):
@@ -169,14 +167,17 @@ def lvn(program):
             new_bb = []
             var_to_num = {}
             num_value_loc = []
-            func_args = []
             if ARGS in func:
-                for arg in func[ARGS]:
-                    func_args.append(arg)
+                for i, arg_dict in enumerate(func[ARGS]):
+                    arg = arg_dict["name"]
+                    new_arg_lvn_num = gen_fresh_lvn_num()
+                    new_row = (new_arg_lvn_num, (ARG_LVN_VALUE, arg), arg)
+                    var_to_num[arg] = new_arg_lvn_num
+                    num_value_loc.append(new_row)
             for i, instr in enumerate(bb):
                 remainder_bb = bb[i + 1:]
                 new_instr = instr_lvn(
-                    instr, remainder_bb, func_args, var_to_num, num_value_loc)
+                    instr, remainder_bb, var_to_num, num_value_loc)
                 new_bb.append(new_instr)
             new_basic_blocks.append(new_bb)
         func["instrs"] = join_blocks(new_basic_blocks)
