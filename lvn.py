@@ -1,3 +1,4 @@
+from ast import LtE
 import click
 from copy import deepcopy
 import sys
@@ -35,18 +36,114 @@ def arg_to_lvn_value(arg, var_to_num):
         f"LVN Pass: Variable {arg} was defined before its first use.")
 
 
-def instr_to_lvn_value(instr, var_to_num):
+def lvn_value_is_const(lvn_value):
+    assert type(lvn_value) == tuple
+    assert len(lvn_value) >= 2
+    return lvn_value[0] == CONST
+
+
+def interpret_lvn_value(lvn_value, num_value_loc):
+    assert type(lvn_value) == tuple
+    assert len(lvn_value) >= 2
+    if lvn_value_is_const(lvn_value):
+        return lvn_value
+    new_args = []
+    for arg_lvn_num in lvn_value[1:]:
+        arg_lvn_value = get_lvn_value(arg_lvn_num, num_value_loc)
+        new_args.append(interpret_lvn_value(arg_lvn_value, num_value_loc))
+    all_constants = True
+    for a in new_args:
+        if not lvn_value_is_const(a):
+            all_constants = False
+
+    # we disallow semi interpreted expressions, e.g. (ADD, const 1, 3)
+    if not all_constants:
+        return lvn_value
+
+    op = lvn_value[0]
+    if op == CONST:
+        raise RuntimeError(
+            f"Constants are the base case: should be returned earlier.")
+    elif op == ID:
+        assert len(new_args) == 1
+        return new_args[0]
+    elif op == CALL:
+        # unfortunately have to treat as uninterpreted function
+        return lvn_value
+    elif op == NOT:
+        assert len(new_args) == 1
+        (_, result) = new_args[0]
+        return (CONST, 1 if result == 0 else 0)
+    elif op == AND:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, 1 if result1 and result2 else 0)
+    elif op == OR:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, 1 if result1 or result2 else 0)
+    elif op == EQ:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, 1 if result1 == result2 else 0)
+    elif op == LE:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, 1 if result1 <= result2 else 0)
+    elif op == GE:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, 1 if result1 >= result2 else 0)
+    elif op == LT:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, 1 if result1 < result2 else 0)
+    elif op == GT:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, 1 if result1 > result2 else 0)
+    elif op == ADD:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, result1 + result2)
+    elif op == SUB:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, result1 - result2)
+    elif op == MUL:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, result1 * result2)
+    elif op == DIV:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, result1 // result2)
+    raise RuntimeError(f"LVN Interpretation: Unmatched type {op}.")
+
+
+def instr_to_lvn_value(instr, var_to_num, num_value_loc):
     if OP in instr and instr[OP] == CONST:
         return (CONST, instr[VALUE])
     elif OP in instr and instr[OP] in BRIL_BINOPS + BRIL_UNOPS:
         args = instr[ARGS]
         if instr[OP] in BRIL_COMMUTE_BINOPS:
             args = sorted(args)
-        return (instr[OP], *list(map(lambda a: arg_to_lvn_value(a, var_to_num), args)))
+        return interpret_lvn_value((instr[OP], *list(map(lambda a: arg_to_lvn_value(a, var_to_num), args))), num_value_loc)
     elif OP in instr and instr[OP] in [CALL]:
-        return (CALL, *list(map(lambda a: arg_to_lvn_value(a, var_to_num), instr[ARGS])))
+        return interpret_lvn_value((CALL, *list(map(lambda a: arg_to_lvn_value(a, var_to_num), instr[ARGS]))), num_value_loc)
     elif OP in instr and instr[OP] in [ID]:
-        return (ID, *list(map(lambda a: arg_to_lvn_value(a, var_to_num), instr[ARGS])))
+        return interpret_lvn_value((ID, *list(map(lambda a: arg_to_lvn_value(a, var_to_num), instr[ARGS]))), num_value_loc)
     raise RuntimeError(f"Requires Instruction to Assign to Variable\n{instr}.")
 
 
@@ -104,7 +201,7 @@ def lvn_value_to_instr(dst, lvn_value, num_value_loc):
 def instr_lvn(instr, remainder_bb, var_to_num, num_value_loc):
     if DEST in instr:
         dst_var = instr[DEST]
-        new_lvn_val = instr_to_lvn_value(instr, var_to_num)
+        new_lvn_val = instr_to_lvn_value(instr, var_to_num, num_value_loc)
 
         # copy propagation shortcut
         if (new_lvn_val[0] == ID):
