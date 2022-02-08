@@ -3,17 +3,26 @@ from copy import deepcopy
 import sys
 import json
 
+from scipy.fft import dst
+
 from cfg import form_blocks, join_blocks
 from bril_core_constants import *
 
 
 LVN_NUMBER = 0
+VARIABLE_NUMBER = 0
 
 
 def gen_fresh_lvn_num():
     global LVN_NUMBER
     LVN_NUMBER += 1
     return LVN_NUMBER
+
+
+def gen_fresh_variable(var):
+    global VARIABLE_NUMBER
+    VARIABLE_NUMBER += 1
+    return f"{var}_{VARIABLE_NUMBER}"
 
 
 def arg_to_lvn_value(arg, var_to_num):
@@ -77,7 +86,7 @@ def lvn_value_to_instr(dst, lvn_value, num_value_loc):
         assert len(lvn_value) >= 2
         args = list(map(lambda a: get_canonical_loc(
             a, num_value_loc), lvn_value[1:]))
-        return {DEST: dst, OP: ID, ARGS: args}
+        return {DEST: dst, OP: CALL, ARGS: args}
     elif first in [ID]:
         assert len(lvn_value) == 2
         arg1 = get_canonical_loc(lvn_value[1], num_value_loc)
@@ -86,7 +95,7 @@ def lvn_value_to_instr(dst, lvn_value, num_value_loc):
         raise RuntimeError(f"Unmatched LVN Value type {lvn_value}")
 
 
-def instr_lvn(instr, var_to_num, num_value_loc):
+def instr_lvn(instr, remainder_bb, var_to_num, num_value_loc):
     if DEST in instr:
         dst_var = instr[DEST]
         new_lvn_val = instr_to_lvn_value(instr, var_to_num)
@@ -103,10 +112,26 @@ def instr_lvn(instr, var_to_num, num_value_loc):
             return {DEST: dst_var, OP: ID, ARGS: [get_canonical_loc(in_lvn_table_num, num_value_loc)]}
         else:
             new_lvn_num = gen_fresh_lvn_num()
-            row_triple = (new_lvn_num, new_lvn_val, dst_var)
-            num_value_loc.append(row_triple)
-            var_to_num[dst_var] = new_lvn_num
-            return lvn_value_to_instr(dst_var, new_lvn_val, num_value_loc)
+
+            # consider that the variable will get rewritten
+            dest_overwritten = False
+            for instr in remainder_bb:
+                if DEST in instr and instr[DEST] == dst_var:
+                    dest_overwritten = True
+                    break
+            if dest_overwritten:
+                new_dst_var = gen_fresh_variable(dst_var)
+                row_triple = (new_lvn_num, new_lvn_val, new_dst_var)
+                num_value_loc.append(row_triple)
+                # keep mapping with old destination variable
+                var_to_num[dst_var] = new_lvn_num
+                # but replace instruction with new variable as that is the canonical location
+                return lvn_value_to_instr(new_dst_var, new_lvn_val, num_value_loc)
+            else:
+                row_triple = (new_lvn_num, new_lvn_val, dst_var)
+                num_value_loc.append(row_triple)
+                var_to_num[dst_var] = new_lvn_num
+                return lvn_value_to_instr(dst_var, new_lvn_val, num_value_loc)
     else:
         if ARGS in instr and LABELS not in instr:
             new_instr = deepcopy(instr)
@@ -130,8 +155,10 @@ def lvn(program):
             new_bb = []
             var_to_num = {}
             num_value_loc = []
-            for instr in bb:
-                new_instr = instr_lvn(instr, var_to_num, num_value_loc)
+            for i, instr in enumerate(bb):
+                remainder_bb = bb[i + 1:]
+                new_instr = instr_lvn(
+                    instr, remainder_bb, var_to_num, num_value_loc)
                 new_bb.append(new_instr)
             new_basic_blocks.append(new_bb)
         func["instrs"] = join_blocks(new_basic_blocks)
