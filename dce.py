@@ -61,9 +61,11 @@ def local_dce(program):
                             to_delete.append(def_idx)
                     last_use[dst] = (idx, None)
 
-            for dst, (def_idx, last_use_idx) in last_use.items():
-                if last_use_idx == None:
-                    to_delete.append(def_idx)
+            # This is in fact incorrect! A value in one bb not used can still be used later
+            # as in the diamond patter. I leave it commented out as a lesson for myself.
+            # for dst, (def_idx, last_use_idx) in last_use.items():
+            #     if last_use_idx == None:
+            #         to_delete.append(def_idx)
 
             for idx, instr in enumerate(bb):
                 if idx not in to_delete:
@@ -99,9 +101,9 @@ def dce(program):
 # @click.option('--del-unused-iterate', help='Delete Unused with Iteration.')
 def main():
     prog = json.load(sys.stdin)
-    print(json.dumps(prog, indent=4, sort_keys=True))
+    # print(json.dumps(prog, indent=4, sort_keys=True))
     final_prog = dce(prog)
-    print(json.dumps(final_prog, indent=4, sort_keys=True))
+    print(json.dumps(final_prog))
 
 
 if __name__ == "__main__":
