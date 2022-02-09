@@ -1,0 +1,22 @@
+@main(a:int, b:int, c:int, d:int) {
+    x: int = add a b;
+    y: int = add x c;
+    z: int = add y d;
+    w: int = mul z z;
+    s: int = sub w x;
+    t: int = sub y s;
+    u: int = mul x t;
+    v: int = add u y;
+    
+    s: int = const 3;
+    t: int = const 3;
+    u: int = const 3;
+    v: int = const 3;
+    w: int = const 3;
+    x: int = const 3;
+    y: int = const 3;
+    z: int = const 3;
+    print x;
+    print y;
+    print z;
+}

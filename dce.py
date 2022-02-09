@@ -101,9 +101,9 @@ def dce(program):
 # @click.option('--del-unused-iterate', help='Delete Unused with Iteration.')
 def main():
     prog = json.load(sys.stdin)
-    # print(json.dumps(prog, indent=4, sort_keys=True))
+    print(json.dumps(prog, indent=4, sort_keys=True))
     final_prog = dce(prog)
-    print(json.dumps(final_prog))
+    print(json.dumps(final_prog, indent=4, sort_keys=True))
 
 
 if __name__ == "__main__":

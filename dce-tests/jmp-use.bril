@@ -1,0 +1,11 @@
+# Should Not Remove x because x could be used in mid (in fact it is)
+
+@main(a:int, b:int, c:int, d:int) {
+    x: int = add a b;
+    cond: bool = eq x x;
+    jmp .mid;
+.mid:
+    print x;
+    jmp .end;
+.end:
+}

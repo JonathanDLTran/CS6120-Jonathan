@@ -1,0 +1,23 @@
+# uses func_use, but never uses func_not_use
+
+@main() {
+    n: int = const 2;
+
+    x: int = const 4;
+    x: int = call @func_use n;
+    x: int = add x x;
+    print x;
+
+    y: int = const 2;
+    y: int = call @func_not_use n;
+    y: int = const 3;
+    print y;
+}
+
+@func_use(n: int) {
+    ret n;
+}
+
+@func_not_use(n: int) {
+    ret n;
+}

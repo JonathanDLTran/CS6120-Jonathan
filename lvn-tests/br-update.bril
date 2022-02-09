@@ -1,0 +1,23 @@
+# Nothing should be touched because my lvn pass cannot handle branches and jumps
+# But if GVN is implemented, something better might occur
+
+@main {
+    a: int = const 1;
+    b: int = const 2;
+    c: int = const 3;
+    d: int = const 4;
+    cond1 : bool = eq c d;
+    br cond1 .start .middle;
+    .start:
+    a: int = mul c d;
+    b: int = add a b;
+    jmp .end;
+    .middle:
+    a: int = add b a;
+    b: int = mul d c; 
+    .end
+    print a;
+    print b;
+    print c;
+    print d;
+}

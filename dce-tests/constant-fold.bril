@@ -1,0 +1,19 @@
+# Instructions should be deleted in constant folding occurs, 
+# and there exists no edges in cfg to get to never. 
+# This requires a bit of CFG analysis to show never will never be reached.
+
+@main() {
+    x: int = const 3;
+    y: int = const 2;
+    z: int = const 1;
+    sum: int = add y z;
+    cond: bool = gt sum x;
+    br cond .never .end;
+.never:
+    print x;
+    print y;
+    print z;
+    x: int = add sum sum;
+    print sum;
+.end:
+}

@@ -1,0 +1,9 @@
+# w, x, y are all never used. Only z is used in a print.
+
+@main(a : int) {
+    w: int = id a;
+    x: int = const 3;
+    y: int = const 4;
+    z: int = const 5;
+    print z;
+}

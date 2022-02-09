@@ -1,0 +1,8 @@
+@main(a:int, b:int, c:int, d:int) {
+    x: int = add a b;
+    y: int = add c d;
+    x: int = add c d;
+    y: int = add a b;
+    print x;
+    print y;
+}
