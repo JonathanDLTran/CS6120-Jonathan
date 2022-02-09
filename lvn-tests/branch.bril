@@ -1,0 +1,22 @@
+# Nothing should be touched because my lvn pass cannot handle branches and jumps
+
+@main {
+    a: int = const 1;
+    b: int = const 2;
+    c: int = const 3;
+    d: int = const 4;
+    cond1 : bool = eq c d;
+    br cond1 .start .middle;
+    .start:
+    w: int = mul c d;
+    x: int = add a b;
+    jmp .end;
+    .middle:
+    y: int = add b a;
+    z: int = mul d c; 
+    .end
+    print w;
+    print x;
+    print y;
+    print z;
+}
