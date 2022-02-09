@@ -5,6 +5,7 @@ TYPE = "type"
 OP = "op"
 VALUE = "value"
 LABEL = "label"
+FUNCS = "funcs"
 
 
 INT = "int"

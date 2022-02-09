@@ -177,7 +177,7 @@ def get_lvn_value(curr_lvn_num, num_value_loc):
         raise RuntimeError("LVN Num must be in num_value_loc table.")
 
 
-def lvn_value_to_instr(dst, lvn_value, num_value_loc):
+def lvn_value_to_instr(dst, lvn_value, num_value_loc, original_instr):
     assert type(lvn_value) == tuple
     assert len(lvn_value) >= 2
 
@@ -203,7 +203,7 @@ def lvn_value_to_instr(dst, lvn_value, num_value_loc):
         assert len(lvn_value) >= 2
         args = list(map(lambda a: get_canonical_loc(
             a, num_value_loc), lvn_value[1:]))
-        return {DEST: dst, OP: CALL, ARGS: args}
+        return {DEST: dst, OP: CALL, ARGS: args, FUNCS: [original_instr[FUNCS]], TYPE: original_instr[TYPE]}
     elif first in [ID]:
         assert len(lvn_value) == 2
         arg1 = get_canonical_loc(lvn_value[1], num_value_loc)
@@ -255,12 +255,12 @@ def instr_lvn(instr, remainder_bb, var_to_num, num_value_loc):
                 # keep mapping with old destination variable
                 var_to_num[dst_var] = new_lvn_num
                 # but replace instruction with new variable as that is the canonical location
-                return lvn_value_to_instr(new_dst_var, new_lvn_val, num_value_loc)
+                return lvn_value_to_instr(new_dst_var, new_lvn_val, num_value_loc, instr)
             else:
                 row_triple = (new_lvn_num, new_lvn_val, dst_var)
                 num_value_loc.append(row_triple)
                 var_to_num[dst_var] = new_lvn_num
-                return lvn_value_to_instr(dst_var, new_lvn_val, num_value_loc)
+                return lvn_value_to_instr(dst_var, new_lvn_val, num_value_loc, instr)
     else:
         if ARGS in instr and LABELS not in instr:
             new_instr = deepcopy(instr)

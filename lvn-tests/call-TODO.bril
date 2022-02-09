@@ -1,0 +1,26 @@
+# makes a call that actually can be computed at compile time.
+# Currently, LVN does not bother to interpret function body. This could
+# be a further optimization.
+
+@main {
+    n: int = const 4;
+    result: int = call @f n;
+    print result;
+}
+
+@f(n: int){
+    double: int = add n n;
+    ret double;
+}
+
+{
+    "args": [
+        "n"
+    ],
+    "dest": "x",
+    "funcs": [
+        "func_use"
+    ],
+    "op": "call",
+    "type": "int"
+}
