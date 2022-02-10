@@ -142,7 +142,7 @@ def interpret_lvn_value(lvn_value, num_value_loc):
         assert len(new_args) == 2
         (_, result1) = new_args[0]
         (_, result2) = new_args[1]
-        # bail on interpretation if dividend is 0
+        # bail on interpretation if divisor is 0
         if result2 == 0:
             return lvn_value
         return (CONST, result1 // result2)
