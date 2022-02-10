@@ -1,0 +1,9 @@
+# Should fail to propagate constants, because b is 0.
+# But should compile faithfully.
+
+@main {
+    a: int = const 1;
+    b: int = const 0;
+    c: int = div a b;
+    print c;
+}
