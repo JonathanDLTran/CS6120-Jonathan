@@ -1,3 +1,4 @@
+# ARGS: 1 2 3 4
 @main(a:int, b:int, c:int, d:int) {
     x: int = add a b;
     x: int = add x c;

@@ -8,19 +8,7 @@
     print result;
 }
 
-@f(n: int){
+@f(n: int) : int{
     double: int = add n n;
     ret double;
-}
-
-{
-    "args": [
-        "n"
-    ],
-    "dest": "x",
-    "funcs": [
-        "func_use"
-    ],
-    "op": "call",
-    "type": "int"
 }

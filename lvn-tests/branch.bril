@@ -5,6 +5,10 @@
     b: int = const 2;
     c: int = const 3;
     d: int = const 4;
+    w: int = const 5;
+    x: int = const 6;
+    y: int = const 7;
+    z: int = const 8;
     cond1 : bool = eq c d;
     br cond1 .start .middle;
     .start:
@@ -14,7 +18,7 @@
     .middle:
     y: int = add b a;
     z: int = mul d c; 
-    .end
+    .end:
     print w;
     print x;
     print y;

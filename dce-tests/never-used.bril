@@ -1,5 +1,6 @@
 # w, x, y are all never used. Only z is used in a print.
 
+# ARGS: 1
 @main(a : int) {
     w: int = id a;
     x: int = const 3;

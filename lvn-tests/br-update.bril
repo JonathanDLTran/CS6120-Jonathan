@@ -15,7 +15,7 @@
     .middle:
     a: int = add b a;
     b: int = mul d c; 
-    .end
+    .end:
     print a;
     print b;
     print c;

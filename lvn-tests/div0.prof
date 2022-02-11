@@ -1,0 +1,12 @@
+/Users/wandang/Desktop/CS6120/bril/bril-ts/build/brili.js:776
+process.on('unhandledRejection', e => { throw e; });
+                                        ^
+
+RangeError: Division by zero
+    at evalInstr (/Users/wandang/Desktop/CS6120/bril/bril-ts/build/brili.js:402:51)
+    at evalFunc (/Users/wandang/Desktop/CS6120/bril/bril-ts/build/brili.js:622:26)
+    at evalProg (/Users/wandang/Desktop/CS6120/bril/bril-ts/build/brili.js:750:5)
+    at /Users/wandang/Desktop/CS6120/bril/bril-ts/build/brili.js:762:13
+    at Generator.next (<anonymous>)
+    at fulfilled (/Users/wandang/Desktop/CS6120/bril/bril-ts/build/brili.js:6:58)
+    at processTicksAndRejections (internal/process/task_queues.js:97:5)

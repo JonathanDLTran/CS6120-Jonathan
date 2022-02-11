@@ -5,7 +5,5 @@
     d: int = mul c c;
     e: int = mul d d;
     f: int = mul e e;
-    g: int = mul f f;
-    h: int = mul g g; 
-    print h;
+    print f;
 }

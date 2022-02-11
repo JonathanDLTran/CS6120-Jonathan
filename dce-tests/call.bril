@@ -14,10 +14,10 @@
     print y;
 }
 
-@func_use(n: int) {
+@func_use(n: int) : int{
     ret n;
 }
 
-@func_not_use(n: int) {
+@func_not_use(n: int) : int {
     ret n;
 }

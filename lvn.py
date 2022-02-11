@@ -183,7 +183,6 @@ def get_lvn_value(curr_lvn_num, num_value_loc):
 def lvn_value_to_instr(dst, lvn_value, num_value_loc, original_instr):
     assert type(lvn_value) == tuple
     assert len(lvn_value) >= 2
-
     first = lvn_value[0]
     if first == CONST:
         assert len(lvn_value) == 2
@@ -206,7 +205,7 @@ def lvn_value_to_instr(dst, lvn_value, num_value_loc, original_instr):
         assert len(lvn_value) >= 2
         args = list(map(lambda a: get_canonical_loc(
             a, num_value_loc), lvn_value[1:]))
-        return {DEST: dst, OP: CALL, ARGS: args, FUNCS: [original_instr[FUNCS]], TYPE: original_instr[TYPE]}
+        return {DEST: dst, OP: CALL, ARGS: args, FUNCS: original_instr[FUNCS], TYPE: original_instr[TYPE]}
     elif first in [ID]:
         assert len(lvn_value) == 2
         arg1 = get_canonical_loc(lvn_value[1], num_value_loc)
@@ -247,8 +246,8 @@ def instr_lvn(instr, remainder_bb, var_to_num, num_value_loc):
 
             # consider that the variable will get rewritten
             dest_overwritten = False
-            for instr in remainder_bb:
-                if DEST in instr and instr[DEST] == dst_var:
+            for rem_instr in remainder_bb:
+                if DEST in rem_instr and rem_instr[DEST] == dst_var:
                     dest_overwritten = True
                     break
             if dest_overwritten:
@@ -307,9 +306,10 @@ def lvn(program):
 @click.command()
 def main():
     prog = json.load(sys.stdin)
-    print(json.dumps(prog, indent=4, sort_keys=True))
+    # print(json.dumps(prog, indent=4, sort_keys=True))
     final_prog = lvn(prog)
-    print(json.dumps(final_prog, indent=4, sort_keys=True))
+    # print(json.dumps(final_prog, indent=4, sort_keys=True))
+    print(json.dumps(final_prog))
 
 
 if __name__ == "__main__":
