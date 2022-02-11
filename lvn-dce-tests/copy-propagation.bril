@@ -1,0 +1,10 @@
+# ARGS: 1
+@main(x: int) {
+    a: int = id x;
+    b: int = id a;
+    c: int = id b;
+    d: int = id c;
+    e: int = id d;
+    f: int = id e;
+    print f;
+}

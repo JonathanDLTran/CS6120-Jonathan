@@ -1,0 +1,4 @@
+@main {
+  f: int = const 4294967296;
+  print f;
+}

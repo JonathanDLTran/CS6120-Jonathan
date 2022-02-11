@@ -1,0 +1,7 @@
+@main(b1: bool, b2: bool, x: int) {
+  b1_1: int = const true;
+  x: int = const 5;
+  print b1_1;
+  print b1_1;
+  print x;
+}

@@ -1,0 +1,14 @@
+@main {
+  a: int = const true;
+  b: int = const false;
+  print b;
+  print b;
+  print a;
+  print b;
+  print a;
+  print b;
+  print b;
+  print b;
+  print b;
+  print a;
+}

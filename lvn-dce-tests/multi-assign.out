@@ -1,0 +1,10 @@
+@main(a: int, b: int, c: int, d: int) {
+  x_1: int = add a b;
+  x_2: int = add c d;
+  s: int = mul x_2 x_1;
+  t: int = mul s s;
+  y: int = add x_2 x_1;
+  x: int = add s t;
+  print x;
+  print y;
+}

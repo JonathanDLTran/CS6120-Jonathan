@@ -1,0 +1,8 @@
+@main {
+  c: int = const 3;
+  w: int = const 12;
+  print w;
+  print c;
+  print c;
+  print w;
+}

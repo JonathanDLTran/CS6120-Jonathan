@@ -1,0 +1,31 @@
+@main {
+  a: bool = const true;
+  b: bool = const false;
+  c: bool = const true;
+  d: bool = and a b;
+  e: bool = or b c;
+  f: bool = not e;
+  g: bool = and d e;
+  print g;
+
+  x: int = const 1;
+  y: int = const 2;
+  b8: bool = eq x y;
+  print b8;
+  b9: bool = lt x y;
+  print b9;
+  b10: bool = gt x y;
+  print b10;
+  b11: bool = ge y x;
+  print b11;
+  b12: bool = le y x;
+  print b12;
+  b13: bool = eq y x;
+  print b13;
+  b14: bool = and b12 b13;
+  print b14;
+  b14: bool = and b13 b12;
+  print b14;
+  b14: bool = or b9 b10;
+  print b14;
+}

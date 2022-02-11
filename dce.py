@@ -89,20 +89,26 @@ def iterate_dce(program, dce_method):
     return program
 
 
-def dce(program):
+def dce(program, global_delete, local_delete):
     """
     Naive DCE wrapper method
     """
-    return iterate_dce(program, local_dce)
+    if global_delete == None and local_delete == None:
+        return iterate_dce(iterate_dce(program, local_dce), delete_unused_dce)
+    elif global_delete == None and local_delete:
+        return iterate_dce(program, local_dce)
+    elif global_delete and local_delete == None:
+        return iterate_dce(program, delete_unused_dce)
+    return iterate_dce(iterate_dce(program, local_dce), delete_unused_dce)
 
 
-# @click.command()
-# @click.option('--del-unused', default=1, help='Delete Unused.')
-# @click.option('--del-unused-iterate', help='Delete Unused with Iteration.')
-def main():
+@click.command()
+@click.option('--global-delete', default=1, help='Delete Globally.')
+@click.option('--local-delete', default=1, help='Delete Locally.')
+def main(global_delete, local_delete):
     prog = json.load(sys.stdin)
     # print(json.dumps(prog, indent=4, sort_keys=True))
-    final_prog = dce(prog)
+    final_prog = dce(prog, global_delete, local_delete)
     # print(json.dumps(final_prog, indent=4, sort_keys=True))
     print(json.dumps(final_prog))
 

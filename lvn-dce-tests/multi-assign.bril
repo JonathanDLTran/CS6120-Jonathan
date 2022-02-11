@@ -1,0 +1,14 @@
+# ARGS: 1 2 3 4
+@main (a:int, b:int, c:int, d:int) {
+    x: int = add a b;
+    y: int = add a b;
+    x: int = add c d;
+    y: int = add a b;
+    s: int = mul x y;
+    t: int = mul s s;
+    y: int = add a b;
+    y: int = add x y;
+    x: int = add s t;
+    print x;
+    print y;
+}
