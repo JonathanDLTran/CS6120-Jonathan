@@ -1,0 +1,26 @@
+# ARGS: 1
+@main(x: int) {
+    x: int = add x x;
+    x: int = const 4;
+    x: int = const 5;
+    y: int = id x;
+    z: int = id y;
+    w: int = id z;
+    print w;
+    a: int = add x y;
+    b: int = add y x;
+    print a;
+    print b;
+    c: int = mul x y;
+    d: int = mul y x;
+    e: int = add c d;
+    f: int = mul e e;
+    g: int = sub f c;
+    print g;
+    g: int = const 5;
+    print g;
+    f: int = const 4;
+    print f;
+    e: int = const 3;
+    print e;
+}
