@@ -42,10 +42,10 @@ def block_map(blocks):
 
 
 def get_cfg(name2block):
-    out = OrderedDict()
+    out = {}
     for i, (name, block) in enumerate(name2block.items()):
         last = block[-1]
-        if last['op'] == ['jmp', 'br']:
+        if last['op'] in ['jmp', 'br']:
             succ = last['labels']
         elif last['op'] == 'ret':
             succ = []
@@ -53,19 +53,28 @@ def get_cfg(name2block):
             if i == len(name2block) - 1:
                 succ = []
             else:
-                succ = list(name2block.keys())[i + 1]
+                succ = [list(name2block.keys())[i + 1]]
         out[name] = succ
     return out
 
 
-def mycfg():
+def get_graphviz(func, cfg, name2block):
+    print('digraph {} {{'.format(func['name']))
+    for name in name2block:
+        print('  {};'.format(name))
+    for name, succs in cfg.items():
+        for succ in succs:
+            print('  {} -> {};'.format(name, succ))
+    print('}')
+
+
+def main():
     prog = json.load(sys.stdin)
     for func in prog["functions"]:
         name2block = block_map(form_blocks(func['instrs']))
-        print(name2block)
         cfg = get_cfg(name2block)
-        print(cfg)
+        get_graphviz(func, cfg, name2block)
 
 
 if __name__ == "__main__":
-    mycfg()
+    main()
