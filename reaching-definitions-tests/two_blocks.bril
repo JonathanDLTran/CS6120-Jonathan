@@ -1,0 +1,8 @@
+@main() {
+    a: int = const 3;
+    b: bool = const true;
+    jmp .next;
+.next:
+    a: int = const 4;
+    print a;
+}

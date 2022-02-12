@@ -1,0 +1,1 @@
+command = "bril2json < {filename} | python3 ../reaching_definitions.py | brili -p {args}"

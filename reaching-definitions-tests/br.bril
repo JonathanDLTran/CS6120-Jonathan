@@ -1,0 +1,10 @@
+@main() {
+    a: int = const 3;
+    b: bool = const true;
+    br b .first .second;
+.first:
+    a: int = const 4;
+.second:
+    a: int = const 5;
+    print a;
+}
