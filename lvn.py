@@ -70,11 +70,27 @@ def interpret_lvn_value(lvn_value, num_value_loc):
         if not lvn_value_is_const(a):
             all_constants = False
 
+    op = lvn_value[0]
     # we disallow semi interpreted expressions, e.g. (ADD, const 1, 3)
     if not all_constants:
+        # However, there are some other algebraic simplications possible.
+        if op == EQ:
+            if lvn_value[1] == lvn_value[2]:
+                return (CONST, 1)
+        elif op == LT:
+            if lvn_value[1] == lvn_value[2]:
+                return (CONST, 0)
+        elif op == GT:
+            if lvn_value[1] == lvn_value[2]:
+                return (CONST, 0)
+        elif op == LE:
+            if lvn_value[1] == lvn_value[2]:
+                return (CONST, 1)
+        elif op == GE:
+            if lvn_value[1] == lvn_value[2]:
+                return (CONST, 1)
         return lvn_value
 
-    op = lvn_value[0]
     if op == CONST:
         raise RuntimeError(
             f"Constants are the base case: should be returned earlier.")
@@ -214,6 +230,27 @@ def lvn_value_to_instr(dst, lvn_value, num_value_loc, original_instr):
         raise RuntimeError(f"Unmatched LVN Value type {lvn_value}")
 
 
+def lvn_value_equality(lvn_val1, lvn_val2, num_value_loc):
+    assert type(lvn_val1) == tuple and len(lvn_val1) >= 2
+    assert type(lvn_val2) == tuple and len(lvn_val2) >= 2
+    if lvn_val1 == lvn_val2:
+        return True
+    # Do Algebraic Simplication
+    op1 = lvn_val1[0]
+    op2 = lvn_val2[0]
+    if op1 == ADD and op2 == MUL:
+        if lvn_val1[1] == lvn_val1[2] and lvn_val2[1] == lvn_val1[1] and get_lvn_value(lvn_val2[2], num_value_loc) == (CONST, 2):
+            return True
+        elif lvn_val1[1] == lvn_val1[2] and lvn_val2[2] == lvn_val1[1] and get_lvn_value(lvn_val2[1], num_value_loc) == (CONST, 2):
+            return True
+    elif op1 == MUL and op2 == ADD:
+        if lvn_val2[1] == lvn_val2[2] and lvn_val1[1] == lvn_val2[1] and get_lvn_value(lvn_val1[2], num_value_loc) == (CONST, 2):
+            return True
+        elif lvn_val2[1] == lvn_val2[2] and lvn_val1[2] == lvn_val2[1] and get_lvn_value(lvn_val1[1], num_value_loc) == (CONST, 2):
+            return True
+    return False
+
+
 def instr_lvn(instr, remainder_bb, var_to_num, num_value_loc):
     if DEST in instr:
         dst_var = instr[DEST]
@@ -222,7 +259,7 @@ def instr_lvn(instr, remainder_bb, var_to_num, num_value_loc):
         in_lvn_table = False
         in_lvn_table_num = None
         for (lvn_num, lvn_val, _) in num_value_loc:
-            if lvn_val == new_lvn_val:
+            if lvn_value_equality(lvn_val, new_lvn_val, num_value_loc):
                 in_lvn_table = True
                 in_lvn_table_num = lvn_num
                 break
@@ -304,11 +341,14 @@ def lvn(program):
 
 
 @click.command()
-def main():
+@click.option('--pretty-print', default=False, help='Pretty Print Before and After Optimization.')
+def main(pretty_print):
     prog = json.load(sys.stdin)
-    # print(json.dumps(prog, indent=4, sort_keys=True))
+    if pretty_print:
+        print(json.dumps(prog, indent=4, sort_keys=True))
     final_prog = lvn(prog)
-    # print(json.dumps(final_prog, indent=4, sort_keys=True))
+    if pretty_print:
+        print(json.dumps(final_prog, indent=4, sort_keys=True))
     print(json.dumps(final_prog))
 
 

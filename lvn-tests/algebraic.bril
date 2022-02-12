@@ -1,0 +1,31 @@
+# ARGS: 0 1
+@main(m: int, n: int){
+    two: int = const 2;
+    a: int = add m m;
+    b: int = mul two m;
+    c: bool = eq a b;
+    print a;
+    print b;
+    print c;
+
+    n: int = id m;
+    d: int = add n n;
+    e: int = mul n two;
+    f: bool = eq d a;
+    g: bool = lt a e;
+    h: bool = gt b d;
+    i: bool = le b e;
+    j: bool = ge d a;
+    print f;
+    print g;
+    print h;
+    print i;
+    print j;
+
+    k: int = mul two a;
+    l: int = mul d two;
+    m: bool = eq k l;
+    print k;
+    print l;
+    print m;
+}

@@ -105,11 +105,14 @@ def dce(program, global_delete, local_delete):
 @click.command()
 @click.option('--global-delete', default=1, help='Delete Globally.')
 @click.option('--local-delete', default=1, help='Delete Locally.')
-def main(global_delete, local_delete):
+@click.option('--pretty-print', default=False, help='Pretty Print Before and After Optimization.')
+def main(global_delete, local_delete, pretty_print):
     prog = json.load(sys.stdin)
-    # print(json.dumps(prog, indent=4, sort_keys=True))
+    if pretty_print:
+        print(json.dumps(prog, indent=4, sort_keys=True))
     final_prog = dce(prog, global_delete, local_delete)
-    # print(json.dumps(final_prog, indent=4, sort_keys=True))
+    if pretty_print:
+        print(json.dumps(final_prog, indent=4, sort_keys=True))
     print(json.dumps(final_prog))
 
 
