@@ -14,9 +14,11 @@ def form_blocks(body):
                 yield cur_block
                 cur_block = []
         else:
-            yield cur_block
+            if cur_block:
+                yield cur_block
             cur_block = [instr]
-    yield cur_block
+    if cur_block:
+        yield cur_block
 
 
 def join_blocks(blocks):
