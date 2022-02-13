@@ -1,0 +1,19 @@
+@main() {
+    a: int = const 3;
+    b: int = const 4;
+    c: int = add a b;
+    d: int = sub a b;
+    e: int = div c d;
+    f: int = mul c d;
+    print c;
+    print d;
+    print e;
+    print f;
+    g: int = call @func f;
+    print g;
+    ret;
+}
+
+@func(n: int): int{
+    ret n;
+}

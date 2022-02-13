@@ -1,0 +1,13 @@
+@main() {
+    zero: int = const 0;
+    i: int = const 10;
+.header:
+    b: bool = eq i zero;
+    br b .end .body;
+.body:
+    one: int = const 1;
+    i: int = sub i one;
+    jmp .header;
+.end:
+    print i;
+}

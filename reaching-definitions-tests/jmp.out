@@ -1,0 +1,11 @@
+Function: Func
+In:
+	b0: No Reaching Defintions.
+	b1: No Reaching Defintions.
+	final: a on line 1.
+	final: b on line 3.
+Out:
+	b0: a on line 1.
+	b1: b on line 3.
+	final: a on line 1.
+	final: b on line 3.

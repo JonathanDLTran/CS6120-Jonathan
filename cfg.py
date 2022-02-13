@@ -43,8 +43,25 @@ def block_map(blocks):
     return out
 
 
+def form_block_dict(blocks):
+    """
+    Internally Preserves labels, unlike Block Map, which tries to remove labels
+    and use them solely as dictionary keys.
+    """
+    out = OrderedDict()
+
+    for i, block in enumerate(blocks):
+        if 'label' in block[0]:
+            name = block[0]['label']
+        else:
+            name = f'b{i}'
+        out[name] = block
+
+    return out
+
+
 def get_cfg(name2block):
-    out = {}
+    out = OrderedDict()
     for i, (name, block) in enumerate(name2block.items()):
         last = block[-1]
         if last['op'] in ['jmp', 'br']:

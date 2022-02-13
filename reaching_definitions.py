@@ -1,18 +1,20 @@
 import sys
 import json
 import click
+from numpy import number
 
-from cfg import form_cfg
+from cfg import form_cfg, form_blocks, form_block_dict
 from bril_core_constants import *
+from worklist_solver import Worklist
 
 
 def kills(block):
     assert type(block) == list
     kills = set()
-    for instr in block:
+    for i, instr in block:
         if DEST in instr:
             dst = instr[DEST]
-            kills.add(dst)
+            kills.add((i, dst))
     return kills
 
 
@@ -42,11 +44,11 @@ def diff(in_block, kills):
                 killed = True
                 break
         if not killed:
-            final.add(i1, var1)
+            final.add((i1, var1))
     return final
 
 
-def transfer_function(in_block, block):
+def transfer(in_block, block):
     assert type(in_block) == set
     assert type(block) == list
     return defs(block).union(diff(in_block, kills(block)))
@@ -59,33 +61,63 @@ def merge(blocks):
     return merged
 
 
-def number_instrs(cfg):
+def number_instrs(blocks):
     """
-    Adds unique instruction labels to every instruction with a destination
+    Adds unique instruction labels to every instruction
     """
     i = 1
-    for name, block in cfg:
+    new_blocks = {}
+    for key, block in blocks.items():
         new_block = []
         for instr in block:
             new_block.append((i, instr))
             i += 1
-        cfg[name] = new_block
-    return cfg
+        new_blocks[key] = new_block
+    return new_blocks
+
+
+def reaching_defs_func(function):
+    cfg = form_cfg(function)
+    assert len(cfg) != 0
+    entry = list(cfg.items())[0][0]
+    blocks = number_instrs(form_block_dict(form_blocks(function["instrs"])))
+    init = []
+    if ARGS in function:
+        args = function[ARGS]
+        for i, a in enumerate(args, 1):
+            init.append((-i, a))
+    worklist = Worklist(entry, cfg, blocks, init, merge, transfer)
+    return worklist.solve()
 
 
 def reaching_defs(program):
-    cfg = form_cfg(program)
-    numbered_cfg = number_instrs(cfg)
+    for func in program["functions"]:
+        (in_dict, out_dict) = reaching_defs_func(func)
+        print(f"Function: Func")
+        print(f"In:")
+        for (k, v) in in_dict.items():
+            if v == []:
+                print(f"\t{k}: No Reaching Defintions.")
+            else:
+                for (idx, var) in v:
+                    print(f"\t{k}: {var} on line {idx}.")
+        print(f"Out:")
+        for (k, v) in out_dict.items():
+            if v == []:
+                print(f"\t{k}: No Reaching Defintions.")
+            else:
+                for (idx, var) in v:
+                    print(f"\t{k}: {var} on line {idx}.")
+    return
 
 
 @click.command()
-@click.option('--pretty-print', default=False, help='Pretty Print Before and After Optimization.')
+@click.option('--pretty-print', default=False, help='Pretty Print Original Program.')
 def main(pretty_print):
     prog = json.load(sys.stdin)
     if pretty_print:
         print(json.dumps(prog, indent=4, sort_keys=True))
-    if pretty_print:
-        print(json.dumps(prog, indent=4, sort_keys=True))
+    reaching_defs(prog)
 
 
 if __name__ == "__main__":

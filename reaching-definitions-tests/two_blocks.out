@@ -1,0 +1,10 @@
+Function: Func
+In:
+	b0: No Reaching Defintions.
+	next: a on line 1.
+	next: b on line 2.
+Out:
+	b0: a on line 1.
+	b0: b on line 2.
+	next: b on line 2.
+	next: a on line 5.

@@ -1,0 +1,35 @@
+Function: Func
+In:
+	b0: No Reaching Defintions.
+	header: zero on line 1.
+	header: i on line 2.
+	header: b on line 4.
+	header: one on line 7.
+	header: i on line 8.
+	body: zero on line 1.
+	body: i on line 2.
+	body: b on line 4.
+	body: one on line 7.
+	body: i on line 8.
+	end: zero on line 1.
+	end: i on line 2.
+	end: b on line 4.
+	end: one on line 7.
+	end: i on line 8.
+Out:
+	b0: zero on line 1.
+	b0: i on line 2.
+	header: zero on line 1.
+	header: i on line 2.
+	header: b on line 4.
+	header: one on line 7.
+	header: i on line 8.
+	body: zero on line 1.
+	body: b on line 4.
+	body: one on line 7.
+	body: i on line 8.
+	end: zero on line 1.
+	end: i on line 2.
+	end: b on line 4.
+	end: one on line 7.
+	end: i on line 8.
