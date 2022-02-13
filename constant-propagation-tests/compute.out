@@ -1,0 +1,11 @@
+Function: main
+In:
+	b0: No Constant Definitions.
+Out:
+	b0: a has value 2.
+	b0: b has value 4.
+	b0: c has value 6.
+	b0: d has value 2.
+	b0: e has value 1.
+	b0: f has value 2.
+	b0: g has value 4.

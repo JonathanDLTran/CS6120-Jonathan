@@ -1,0 +1,8 @@
+# ARGS: 10
+@main(n: int) {
+    a: int = const 4;
+    b: int = const 5;
+    b: int = id a;
+    a: int = id n;
+    a: int = mul a b;
+}

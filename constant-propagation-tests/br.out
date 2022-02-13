@@ -1,0 +1,14 @@
+Function: main
+In:
+	b0: No Constant Definitions.
+	first: a has value 4.
+	first: b has value False.
+	second: a has value ?.
+	second: b has value False.
+Out:
+	b0: a has value 4.
+	b0: b has value False.
+	first: a has value 5.
+	first: b has value False.
+	second: a has value ?.
+	second: b has value False.

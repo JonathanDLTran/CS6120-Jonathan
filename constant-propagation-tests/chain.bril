@@ -1,0 +1,12 @@
+@main {
+    a: int = const 1;
+    jmp .first;
+.first:
+    a: int = const 2;
+    jmp .second;
+.second:
+    a: int = mul a a;
+    jmp .third;
+.third:
+    a: int = sub a a;
+}

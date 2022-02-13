@@ -1,0 +1,7 @@
+Function: main
+In:
+	b0: No Constant Definitions.
+	next: a has value 4.
+Out:
+	b0: a has value 4.
+	next: a has value 16.

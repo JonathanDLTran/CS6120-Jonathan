@@ -1,0 +1,6 @@
+@main{
+    a: int = const 4;
+    jmp .next;
+.next:
+    a: int = mul a a;
+}

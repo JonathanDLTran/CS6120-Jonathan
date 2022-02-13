@@ -1,0 +1,7 @@
+Function: main
+In:
+	header: a has value 2.
+	first: a has value 1.
+Out:
+	header: a has value 1.
+	first: a has value 2.

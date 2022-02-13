@@ -1,7 +1,10 @@
 Function: main
 In:
-	b0: No Reaching Definitions.
+	b0: n on line -1.
+	first: n on line -1.
 	first: a on line 1.
 Out:
+	b0: n on line -1.
 	b0: a on line 1.
+	first: n on line -1.
 	first: a on line 1.

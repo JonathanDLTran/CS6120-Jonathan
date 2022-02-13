@@ -1,6 +1,8 @@
 echo "Running Regression Tests"
 echo "Reaching Definitions Tests"
 turnt reaching-definitions-tests/*.bril
+echo "Constant Propagation Tests"
+turnt constant-propagation-tests/*.bril
 echo "Running CFG Tests"
 turnt cfg-tests/*.bril
 echo "Running LVN Tests"

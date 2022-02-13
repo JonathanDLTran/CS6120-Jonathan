@@ -42,6 +42,10 @@ class Worklist(object):
             for name, _ in self.blocks.items():
                 if name in pred_names:
                     preds.append(out_dict[name])
+            # if no preds, it is the entry location. Add args as needed.
+            if preds == []:
+                if len(in_dict[self.entry]) != 0:
+                    preds.append(in_dict[self.entry])
             in_b = self.merge(preds)
             in_dict[block_name] = in_b
             new_out_b = self.transfer(in_b, block)
@@ -54,15 +58,4 @@ class Worklist(object):
                         successors.append((succ_name, succ_blocks))
                 worklist += successors
             out_dict[block_name] = new_out_b
-
-        final_in_dict = OrderedDict()
-        for (key, inner_set) in in_dict.items():
-            inner_lst = list(
-                sorted([pair for pair in inner_set], key=lambda pair: pair[0]))
-            final_in_dict[key] = inner_lst
-        final_out_dict = OrderedDict()
-        for (key, inner_set) in out_dict.items():
-            inner_lst = list(
-                sorted([pair for pair in inner_set], key=lambda pair: pair[0]))
-            final_out_dict[key] = inner_lst
-        return (final_in_dict, final_out_dict)
+        return (in_dict, out_dict)

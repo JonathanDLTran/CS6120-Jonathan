@@ -11,6 +11,6 @@ Out:
 	b0: g on line 11.
 Function: func
 In:
-	b0: No Reaching Definitions.
+	b0: n on line -1.
 Out:
-	b0: No Reaching Definitions.
+	b0: n on line -1.

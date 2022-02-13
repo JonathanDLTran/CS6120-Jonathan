@@ -1,6 +1,7 @@
 import sys
 import json
 import click
+from collections import OrderedDict
 
 from cfg import form_cfg, form_blocks, form_block_dict
 from bril_core_constants import *
@@ -80,11 +81,11 @@ def reaching_defs_func(function):
     assert len(cfg) != 0
     entry = list(cfg.items())[0][0]
     blocks = number_instrs(form_block_dict(form_blocks(function["instrs"])))
-    init = []
+    init = set()
     if ARGS in function:
         args = function[ARGS]
         for i, a in enumerate(args, 1):
-            init.append((-i, a[NAME]))
+            init.add((-i, a[NAME]))
     worklist = Worklist(entry, cfg, blocks, init, merge, transfer)
     return worklist.solve()
 
@@ -92,16 +93,28 @@ def reaching_defs_func(function):
 def reaching_defs(program):
     for func in program["functions"]:
         (in_dict, out_dict) = reaching_defs_func(func)
+
+        final_in_dict = OrderedDict()
+        for (key, inner_set) in in_dict.items():
+            inner_lst = list(
+                sorted([pair for pair in inner_set], key=lambda pair: pair[0]))
+            final_in_dict[key] = inner_lst
+        final_out_dict = OrderedDict()
+        for (key, inner_set) in out_dict.items():
+            inner_lst = list(
+                sorted([pair for pair in inner_set], key=lambda pair: pair[0]))
+            final_out_dict[key] = inner_lst
+
         print(f"Function: {func[NAME]}")
         print(f"In:")
-        for (k, v) in in_dict.items():
+        for (k, v) in final_in_dict.items():
             if v == []:
                 print(f"\t{k}: No Reaching Definitions.")
             else:
                 for (idx, var) in v:
                     print(f"\t{k}: {var} on line {idx}.")
         print(f"Out:")
-        for (k, v) in out_dict.items():
+        for (k, v) in final_out_dict.items():
             if v == []:
                 print(f"\t{k}: No Reaching Definitions.")
             else:

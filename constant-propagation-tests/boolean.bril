@@ -1,0 +1,14 @@
+@main{
+    b1: bool = const true;
+    b1: bool = and b1 b1;
+    b2: bool = not b1;
+    b3: bool = or b2 b1;
+    
+    i1: int = const 4;
+    i2: int = const 3;
+    b4: bool = eq i1 i2;
+    b5: bool = lt i1 i2;
+    b6: bool = gt i1 i2;
+    b7: bool = le i1 i2;
+    b8: bool = ge i1 i2;
+}
