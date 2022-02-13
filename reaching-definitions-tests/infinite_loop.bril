@@ -1,0 +1,7 @@
+@main() {
+    zero: int = const 0;
+    i: int = const 10;
+.infinite.loop:
+    i: int = const 4;
+    jmp .infinite.loop;
+}

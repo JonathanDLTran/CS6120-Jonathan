@@ -1,0 +1,11 @@
+Function: Func
+In:
+	b0: No Reaching Defintions.
+	infinite.loop: zero on line 1.
+	infinite.loop: i on line 2.
+	infinite.loop: i on line 4.
+Out:
+	b0: zero on line 1.
+	b0: i on line 2.
+	infinite.loop: zero on line 1.
+	infinite.loop: i on line 4.
