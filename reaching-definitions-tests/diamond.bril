@@ -1,0 +1,17 @@
+@main() {
+    a: int = const 3;
+    b: bool = const true;
+    br b .first .second;
+.first:
+    a: int = const 4;
+    jmp .end;
+.second:
+    a: int = const 5;
+    jmp .end;
+.end:   
+    a: int = const 6;
+    print a;
+    print b;
+    c: int = add a a;
+    print a;
+}

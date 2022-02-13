@@ -1,0 +1,11 @@
+Function: main
+In:
+	b0: No Reaching Definitions.
+	first: a on line 1.
+	second: a on line 4.
+	third: a on line 8.
+Out:
+	b0: a on line 1.
+	first: a on line 4.
+	second: a on line 8.
+	third: a on line 12.

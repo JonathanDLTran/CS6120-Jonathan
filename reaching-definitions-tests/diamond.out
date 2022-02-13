@@ -1,0 +1,20 @@
+Function: main
+In:
+	b0: No Reaching Definitions.
+	first: a on line 1.
+	first: b on line 2.
+	second: a on line 1.
+	second: b on line 2.
+	end: b on line 2.
+	end: a on line 5.
+	end: a on line 8.
+Out:
+	b0: a on line 1.
+	b0: b on line 2.
+	first: b on line 2.
+	first: a on line 5.
+	second: b on line 2.
+	second: a on line 8.
+	end: b on line 2.
+	end: a on line 11.
+	end: c on line 14.

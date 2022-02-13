@@ -1,0 +1,17 @@
+# ARGS: 10
+@main(n: int) {
+    a: int = const 3;
+    a: int = const 4;
+    print a;
+    jmp .first;
+.first:
+    a: int = const 4;
+    a: int = const 5;
+    print a;
+    jmp .second;
+.second:
+    n: int = const 5;
+    n: int = id a;
+    print n;
+    ret;
+}

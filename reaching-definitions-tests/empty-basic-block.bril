@@ -1,0 +1,7 @@
+# ARGS: 10
+@main(n: int) {
+    a: int = const 3;
+    print a;
+    jmp .first;
+.first:
+}

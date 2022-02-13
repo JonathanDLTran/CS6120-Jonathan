@@ -63,17 +63,20 @@ def form_block_dict(blocks):
 def get_cfg(name2block):
     out = OrderedDict()
     for i, (name, block) in enumerate(name2block.items()):
-        last = block[-1]
-        if last['op'] in ['jmp', 'br']:
-            succ = last['labels']
-        elif last['op'] == 'ret':
-            succ = []
-        else:
-            if i == len(name2block) - 1:
+        if block != []:
+            last = block[-1]
+            if last['op'] in ['jmp', 'br']:
+                succ = last['labels']
+            elif last['op'] == 'ret':
                 succ = []
             else:
-                succ = [list(name2block.keys())[i + 1]]
-        out[name] = succ
+                if i == len(name2block) - 1:
+                    succ = []
+                else:
+                    succ = [list(name2block.keys())[i + 1]]
+            out[name] = succ
+        else:
+            out[name] = []
     return out
 
 

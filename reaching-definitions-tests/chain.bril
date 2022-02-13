@@ -1,0 +1,16 @@
+@main() {
+    a: int = const 3;
+    jmp .first;
+.first:
+    a: int = const 4;
+    print a;
+    jmp .second;
+.second:
+    a: int = const 5;
+    print a;
+    jmp .third;
+.third:
+    a: int = const 6;
+    print a;
+    ret;
+}
