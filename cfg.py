@@ -60,6 +60,10 @@ def get_cfg(name2block):
     return out
 
 
+def form_cfg(func):
+    return get_cfg(block_map(form_blocks(func['instrs'])))
+
+
 def get_graphviz(func, cfg, name2block):
     print('digraph {} {{'.format(func['name']))
     for name in name2block:
