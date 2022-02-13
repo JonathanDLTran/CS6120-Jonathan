@@ -1,7 +1,6 @@
 import sys
 import json
 import click
-from numpy import number
 
 from cfg import form_cfg, form_blocks, form_block_dict
 from bril_core_constants import *
@@ -85,7 +84,7 @@ def reaching_defs_func(function):
     if ARGS in function:
         args = function[ARGS]
         for i, a in enumerate(args, 1):
-            init.append((-i, a))
+            init.append((-i, a[NAME]))
     worklist = Worklist(entry, cfg, blocks, init, merge, transfer)
     return worklist.solve()
 
@@ -93,18 +92,18 @@ def reaching_defs_func(function):
 def reaching_defs(program):
     for func in program["functions"]:
         (in_dict, out_dict) = reaching_defs_func(func)
-        print(f"Function: Func")
+        print(f"Function: {func[NAME]}")
         print(f"In:")
         for (k, v) in in_dict.items():
             if v == []:
-                print(f"\t{k}: No Reaching Defintions.")
+                print(f"\t{k}: No Reaching Definitions.")
             else:
                 for (idx, var) in v:
                     print(f"\t{k}: {var} on line {idx}.")
         print(f"Out:")
         for (k, v) in out_dict.items():
             if v == []:
-                print(f"\t{k}: No Reaching Defintions.")
+                print(f"\t{k}: No Reaching Definitions.")
             else:
                 for (idx, var) in v:
                     print(f"\t{k}: {var} on line {idx}.")

@@ -1,6 +1,6 @@
-Function: Func
+Function: main
 In:
-	b0: No Reaching Defintions.
+	b0: No Reaching Definitions.
 Out:
 	b0: a on line 1.
 	b0: b on line 2.
@@ -9,8 +9,8 @@ Out:
 	b0: e on line 5.
 	b0: f on line 6.
 	b0: g on line 11.
-Function: Func
+Function: func
 In:
-	b0: No Reaching Defintions.
+	b0: No Reaching Definitions.
 Out:
-	b0: No Reaching Defintions.
+	b0: No Reaching Definitions.

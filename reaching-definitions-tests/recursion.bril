@@ -1,0 +1,19 @@
+@main() {
+    n: int = const 10;
+    result: int = call @fact n;
+    print result;
+}
+
+@fact(n: int): int{
+    zero: int = const 0;
+    one: int = const 1;
+    b: bool = eq n zero;
+    br b .end .body;
+.body:
+    n_minus_one : int = sub n one;
+    result: int = call @fact n_minus_one;
+    final: int = mul result n;
+    ret final;
+.end:
+    ret one;
+}

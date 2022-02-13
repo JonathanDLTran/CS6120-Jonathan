@@ -1,7 +1,7 @@
-Function: Func
+Function: main
 In:
-	b0: No Reaching Defintions.
-	b1: No Reaching Defintions.
+	b0: No Reaching Definitions.
+	b1: No Reaching Definitions.
 	final: a on line 1.
 	final: b on line 3.
 Out:

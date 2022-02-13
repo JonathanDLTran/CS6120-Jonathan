@@ -1,0 +1,28 @@
+Function: main
+In:
+	b0: No Reaching Definitions.
+Out:
+	b0: n on line 1.
+	b0: result on line 2.
+Function: fact
+In:
+	b0: No Reaching Definitions.
+	body: zero on line 1.
+	body: one on line 2.
+	body: b on line 3.
+	end: zero on line 1.
+	end: one on line 2.
+	end: b on line 3.
+Out:
+	b0: zero on line 1.
+	b0: one on line 2.
+	b0: b on line 3.
+	body: zero on line 1.
+	body: one on line 2.
+	body: b on line 3.
+	body: n_minus_one on line 6.
+	body: result on line 7.
+	body: final on line 8.
+	end: zero on line 1.
+	end: one on line 2.
+	end: b on line 3.

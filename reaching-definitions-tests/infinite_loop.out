@@ -1,6 +1,6 @@
-Function: Func
+Function: main
 In:
-	b0: No Reaching Defintions.
+	b0: No Reaching Definitions.
 	infinite.loop: zero on line 1.
 	infinite.loop: i on line 2.
 	infinite.loop: i on line 4.

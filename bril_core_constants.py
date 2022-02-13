@@ -6,6 +6,7 @@ OP = "op"
 VALUE = "value"
 LABEL = "label"
 FUNCS = "funcs"
+NAME = "name"
 
 
 INT = "int"
