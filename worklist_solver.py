@@ -59,3 +59,40 @@ class Worklist(object):
                 worklist += successors
             out_dict[block_name] = new_out_b
         return (in_dict, out_dict)
+
+    def solve_backwards(self):
+        out_dict = OrderedDict()
+        for name in self.blocks:
+            if name == self.entry:
+                out_dict[self.entry] = self.init
+            else:
+                out_dict[name] = set()
+        in_dict = OrderedDict()
+        for name in self.blocks:
+            in_dict[name] = self.init
+
+        worklist = [(name, self.blocks[name]) for name in self.blocks]
+        while worklist != []:
+            (block_name, block) = worklist.pop()
+            succ_names = self.cfg[block_name]
+            succs = []
+            for name, _ in self.block.items():
+                if name in succ_names:
+                    succs.append(in_dict[name])
+            # if no successors, it is the entry location. Add args as needed.
+            if succs == []:
+                if len(out_dict[self.entry]) != 0:
+                    succs.append(out_dict[self.entry])
+            out_b = self.merge(succs)
+            out_dict[block_name] = out_b
+            new_in_b = self.transfer(out_b, block)
+            old_in_b = in_dict[block_name]
+            if new_in_b != old_in_b:
+                predecessor_names = self.get_predecessors(block_name)
+                predecessors = []
+                for pred_name, pred_blocks in self.blocks.items():
+                    if pred_name in predecessor_names:
+                        predecessors.append((pred_name, pred_blocks))
+                worklist += predecessors
+            in_dict[block_name] = new_in_b
+        return (in_dict, out_dict)
