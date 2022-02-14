@@ -17,11 +17,14 @@ def main(reaching, constant, live, pretty_print):
     if pretty_print:
         print(json.dumps(prog, indent=4, sort_keys=True))
     if reaching:
-        print(reaching_defs(prog))
+        print("Reaching Definitions Analysis")
+        reaching_defs(prog)
     if constant:
-        print(constant_prop(prog))
+        print("Constant Propagation Analysis")
+        constant_prop(prog)
     if live:
-        print(live_variables(prog))
+        print("Live Variables Analysis")
+        live_variables(prog)
 
 
 if __name__ == "__main__":
