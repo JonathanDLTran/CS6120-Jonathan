@@ -1,0 +1,16 @@
+# ADD: 10 9
+@main(m: int, n: int) {
+    a: int = const 5;
+    b: int = const 6;
+    a: int = div b a;
+    b: int = sub a a;
+    n: int = id m;
+    m: int = sub a b;
+    m: int = add m n;
+    n: int = mul m m;
+    n: int = id n;
+    jmp .next;
+.next:
+    n: int = add m n;
+    print n;
+}

@@ -1,0 +1,6 @@
+@main {
+    a: int = const 5;
+    b: int = const 6;
+    a: int = div b a;
+    b: int = sub a a;
+}

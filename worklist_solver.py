@@ -76,7 +76,7 @@ class Worklist(object):
             (block_name, block) = worklist.pop()
             succ_names = self.cfg[block_name]
             succs = []
-            for name, _ in self.block.items():
+            for name, _ in self.blocks.items():
                 if name in succ_names:
                     succs.append(in_dict[name])
             # if no successors, it is the entry location. Add args as needed.

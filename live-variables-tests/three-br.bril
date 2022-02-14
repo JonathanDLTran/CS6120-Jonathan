@@ -1,0 +1,21 @@
+@main(){
+    one: int = const 1;
+    a: int = const 4;
+    b: int = const 5;
+    c: int = const 6;
+    cond: bool = eq a b;
+    br cond .first .second;
+.first:
+    br cond .first.rem .third;
+.first.rem:
+    c: int = add a a;
+    a: int = add a one;
+.second:
+    one: int = const 1;
+    b: int = add one b;
+.third:
+    c: int = mul c c;
+    print a;
+    print b;
+    print c;
+}
