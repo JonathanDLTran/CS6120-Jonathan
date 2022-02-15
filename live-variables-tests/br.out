@@ -1,0 +1,19 @@
+Function: main
+In:
+	b0: No Live Variables.
+	first: a used.
+	first: b used.
+	first: one used.
+	second: a used.
+	second: b used.
+	end: a used.
+	end: b used.
+Out:
+	b0: a used.
+	b0: b used.
+	b0: one used.
+	first: a used.
+	first: b used.
+	second: a used.
+	second: b used.
+	end: No Live Variables.

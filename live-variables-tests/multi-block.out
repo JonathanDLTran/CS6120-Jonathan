@@ -1,0 +1,7 @@
+Function: main
+In:
+	b0: No Live Variables.
+	next: a used.
+Out:
+	b0: a used.
+	next: No Live Variables.

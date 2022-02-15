@@ -1,0 +1,9 @@
+Function: main
+In:
+	b0: m used.
+	next: m used.
+	next: n used.
+Out:
+	b0: m used.
+	b0: n used.
+	next: No Live Variables.

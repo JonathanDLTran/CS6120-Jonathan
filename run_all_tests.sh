@@ -13,3 +13,5 @@ echo "Running DCE Tests"
 turnt dce-tests/*.bril
 echo "Running LVN & DCE Tests"
 turnt lvn-dce-tests/*.bril
+echo "Running Dominator Utilities"
+turnt dominator-utilities-tests/*.bril

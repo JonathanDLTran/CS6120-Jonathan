@@ -4,6 +4,32 @@ from collections import OrderedDict
 
 TERMINATORS = ["jmp", "br", "ret"]
 
+PREDS = "preds"
+SUCCS = "succs"
+
+
+def form_cfg_succs_preds(body):
+    """
+    Takes a Function Body and turns it into a CFG
+    representation with Successors and Predecessors with Multiple Basic Blocks
+    """
+    assert type(body) == list
+    blocks = form_blocks(body)
+    name2block = form_block_dict(blocks)
+    succs_cfg = get_cfg(name2block)
+    preds_cfg = OrderedDict()
+    for bb_name in succs_cfg:
+        preds = []
+        for bb_name1, succs in succs_cfg.items():
+            if bb_name in succs:
+                preds.append(bb_name1)
+        preds_cfg[bb_name] = preds
+
+    out = OrderedDict()
+    for bb_name in succs_cfg:
+        out[bb_name] = {PREDS: preds_cfg[bb_name], SUCCS: succs_cfg[bb_name]}
+    return out
+
 
 def form_blocks(body):
     cur_block = []
@@ -22,6 +48,10 @@ def form_blocks(body):
 
 
 def join_blocks(blocks):
+    """
+    Joins a list of basic blocks into 1 function body
+    Inverts form_blocks
+    """
     new_instrs = []
     for bb in blocks:
         for instr in bb:
@@ -30,6 +60,9 @@ def join_blocks(blocks):
 
 
 def block_map(blocks):
+    """
+    Converts a list of basic blocks into a map of label to the instructions in block
+    """
     out = OrderedDict()
 
     for i, block in enumerate(blocks):
@@ -45,6 +78,7 @@ def block_map(blocks):
 
 def form_block_dict(blocks):
     """
+    Similar to Block Map: But retain labels in instructions
     Internally Preserves labels, unlike Block Map, which tries to remove labels
     and use them solely as dictionary keys.
     """
@@ -61,6 +95,9 @@ def form_block_dict(blocks):
 
 
 def get_cfg(name2block):
+    """
+    Converts Name2Block into a Successor Labeled CFG
+    """
     out = OrderedDict()
     for i, (name, block) in enumerate(name2block.items()):
         if block != []:
@@ -81,6 +118,10 @@ def get_cfg(name2block):
 
 
 def form_cfg(func):
+    """
+    Takes a Function Body and turns it into a CFG, labeled with successors only 
+    (predecessors not included)
+    """
     return get_cfg(block_map(form_blocks(func['instrs'])))
 
 

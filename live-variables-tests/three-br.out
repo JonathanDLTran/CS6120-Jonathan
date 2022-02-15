@@ -1,0 +1,34 @@
+Function: main
+In:
+	b0: No Live Variables.
+	first: a used.
+	first: b used.
+	first: c used.
+	first: cond used.
+	first: one used.
+	first.rem: a used.
+	first.rem: b used.
+	first.rem: one used.
+	second: a used.
+	second: b used.
+	second: c used.
+	third: a used.
+	third: b used.
+	third: c used.
+Out:
+	b0: a used.
+	b0: b used.
+	b0: c used.
+	b0: cond used.
+	b0: one used.
+	first: a used.
+	first: b used.
+	first: c used.
+	first: one used.
+	first.rem: a used.
+	first.rem: b used.
+	first.rem: c used.
+	second: a used.
+	second: b used.
+	second: c used.
+	third: No Live Variables.
