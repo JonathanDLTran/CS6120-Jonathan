@@ -1,7 +1,7 @@
 digraph main {
   first;
   second;
+  third;
   first -> second;
-  second -> first;
-  second -> second;
+  second -> third;
 }

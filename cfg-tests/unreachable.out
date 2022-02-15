@@ -1,0 +1,7 @@
+digraph main {
+  cycle;
+  next;
+  unreachable;
+  cycle -> next;
+  next -> cycle;
+}

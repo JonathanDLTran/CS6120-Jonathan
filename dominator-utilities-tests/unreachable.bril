@@ -1,0 +1,14 @@
+@main{
+.cycle:
+    jmp .next;
+.next:
+    jmp .cycle;
+.unreachable:
+    a: int = const 4;
+    print a;
+.final.unreachable:
+    print a;
+    jmp .unreachable;
+.second.unreachable:
+.second.unreachable.continued:
+}

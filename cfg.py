@@ -102,9 +102,9 @@ def get_cfg(name2block):
     for i, (name, block) in enumerate(name2block.items()):
         if block != []:
             last = block[-1]
-            if last['op'] in ['jmp', 'br']:
+            if 'op' in last and last['op'] in ['jmp', 'br']:
                 succ = last['labels']
-            elif last['op'] == 'ret':
+            elif 'op' in last and last['op'] == 'ret':
                 succ = []
             else:
                 if i == len(name2block) - 1:
@@ -113,7 +113,11 @@ def get_cfg(name2block):
                     succ = [list(name2block.keys())[i + 1]]
             out[name] = succ
         else:
-            out[name] = []
+            if i == len(name2block) - 1:
+                succ = []
+            else:
+                succ = [list(name2block.keys())[i + 1]]
+            out[name] = succ
     return out
 
 

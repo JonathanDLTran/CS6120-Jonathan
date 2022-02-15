@@ -1,0 +1,12 @@
+@main{
+    a: int = const 3;
+    b: int = const 5;
+    jmp .final;
+.next:
+    unused: int = const 2;
+    unused: int = const 1;
+    jmp .final;
+.final:
+    print a;
+    print b;
+}

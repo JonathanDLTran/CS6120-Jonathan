@@ -3,4 +3,7 @@ digraph main {
   second;
   third;
   fourth;
+  first -> second;
+  second -> third;
+  third -> fourth;
 }

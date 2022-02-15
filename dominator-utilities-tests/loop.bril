@@ -1,0 +1,14 @@
+@main{
+    n: int = const 10;
+    zero: int = const 0;
+.header:
+    is_zero: bool = eq n zero;
+    br .is.zero .positive;
+.positive:
+    print n;
+    one: int = const 1;
+    n: int = sub n one;
+    jmp .header;
+.is.zero:
+    print n;
+}

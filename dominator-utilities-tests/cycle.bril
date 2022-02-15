@@ -1,0 +1,6 @@
+@main{
+.cycle:
+    jmp .next;
+.next:
+    jmp .cycle;
+}
