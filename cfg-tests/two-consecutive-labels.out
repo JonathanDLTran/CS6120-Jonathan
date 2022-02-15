@@ -1,0 +1,6 @@
+digraph main {
+  first;
+  second;
+  second -> first;
+  second -> second;
+}

@@ -1,0 +1,13 @@
+@main {
+    a: int = const 4;
+    a: int = mul a a;
+    jmp .next;
+    unused1: int = const 5;
+    unused2: bool = const false;
+    unused3: bool = and unused2 unused2;
+    print unused1;
+.next:
+    b: int = const 3;
+    a: int = sub a b;
+    print b;
+}

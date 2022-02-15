@@ -1,0 +1,37 @@
+# ARGS: 10
+@main(n: int){
+    result: int = call @syr n;
+    print result;
+}
+
+@syr(n: int): int {
+    one: int = const 1;
+    check: bool = eq n one;
+    br check .base .body;
+.base:
+    ret one;
+.body:
+    cond: bool = call @mod2 n;
+    br cond .div .add;
+.div:
+    two: int = const 2;
+    division: int = div n two;
+    result = call @syr division;
+    ret result;
+.add:
+    three: int = const 3;
+    mult_3: int = mul three n;
+    add_1: int = add mult_3 one;
+    result = call @syr add_1;
+    ret result;
+}
+
+@mod2(n: int): bool{
+    two: int = const 2;
+    zero: int = const 0;
+    int_div: int = div n two;
+    mult_2: int = mul int_div two;
+    rem: int = sub n mult_2;
+    cond: bool = eq rem zero;
+    ret cond;
+}

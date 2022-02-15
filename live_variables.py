@@ -15,10 +15,12 @@ The reason is that variables used later, on different branches,
 such all be considered together.
 E.g. if branch1 uses a later, and branch2 uses a and b later,
 then not considering the branches, both a and b are used later.
+
+Problem: We need instructions to be both used later on, and also
+having been defined prior to use.
 """
 
 
-from os import kill
 import sys
 import json
 import click

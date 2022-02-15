@@ -1,0 +1,33 @@
+Function: main
+In:
+	b0: n on line -1.
+Out:
+	b0: n on line -1.
+	b0: result on line 1.
+Function: fact
+In:
+	b0: n on line -1.
+	base: n on line -1.
+	base: zero on line 1.
+	base: one on line 2.
+	base: eq_zero on line 3.
+	recurse: n on line -1.
+	recurse: zero on line 1.
+	recurse: one on line 2.
+	recurse: eq_zero on line 3.
+Out:
+	b0: n on line -1.
+	b0: zero on line 1.
+	b0: one on line 2.
+	b0: eq_zero on line 3.
+	base: n on line -1.
+	base: zero on line 1.
+	base: one on line 2.
+	base: eq_zero on line 3.
+	recurse: n on line -1.
+	recurse: zero on line 1.
+	recurse: one on line 2.
+	recurse: eq_zero on line 3.
+	recurse: n_minus_one on line 8.
+	recurse: rec_result on line 9.
+	recurse: result on line 10.

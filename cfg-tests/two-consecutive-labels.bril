@@ -1,0 +1,7 @@
+@main {
+.first:
+.second:
+    a: int = const 4;
+    b: bool = const true;
+    br .first .second;
+}

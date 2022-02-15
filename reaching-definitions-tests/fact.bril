@@ -1,0 +1,19 @@
+# ARGS: 10
+@main(n: int){
+    result: int = call @fact n;
+    print result;
+}
+
+@fact(n: int) {
+    zero: int = const 0;
+    one: int = const 1;
+    eq_zero: bool = eq n zero;
+    br cond .base .recurse;
+.base:
+    ret one;
+.recurse:
+    n_minus_one: int = sub n one;
+    rec_result: int = call @fact n_minus_one;
+    result: int = mul n rec_result;
+    ret result;
+}

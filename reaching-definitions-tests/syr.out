@@ -1,0 +1,60 @@
+Function: main
+In:
+	b0: n on line -1.
+Out:
+	b0: n on line -1.
+	b0: result on line 1.
+Function: syr
+In:
+	b0: n on line -1.
+	base: n on line -1.
+	base: one on line 1.
+	base: check on line 2.
+	body: n on line -1.
+	body: one on line 1.
+	body: check on line 2.
+	div: n on line -1.
+	div: one on line 1.
+	div: check on line 2.
+	div: cond on line 7.
+	add: n on line -1.
+	add: one on line 1.
+	add: check on line 2.
+	add: cond on line 7.
+Out:
+	b0: n on line -1.
+	b0: one on line 1.
+	b0: check on line 2.
+	base: n on line -1.
+	base: one on line 1.
+	base: check on line 2.
+	body: n on line -1.
+	body: one on line 1.
+	body: check on line 2.
+	body: cond on line 7.
+	div: n on line -1.
+	div: one on line 1.
+	div: check on line 2.
+	div: cond on line 7.
+	div: two on line 10.
+	div: division on line 11.
+	div: result on line 12.
+	add: n on line -1.
+	add: one on line 1.
+	add: check on line 2.
+	add: cond on line 7.
+	add: three on line 15.
+	add: mult_3 on line 16.
+	add: add_1 on line 17.
+	add: result on line 18.
+Function: mod2
+In:
+	b0: n on line -1.
+Out:
+	b0: n on line -1.
+	b0: two on line 1.
+	b0: zero on line 2.
+	b0: int_div on line 3.
+	b0: mult_2 on line 4.
+	b0: rem on line 5.
+	b0: cond on line 6.

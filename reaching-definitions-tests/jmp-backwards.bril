@@ -1,0 +1,17 @@
+@main{
+    a: int = const 5;
+    a: int = add a a;
+    jmp .first;
+.second:
+    a: int = mul a a;
+    b: bool = const false;
+    b: bool = const true;
+    jmp .end;
+.first:
+    a: int = div a a;
+    a: int = const 4;
+    jmp .second;
+.end:
+    a: int = const 2;
+    print a;
+}

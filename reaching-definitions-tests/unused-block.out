@@ -1,0 +1,18 @@
+Function: main
+In:
+	b0: No Reaching Definitions.
+	b1: No Reaching Definitions.
+	next: a on line 2.
+	next: unused1 on line 4.
+	next: unused2 on line 5.
+	next: unused3 on line 6.
+Out:
+	b0: a on line 2.
+	b1: unused1 on line 4.
+	b1: unused2 on line 5.
+	b1: unused3 on line 6.
+	next: unused1 on line 4.
+	next: unused2 on line 5.
+	next: unused3 on line 6.
+	next: b on line 9.
+	next: a on line 10.
