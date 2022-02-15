@@ -1,0 +1,8 @@
+	cycle:	[cycle, next]
+	next:	[cycle, next]
+digraph main {
+  cycle;
+  next;
+  next -> cycle;
+  cycle -> next;
+}

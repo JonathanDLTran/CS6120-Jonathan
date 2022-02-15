@@ -1,0 +1,10 @@
+	b0:	[b0]
+	next:	[b0, next]
+	final:	[b0, final, next]
+digraph main {
+  b0;
+  next;
+  final;
+  b0 -> next;
+  next -> final;
+}
