@@ -1,6 +1,8 @@
-	b0:	[b0]
-	cycle:	[b0, cycle]
-	next:	[b0, cycle, next]
+Dominators
+	b0 is dominated by:	[b0]
+	cycle is dominated by:	[b0, cycle]
+	next is dominated by:	[b0, cycle, next]
+Dominator Tree
 digraph main {
   b0;
   cycle;
@@ -8,3 +10,7 @@ digraph main {
   b0 -> cycle;
   cycle -> next;
 }
+Dominance Frontier
+	b0:	[]
+	cycle:	[cycle]
+	next:	[]

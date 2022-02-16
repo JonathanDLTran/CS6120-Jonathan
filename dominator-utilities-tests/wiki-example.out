@@ -1,0 +1,32 @@
+Dominators
+	first is dominated by:	[first]
+	second is dominated by:	[first, second]
+	second.extra is dominated by:	[first, second, second.extra]
+	third is dominated by:	[first, second, second.extra, third]
+	fourth is dominated by:	[first, fourth, second]
+	fifth is dominated by:	[fifth, first, second]
+	sixth is dominated by:	[first, second, second.extra, sixth]
+Dominator Tree
+digraph main {
+  first;
+  second;
+  second.extra;
+  third;
+  fourth;
+  fifth;
+  sixth;
+  first -> second;
+  second -> second.extra;
+  second -> fourth;
+  second -> fifth;
+  second.extra -> third;
+  second.extra -> sixth;
+}
+Dominance Frontier
+	first:	[]
+	second:	[second]
+	second.extra:	[fifth]
+	third:	[]
+	fourth:	[]
+	fifth:	[]
+	sixth:	[]

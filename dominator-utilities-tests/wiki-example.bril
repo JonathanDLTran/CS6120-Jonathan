@@ -1,0 +1,18 @@
+# from https://en.wikipedia.org/wiki/Dominator_(graph_theory)
+
+@main {
+.first:
+    cond: bool = const true;
+.second:
+    br cond .second.extra .fourth;
+.second.extra:
+    cond2: bool = const false;
+    br cond2 .third .sixth;
+.third:
+    jmp .fifth;
+.fourth:
+.fifth:
+    jmp .second;
+.sixth:
+    ret;
+}

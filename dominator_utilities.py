@@ -1,3 +1,4 @@
+from email.policy import strict
 import sys
 import json
 import click
@@ -47,36 +48,47 @@ def get_dominators(func):
     # set up before iteration
     # NOTE: I am not sure if this is completely correct, but it *SEEMS* to handle
     # unreachable blocks. Otherwise, some SCC algorithm is probably needed
-    dom = OrderedDict()
+    domby = OrderedDict()
     reachable_blocks = set()
     if len(cfg) >= 1:
         reachable_blocks = dfs(cfg, list(cfg.keys())[0], set())
     for bb_name in cfg:
         if bb_name in reachable_blocks:
-            dom[bb_name] = reachable_blocks
+            domby[bb_name] = reachable_blocks
         else:
-            dom[bb_name] = set()
+            domby[bb_name] = set()
 
     # iterate to convergence
     dom_changed = True
     while dom_changed:
-        old_dom = deepcopy(dom)
+        old_dom = deepcopy(domby)
 
         for bb_name in cfg:
-            dom_predecessors = [dom[p] for p in cfg[bb_name][PREDS]]
+            dom_predecessors = [domby[p] for p in cfg[bb_name][PREDS]]
             intersection = big_intersection(dom_predecessors)
-            dom[bb_name] = {bb_name}.union(intersection)
+            domby[bb_name] = {bb_name}.union(intersection)
 
-        dom_changed = old_dom != dom
+        dom_changed = old_dom != domby
 
-    return dom
+    dom = OrderedDict()
+    for bb in cfg:
+        dominates = set()
+        for otherbb, dominatedby in domby.items():
+            if bb in dominatedby:
+                dominates.add(otherbb)
+        dom[bb] = list(dominates)
+
+    return dom, domby
 
 
 def dominators(prog):
     for func in prog["functions"]:
-        dom = get_dominators(func)
-        for bb_name, dominated in dom.items():
-            print(f"\t{bb_name}:\t[{', '.join(sorted(dominated))}]")
+        _, domby = get_dominators(func)
+        # for bb_name, dominates in dom.items():
+        #     print(f"\t{bb_name} dominates:\t[{', '.join(sorted(dominates))}]")
+        for bb_name, dominated in domby.items():
+            print(
+                f"\t{bb_name} is dominated by:\t[{', '.join(sorted(dominated))}]")
 
 
 def get_strict_dominators(dom):
@@ -86,8 +98,8 @@ def get_strict_dominators(dom):
     strict_dom = OrderedDict()
     for bb_name, doms in dom.items():
         new_doms = deepcopy(doms)
-        new_doms.remove(bb_name)
-        strict_dom[bb_name] = new_doms
+        new_doms = set(new_doms).difference({bb_name})
+        strict_dom[bb_name] = list(new_doms)
     return strict_dom
 
 
@@ -126,8 +138,8 @@ def get_immediate_dominators(strict_dom):
 
 
 def build_dominance_tree(func):
-    dom = get_dominators(func)
-    strict_dom = get_strict_dominators(dom)
+    _, domby = get_dominators(func)
+    strict_dom = get_strict_dominators(domby)
     imm_dom = get_immediate_dominators(strict_dom)
     nodes = OrderedDict()
     tree = OrderedDict()
@@ -154,11 +166,37 @@ def get_tree_graph(tree, func, nodes):
 def dominance_tree(prog):
     for func in prog["functions"]:
         tree, nodes = build_dominance_tree(func)
-        tree_str = get_tree_graph(tree, func, nodes)
+        get_tree_graph(tree, func, nodes)
 
 
 def build_dominance_frontier(func):
-    pass
+    """
+    The dominator frontier is a set of nodes defined for every node (basic block)
+    Consider a basic block A. The dominance frontier of A contains a node B
+    iff A does not strictly dominate B but A dominiates some predecessor of B.
+    """
+    func_instructions = func["instrs"]
+    cfg = form_cfg_succs_preds(func_instructions)
+    dom, _ = get_dominators(func)
+    strict_dom = get_strict_dominators(dom)
+    out = OrderedDict()
+    for nodeA in cfg:
+        nodeA_dominance_frontier = set()
+        for nodeB in cfg:
+            if nodeB not in strict_dom[nodeA]:
+                for nodeC in cfg[nodeB][PREDS]:
+                    if nodeC != nodeA and nodeC in dom[nodeA]:
+                        nodeA_dominance_frontier.add(nodeB)
+                        break
+        out[nodeA] = list(nodeA_dominance_frontier)
+    return out
+
+
+def dominance_frontier(prog):
+    for func in prog["functions"]:
+        frontier = build_dominance_frontier(func)
+        for bb_name, dominated in frontier.items():
+            print(f"\t{bb_name}:\t[{', '.join(sorted(dominated))}]")
 
 
 @click.command()
@@ -171,11 +209,14 @@ def main(dominator, tree, frontier, pretty_print):
     if pretty_print:
         print(json.dumps(prog, indent=4, sort_keys=True))
     if dominator:
+        print("Dominators")
         dominators(prog)
     if tree:
+        print("Dominator Tree")
         dominance_tree(prog)
     if frontier:
-        pass
+        print("Dominance Frontier")
+        dominance_frontier(prog)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,9 @@
-	b0:	[b0]
-	header:	[b0, header]
-	positive:	[b0, header, positive]
-	is.zero:	[b0, header, is.zero]
+Dominators
+	b0 is dominated by:	[b0]
+	header is dominated by:	[b0, header]
+	positive is dominated by:	[b0, header, positive]
+	is.zero is dominated by:	[b0, header, is.zero]
+Dominator Tree
 digraph main {
   b0;
   header;
@@ -11,3 +13,8 @@ digraph main {
   header -> positive;
   header -> is.zero;
 }
+Dominance Frontier
+	b0:	[]
+	header:	[header]
+	positive:	[]
+	is.zero:	[]
