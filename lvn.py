@@ -1,10 +1,8 @@
-from ast import LtE
 import click
 from copy import deepcopy
 import sys
 import json
 
-from scipy.fft import dst
 
 from cfg import form_blocks, join_blocks
 from bril_core_constants import *
