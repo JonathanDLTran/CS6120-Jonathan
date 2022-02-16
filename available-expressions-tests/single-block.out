@@ -1,0 +1,6 @@
+Function: main
+In:
+	b0: No Available Expressions.
+Out:
+	b0: (a + b) is available from line 3.
+	b0: (b + a) is available from line 4.

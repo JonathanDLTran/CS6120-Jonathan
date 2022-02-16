@@ -1,0 +1,17 @@
+Function: main
+In:
+	b0: No Available Expressions.
+	left: (a + b) is available from line 3.
+	left: (c * c) is available from line 4.
+	right: (a + b) is available from line 3.
+	right: (c * c) is available from line 4.
+	end: (a + b) is available from line 3.
+Out:
+	b0: (a + b) is available from line 3.
+	b0: (c * c) is available from line 4.
+	left: (a + b) is available from line 3.
+	left: (a + b) is available from line 8.
+	right: (a + b) is available from line 3.
+	right: (c * c) is available from line 4.
+	right: (a + b) is available from line 11.
+	end: (a + b) is available from line 3.

@@ -5,6 +5,8 @@ echo "Constant Propagation Tests"
 turnt constant-propagation-tests/*.bril
 echo "Live Variables Tests"
 turnt live-variables-tests/*.bril
+echo "Available Expressions Tests"
+turnt available-expressions-tests/*.bril
 echo "Running CFG Tests"
 turnt cfg-tests/*.bril
 echo "Running LVN Tests"
