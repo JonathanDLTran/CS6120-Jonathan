@@ -1,6 +1,3 @@
-# Nothing should be touched because my lvn pass cannot handle branches and jumps
-# But if GVN is implemented, something better might occur
-
 @main {
     a: int = const 1;
     b: int = const 2;

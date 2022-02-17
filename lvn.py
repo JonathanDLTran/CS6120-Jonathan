@@ -13,6 +13,7 @@ VARIABLE_NUMBER = 0
 
 
 ARG_LVN_VALUE = "arg-value"
+PREV_DEFINED_VAR = "prev-defined-var"
 
 
 def gen_fresh_lvn_num():
@@ -27,11 +28,13 @@ def gen_fresh_variable(var):
     return f"{var}_{VARIABLE_NUMBER}"
 
 
-def arg_to_lvn_value(arg, var_to_num):
+def arg_to_lvn_value(arg, var_to_num, num_value_loc):
     if arg in var_to_num:
         return var_to_num[arg]
-    raise RuntimeError(
-        f"LVN Pass: Variable {arg} was defined before its first use.")
+    new_num = gen_fresh_lvn_num()
+    num_value_loc.append((new_num, (PREV_DEFINED_VAR, arg), arg))
+    var_to_num[arg] = new_num
+    return new_num
 
 
 def lvn_value_is_const(lvn_value):
@@ -46,6 +49,12 @@ def lvn_value_is_arg(lvn_value):
     return lvn_value[0] == ARG_LVN_VALUE
 
 
+def lvn_value_is_prev_defined(lvn_value):
+    assert type(lvn_value) == tuple
+    assert len(lvn_value) >= 2
+    return lvn_value[0] == PREV_DEFINED_VAR
+
+
 def lvn_value_is_id(lvn_value):
     assert type(lvn_value) == tuple
     assert len(lvn_value) >= 2
@@ -58,6 +67,8 @@ def interpret_lvn_value(lvn_value, num_value_loc):
     if lvn_value_is_const(lvn_value):
         return lvn_value
     elif lvn_value_is_arg(lvn_value):
+        return lvn_value
+    elif lvn_value_is_prev_defined(lvn_value):
         return lvn_value
     new_args = []
     for arg_lvn_num in lvn_value[1:]:
@@ -74,19 +85,19 @@ def interpret_lvn_value(lvn_value, num_value_loc):
         # However, there are some other algebraic simplications possible.
         if op == EQ:
             if lvn_value[1] == lvn_value[2]:
-                return (CONST, 1)
+                return (CONST, True)
         elif op == LT:
             if lvn_value[1] == lvn_value[2]:
-                return (CONST, 0)
+                return (CONST, False)
         elif op == GT:
             if lvn_value[1] == lvn_value[2]:
-                return (CONST, 0)
+                return (CONST, False)
         elif op == LE:
             if lvn_value[1] == lvn_value[2]:
-                return (CONST, 1)
+                return (CONST, True)
         elif op == GE:
             if lvn_value[1] == lvn_value[2]:
-                return (CONST, 1)
+                return (CONST, True)
         return lvn_value
 
     if op == CONST:
@@ -101,42 +112,42 @@ def interpret_lvn_value(lvn_value, num_value_loc):
     elif op == NOT:
         assert len(new_args) == 1
         (_, result) = new_args[0]
-        return (CONST, 1 if result == 0 else 0)
+        return (CONST, not result)
     elif op == AND:
         assert len(new_args) == 2
         (_, result1) = new_args[0]
         (_, result2) = new_args[1]
-        return (CONST, 1 if result1 and result2 else 0)
+        return (CONST, result1 and result2)
     elif op == OR:
         assert len(new_args) == 2
         (_, result1) = new_args[0]
         (_, result2) = new_args[1]
-        return (CONST, 1 if result1 or result2 else 0)
+        return (CONST, result1 or result2)
     elif op == EQ:
         assert len(new_args) == 2
         (_, result1) = new_args[0]
         (_, result2) = new_args[1]
-        return (CONST, 1 if result1 == result2 else 0)
+        return (CONST, result1 == result2)
     elif op == LE:
         assert len(new_args) == 2
         (_, result1) = new_args[0]
         (_, result2) = new_args[1]
-        return (CONST, 1 if result1 <= result2 else 0)
+        return (CONST, result1 <= result2)
     elif op == GE:
         assert len(new_args) == 2
         (_, result1) = new_args[0]
         (_, result2) = new_args[1]
-        return (CONST, 1 if result1 >= result2 else 0)
+        return (CONST, result1 >= result2)
     elif op == LT:
         assert len(new_args) == 2
         (_, result1) = new_args[0]
         (_, result2) = new_args[1]
-        return (CONST, 1 if result1 < result2 else 0)
+        return (CONST, result1 < result2)
     elif op == GT:
         assert len(new_args) == 2
         (_, result1) = new_args[0]
         (_, result2) = new_args[1]
-        return (CONST, 1 if result1 > result2 else 0)
+        return (CONST, result1 > result2)
     elif op == ADD:
         assert len(new_args) == 2
         (_, result1) = new_args[0]
@@ -170,11 +181,11 @@ def instr_to_lvn_value(instr, var_to_num, num_value_loc):
         args = instr[ARGS]
         if instr[OP] in BRIL_COMMUTE_BINOPS:
             args = sorted(args)
-        return interpret_lvn_value((instr[OP], *list(map(lambda a: arg_to_lvn_value(a, var_to_num), args))), num_value_loc)
+        return interpret_lvn_value((instr[OP], *list(map(lambda a: arg_to_lvn_value(a, var_to_num, num_value_loc), args))), num_value_loc)
     elif OP in instr and instr[OP] in [CALL]:
-        return interpret_lvn_value((CALL, *list(map(lambda a: arg_to_lvn_value(a, var_to_num), instr[ARGS]))), num_value_loc)
+        return interpret_lvn_value((CALL, *list(map(lambda a: arg_to_lvn_value(a, var_to_num, num_value_loc), instr[ARGS]))), num_value_loc)
     elif OP in instr and instr[OP] in [ID]:
-        return interpret_lvn_value((ID, *list(map(lambda a: arg_to_lvn_value(a, var_to_num), instr[ARGS]))), num_value_loc)
+        return interpret_lvn_value((ID, *list(map(lambda a: arg_to_lvn_value(a, var_to_num, num_value_loc), instr[ARGS]))), num_value_loc)
     raise RuntimeError(f"Requires Instruction to Assign to Variable\n{instr}.")
 
 
@@ -301,19 +312,20 @@ def instr_lvn(instr, remainder_bb, var_to_num, num_value_loc):
     else:
         if ARGS in instr and LABELS not in instr:
             new_instr = deepcopy(instr)
-            new_instr[ARGS] = list(map(lambda v: get_canonical_loc(
-                var_to_num[v], num_value_loc), instr[ARGS]))
+            new_instr_args = []
+            for a in instr[ARGS]:
+                if a not in var_to_num:
+                    new_instr_args.append(a)
+                else:
+                    new_instr_args.append(get_canonical_loc(
+                        var_to_num[a], num_value_loc))
+            new_instr[ARGS] = new_instr_args
             return new_instr
         else:
             return instr
 
 
 def lvn(program):
-    # we ignore programs with branching due to variable definiton issues.
-    for func in program["functions"]:
-        for instr in func["instrs"]:
-            if LABELS in instr:
-                return program
     for func in program["functions"]:
         basic_blocks = form_blocks(func["instrs"])
         new_basic_blocks = []
