@@ -1,0 +1,14 @@
+@main {
+    a: int = const 3;
+    b: int = const 5;
+    c: int = add a b;
+    jmp .first;
+.first:
+    d: int = add a b;
+    jmp .second;
+.second:
+    a: int = add a b;
+    jmp .third;
+.third:
+    c: int = add a b;
+}

@@ -1,0 +1,16 @@
+@main {
+    a: int = const 3;
+    b: int = const 5;
+    c: int = add a b;
+    d: int = sub a b;
+.header:
+    cond: bool = const true;
+    br cond .first .end;
+.first:
+    c: int = mul c c;
+    d: int = add a b;
+    jmp .header;
+.end:
+    e: int = add a b;
+    f: int = sub a b;
+}

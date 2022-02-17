@@ -1,0 +1,9 @@
+@main {
+    a: int = const 4;
+    b: int = const 4;
+    a: int = add a b;
+.loop:
+    c: int = add a b;
+    c: int = add a b;
+    jmp .loop;
+}

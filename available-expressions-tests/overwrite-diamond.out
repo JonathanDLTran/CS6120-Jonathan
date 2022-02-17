@@ -1,12 +1,11 @@
 Function: main
 In:
 	b0: No Available Expressions.
-	left: (a + b) is available from line 3.
-	right: (a + b) is available from line 3.
-	end: No Available Expressions.
+	left: (a + b) is available.
+	right: (a + b) is available.
+	end: (a + b) is available.
 Out:
-	b0: (a + b) is available from line 3.
-	left: (a + b) is available from line 9.
-	right: (a + b) is available from line 3.
-	right: (a + b) is available from line 12.
-	end: No Available Expressions.
+	b0: (a + b) is available.
+	left: (a + b) is available.
+	right: (a + b) is available.
+	end: (a + b) is available.

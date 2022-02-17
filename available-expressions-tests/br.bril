@@ -1,0 +1,14 @@
+@main {
+    a: int = const 3;
+    b: int = const 5;
+    c: int = add a b;
+    cond: bool = const false;
+    br cond .first .second;
+.first:
+    jmp .third;
+.second:
+    a: int = const 4;
+    jmp .third;
+.third:
+    c: int = add a b;
+}

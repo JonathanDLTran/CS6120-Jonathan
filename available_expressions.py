@@ -56,22 +56,20 @@ def expr_to_str(expr):
     raise RuntimeError(f"Cannot Handle Conversion of {expr} to String.")
 
 
-def kills(instr_pair):
-    assert type(instr_pair) == tuple
-    (_, instr) = instr_pair
+def kills(instr):
+    assert type(instr) == dict
     kills = set()
     if DEST in instr:
         kills.add(instr[DEST])
     return kills
 
 
-def gens(instr_pair):
-    assert type(instr_pair) == tuple
-    (idx, instr) = instr_pair
+def gens(instr):
+    assert type(instr) == dict
     gens = set()
     if OP in instr and instr[OP] in AVAILABLE_GENERATORS:
         available_expr = instr_to_expr(instr)
-        gens.add((idx, available_expr))
+        gens.add(available_expr)
     return gens
 
 
@@ -79,14 +77,14 @@ def diff(union, kills):
     assert type(union) == set
     assert type(kills) == set
     out = set()
-    for (idx, expr) in union:
+    for expr in union:
         args = expr[1:]
         add_expr = True
         for k in kills:
             if k in args:
                 add_expr = False
         if add_expr:
-            out.add((idx, expr))
+            out.add(expr)
     return out
 
 
@@ -110,26 +108,11 @@ def merge(blocks):
     return merged
 
 
-def number_instrs(blocks):
-    """
-    Adds unique instruction labels to every instruction
-    """
-    i = 1
-    new_blocks = {}
-    for key, block in blocks.items():
-        new_block = []
-        for instr in block:
-            new_block.append((i, instr))
-            i += 1
-        new_blocks[key] = new_block
-    return new_blocks
-
-
 def available_exprs_func(function):
     cfg = form_cfg(function)
     assert len(cfg) != 0
     entry = list(cfg.items())[0][0]
-    blocks = number_instrs(form_block_dict(form_blocks(function["instrs"])))
+    blocks = form_block_dict(form_blocks(function["instrs"]))
     init = set()
     worklist = Worklist(entry, cfg, blocks, init, merge, transfer)
     return worklist.solve()
@@ -141,11 +124,11 @@ def available_exprs(program):
 
         final_in_dict = OrderedDict()
         for (key, inner_set) in in_dict.items():
-            inner_lst = sorted(list(inner_set), key=lambda pair: pair[0])
+            inner_lst = sorted(list(inner_set))
             final_in_dict[key] = inner_lst
         final_out_dict = OrderedDict()
         for (key, inner_set) in out_dict.items():
-            inner_lst = sorted(list(inner_set), key=lambda pair: pair[0])
+            inner_lst = sorted(list(inner_set))
             final_out_dict[key] = inner_lst
 
         print(f"Function: {func[NAME]}")
@@ -154,17 +137,17 @@ def available_exprs(program):
             if v == []:
                 print(f"\t{k}: No Available Expressions.")
             else:
-                for (idx, expr) in v:
+                for expr in v:
                     print(
-                        f"\t{k}: {expr_to_str(expr)} is available from line {idx}.")
+                        f"\t{k}: {expr_to_str(expr)} is available.")
         print(f"Out:")
         for (k, v) in final_out_dict.items():
             if v == []:
                 print(f"\t{k}: No Available Expressions.")
             else:
-                for (idx, expr) in v:
+                for expr in v:
                     print(
-                        f"\t{k}: {expr_to_str(expr)} is available from line {idx}.")
+                        f"\t{k}: {expr_to_str(expr)} is available.")
     return
 
 
