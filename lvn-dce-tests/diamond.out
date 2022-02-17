@@ -1,0 +1,22 @@
+@main(a: int, b: int) {
+  cond: int = const true;
+  x: int = const 3;
+  print x;
+  br cond .first .second;
+.first:
+  a: int = add a b;
+  b: int = add a b;
+  e: int = id a;
+  print a;
+  jmp .end;
+.second:
+  b: int = id a;
+  f: int = add a a;
+  print f;
+.end:
+  b: int = id a;
+  e: int = add a a;
+  f: int = id e;
+  print e;
+  print e;
+}

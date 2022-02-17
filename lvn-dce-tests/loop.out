@@ -1,0 +1,22 @@
+@main(a: int) {
+  i: int = id a;
+.header:
+  zero: int = const 0;
+  cond: bool = eq i zero;
+  br cond .end .body;
+.body:
+  c: int = id a;
+  d: int = add a a;
+  h: int = add d d;
+  print h;
+  one: int = const 1;
+  i: int = sub i one;
+  jmp .header;
+.end:
+  a: int = const 4;
+  c: int = const 7;
+  d: int = const 2;
+  h: int = const 5;
+  i: int = const 1;
+  print c;
+}

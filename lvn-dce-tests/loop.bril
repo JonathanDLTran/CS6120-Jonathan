@@ -1,0 +1,31 @@
+# ARGS: 5
+@main(a: int) {
+    i: int = id a;
+.header:
+    zero: int = const 0;
+    cond: bool = eq i zero;
+    br cond .end .body;
+.body:
+    b: int = id a;
+    c: int = id b;
+    d: int = add a b;
+    e: int = add b b;
+    f: int = add c a;
+    g: int = add c b;
+    h: int = add f g;
+    print h;
+    one: int = const 1;
+    i: int = sub i one;
+    jmp .header;
+.end:
+    a: int = const 4;
+    b: int = const 3;
+    c: int = add a b;
+    d: int = const 2;
+    e: int = const 1;
+    f: int = add d e;
+    g: int = add f f;
+    h: int = sub g e;
+    i: int = div g h;
+    print c;
+}

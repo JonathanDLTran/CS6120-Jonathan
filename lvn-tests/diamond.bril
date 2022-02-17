@@ -1,0 +1,39 @@
+# ARGS: 9 8
+@main(a: int, b: int) {
+    cond: bool = const true;
+    x: int = const 3;
+    y: int = const 4;
+    z: int = add x y;
+    w: int = sub x y;
+    h: int = add y x;
+    g: int = add x y;
+    i: int = id x;
+    print i;
+    br cond .first .second;
+.first:
+    a: int = add a b;
+    b: int = add b a;
+    c: int = id a;
+    d: int = id c;
+    e: int = id d;
+    print e;
+    jmp .end;
+.second:
+    b: int = id a;
+    f: int = add a b;
+    g: int = mul f f;
+    h: int = div f f;
+    i: int = id a;
+    j: int = id b;
+    k: int = add j i;
+    print k;
+.end:
+    b: int = id a;
+    c: int = id b;
+    d: int = id c;
+    e: int = add a b;
+    f: int = id d;
+    f: int = add c d;
+    print e;
+    print f;
+}
