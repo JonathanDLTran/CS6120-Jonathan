@@ -13,4 +13,7 @@ after transformation pass
 Kind of the same idea as CSmith, except much simpler,
 and we have a (hopefully) correct reference interpreter
 to check the result of the untransformed and transformed programs
+
+Can you randomly generate a CFG/Dataflow graph, and then fill in the details?
+Perhaps?
 """
