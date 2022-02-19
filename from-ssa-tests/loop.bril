@@ -1,0 +1,15 @@
+@main{
+.start:
+    i1: int = const 10;
+.header:
+    i2: int = phi i1 .start i3 .body;
+    zero: int = const 0;
+    cond: bool = eq i2 zero;
+    br cond .end .body;
+.body:
+    print i2;
+    one: int = const 1;
+    i3: int = sub i2 one;
+    jmp .header;
+.end:
+}

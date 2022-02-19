@@ -1,0 +1,15 @@
+@main {
+  a1: int = const 3;
+  cond: bool = const true;
+  br cond .if .else;
+.if:
+  a2: int = id a1;
+  a4: int = id a2;
+  jmp .endif;
+.else:
+  a3: int = id a1;
+  a4: int = id a3;
+  jmp .endif;
+.endif:
+  print a4;
+}

@@ -1,0 +1,16 @@
+@main {
+.start:
+  i1: int = const 10;
+  i2: int = id i1;
+.header:
+  zero: int = const 0;
+  cond: bool = eq i2 zero;
+  br cond .end .body;
+.body:
+  print i2;
+  one: int = const 1;
+  i3: int = sub i2 one;
+  i2: int = id i3;
+  jmp .header;
+.end:
+}

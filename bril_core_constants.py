@@ -45,6 +45,9 @@ PRINT = "print"
 NOP = "nop"
 
 
+PHI = "phi"
+
+
 BRIL_BINOPS = [
     ADD, SUB, MUL, DIV,
     EQ, LT, GT, LE, GE,
