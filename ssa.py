@@ -4,6 +4,7 @@ import json
 from collections import defaultdict
 
 from bril_core_constants import *
+from bril_core_utilities import *
 from cfg import PREDS, SUCCS, TERMINATORS, form_cfg_succs_preds, form_blocks, form_block_dict, join_blocks
 from dominator_utilities import build_dominance_tree, build_dominance_frontier
 
@@ -104,7 +105,7 @@ def insert_phi(func, df, cfg, block_dict, entry):
 
 
 def rename(block_dict, block_name, stack, cfg, dom_tree, var_to_fresh_index):
-    pushed_names = dict()
+    pushed_names = defaultdict(list)
 
     block = block_dict[block_name]
     for instr in block:
@@ -112,44 +113,80 @@ def rename(block_dict, block_name, stack, cfg, dom_tree, var_to_fresh_index):
             old_args = instr[ARGS]
             new_args = []
             for old in old_args:
-                (v, i) = stack[old][-1]
-                var = f"{v}_{i}"
-                new_args.append(var)
+                if not is_phi(instr):
+                    var = stack[old][-1]
+                    new_args.append(var)
+                elif old not in stack and is_phi(instr):
+                    new_args.append(old)
+                else:
+                    # was not successor block replaced, have to go back a few blocks.
+                    var = stack[old][-1]
+                    new_args.append(var)
             instr[ARGS] = new_args
         if DEST in instr:
             dst = instr[DEST]
-            if dst in stack:
-                (v, i) = stack[dst][-1]
-            else:
-                (v, i) = (dst, 0)
-            new_name = f"{v}_{i + 1}"
+
+            if dst not in var_to_fresh_index:
+                var_to_fresh_index[dst] = 0
+
+            new_name = f"{dst}_{var_to_fresh_index[dst] + 1}"
+            var_to_fresh_index[dst] += 1
+
             instr[DEST] = new_name
-            stack[dst].append((v, i + 1))
+            stack[dst].append(new_name)
 
-            if dst in pushed_names:
-                pushed_names[dst].append(new_name)
-            else:
-                pushed_names[dst] = [new_name]
+            pushed_names[dst].append(new_name)
 
-    for s in cfg[block_name][SUCCS]:
+    for succ_name in cfg[block_name][SUCCS]:
         s_phi_nodes = []
-        for instr in s:
+        for instr in block_dict[succ_name]:
             if OP in instr and instr[OP] == PHI:
                 s_phi_nodes.append(instr)
         for p in s_phi_nodes:
             p_args = p[ARGS]
-            new_p_args = []
-            for a in p_args:
-                if a in stack:
-                    (v, i) = stack[a][-1]
-                    new_var = f"{v}_{i}"
-                    new_p_args.append(new_var)
-                else:
-                    new_p_args.append(a)
-            p[ARGS] = new_p_args
+            p_labels = p[LABELS]
+            if block_name in p_labels:
+                label_index = p_labels.index(block_name)
+                new_p_args = []
+                for i, a in enumerate(p_args):
+                    if i == label_index:
+                        if a in stack:
+                            # if stack[a] is empty, a is not defined along a certain branch
+                            # to fix, we insert a pseudo-unused instruction
+                            # at least according to the user, who expects
+                            # that branch never to have a used
+                            if stack[a] == []:
+                                pred_block_name = cfg[succ_name][PREDS][i]
+                                new_var = f"{a}_{var_to_fresh_index[a] + 1}"
+                                var_to_fresh_index[a] += 1
+                                new_instr_type = p[TYPE]
+                                if new_instr_type == BOOL:
+                                    new_instr = {OP: CONST,
+                                                 VALUE: True, DEST: new_var, TYPE: BOOL}
+                                elif new_instr_type == INT:
+                                    new_instr = {OP: CONST,
+                                                 VALUE: 0, DEST: new_var, TYPE: INT}
+                                else:
+                                    raise RuntimeError(
+                                        f"Unhandled type {new_instr_type}.")
+                                insert_at_end_of_bb(
+                                    block_dict[pred_block_name], new_instr)
+                            else:
+                                new_var = stack[a][-1]
+                        else:
+                            raise RuntimeError(
+                                f"Variable {a} not in renaming stack {stack}.")
+                        new_p_args.append(new_var)
+                    else:
+                        new_p_args.append(a)
+                p[ARGS] = new_p_args
+            else:
+                raise RuntimeError(
+                    f"Block name {block_name} is not in the labels of phi node {p} in basic block {succ_name}.")
 
     for new_block_name in dom_tree[block_name]:
-        rename(block_dict, new_block_name, stack, cfg, dom_tree)
+        rename(block_dict, new_block_name, stack,
+               cfg, dom_tree, var_to_fresh_index)
 
     for var, new_names in pushed_names.items():
         while new_names != []:
@@ -160,12 +197,10 @@ def rename(block_dict, block_name, stack, cfg, dom_tree, var_to_fresh_index):
 def func_to_ssa(func):
     # set up stack with arguments as needed
     stack = defaultdict(list)
+    var_to_fresh_index = {}
     if ARGS in func:
-        new_args = []
         for a in func[ARGS]:
-            stack[a].append((a, 0))
-            new_args.append(f"{a}_0")
-        func[ARGS] = new_args
+            var_to_fresh_index[a] = 0
 
     cfg = form_cfg_succs_preds(func["instrs"])
     block_dict = form_block_dict(form_blocks(func["instrs"]))
@@ -175,7 +210,7 @@ def func_to_ssa(func):
 
     insert_phi(func, dom_frontier, cfg, block_dict, entry)
 
-    rename(block_dict, entry, stack, cfg, dom_tree)
+    rename(block_dict, entry, stack, cfg, dom_tree, var_to_fresh_index)
 
     return join_blocks([block_dict[key] for key in block_dict])
 
@@ -184,7 +219,6 @@ def bril_to_ssa(program):
     for func in program["functions"]:
         new_instrs = func_to_ssa(func)
         func["instrs"] = new_instrs
-    return program
     return is_ssa(program)
 
 

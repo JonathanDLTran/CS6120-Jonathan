@@ -66,11 +66,3 @@ BRIL_CORE_INSTRS = [
 BRIL_COMMUTE_BINOPS = [
     ADD, MUL, AND, OR, EQ
 ]
-
-
-def build_unop(unop, arg):
-    pass
-
-
-def build_binop(binop, arg1, arg2):
-    pass
