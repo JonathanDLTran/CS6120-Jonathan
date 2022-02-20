@@ -1,0 +1,22 @@
+@main {
+    a: int = const 0;
+.header:
+    top: int = const 10;
+    cond: bool = eq a top;
+    br cond .end .body;
+.body:
+    print a;
+    two: int = const 2;
+    cond2: bool = eq a two;
+    br cond2 .if .else;
+.if:
+    a: int = add a two;
+    jmp .endif;
+.else:
+    one: int = const 1;
+    a: int = add a one;
+.endif:
+    jmp .header;
+.end:
+    print a;
+}

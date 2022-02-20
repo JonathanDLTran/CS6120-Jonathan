@@ -59,6 +59,20 @@ def join_blocks(blocks):
     return new_instrs
 
 
+def join_blocks_w_labels(block_dict):
+    """
+    Joins a list of basic blocks into 1 function body
+    Inverts form_blocks, But adds label if label instr was not there previously
+    """
+    new_instrs = []
+    for label, bb in block_dict.items():
+        if len(bb) != 0 and 'label' not in bb[0]:
+            new_instrs.append({'label': label})
+        for instr in bb:
+            new_instrs.append(instr)
+    return new_instrs
+
+
 def block_map(blocks):
     """
     Converts a list of basic blocks into a map of label to the instructions in block

@@ -9,6 +9,6 @@ digraph main {
   final;
 }
 Dominance Frontier
-	b0:	[]
-	next:	[]
+	b0:	[final]
+	next:	[final]
 	final:	[]

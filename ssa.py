@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from bril_core_constants import *
 from bril_core_utilities import *
-from cfg import PREDS, SUCCS, TERMINATORS, form_cfg_succs_preds, form_blocks, form_block_dict, join_blocks
+from cfg import PREDS, SUCCS, TERMINATORS, form_cfg_succs_preds, form_blocks, form_block_dict, join_blocks_w_labels
 from dominator_utilities import build_dominance_tree, build_dominance_frontier
 
 
@@ -173,9 +173,26 @@ def rename(block_dict, block_name, stack, cfg, dom_tree, var_to_fresh_index):
                                     block_dict[pred_block_name], new_instr)
                             else:
                                 new_var = stack[a][-1]
+                        elif "_" in a and (a[a.rindex("_") + 1:]).isnumeric():
+                            new_var = a
                         else:
-                            raise RuntimeError(
-                                f"Variable {a} not in renaming stack {stack}.")
+                            pred_block_name = cfg[succ_name][PREDS][i]
+                            var_to_fresh_index[a] = 0
+                            new_var = f"{a}_{var_to_fresh_index[a] + 1}"
+                            var_to_fresh_index[a] += 1
+                            new_instr_type = p[TYPE]
+                            if new_instr_type == BOOL:
+                                new_instr = {OP: CONST,
+                                             VALUE: True, DEST: new_var, TYPE: BOOL}
+                            elif new_instr_type == INT:
+                                new_instr = {OP: CONST,
+                                             VALUE: 0, DEST: new_var, TYPE: INT}
+                            else:
+                                raise RuntimeError(
+                                    f"Unhandled type {new_instr_type}.")
+                            insert_at_end_of_bb(
+                                block_dict[pred_block_name], new_instr)
+
                         new_p_args.append(new_var)
                     else:
                         new_p_args.append(a)
@@ -212,7 +229,7 @@ def func_to_ssa(func):
 
     rename(block_dict, entry, stack, cfg, dom_tree, var_to_fresh_index)
 
-    return join_blocks([block_dict[key] for key in block_dict])
+    return join_blocks_w_labels(block_dict)
 
 
 def bril_to_ssa(program):

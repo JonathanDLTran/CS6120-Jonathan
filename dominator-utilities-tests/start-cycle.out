@@ -13,4 +13,4 @@ digraph main {
 Dominance Frontier
 	b0:	[]
 	cycle:	[cycle]
-	next:	[]
+	next:	[cycle]

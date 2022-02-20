@@ -16,5 +16,5 @@ digraph main {
 Dominance Frontier
 	b0:	[]
 	header:	[header]
-	positive:	[]
+	positive:	[header]
 	is.zero:	[]
