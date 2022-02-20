@@ -1,0 +1,15 @@
+@main {
+    a: int = const 4;
+    a: int = const 5;
+    a: int = add a a;
+    a: int = mul a a;
+    a: int = div a a;
+    a: int = sub a a;
+    print a;
+    a: int = const 4;
+    a: int = id a;
+    a: int = id a;
+    print a;
+    a: int = const 0;
+    print a;
+}

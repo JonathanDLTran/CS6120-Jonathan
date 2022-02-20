@@ -150,6 +150,11 @@ def build_dominance_tree(func):
                 tree[dom_obj] = [bb]
             else:
                 tree[dom_obj].append(bb)
+            if bb not in tree:
+                tree[bb] = []
+        else:
+            # entry point:
+            tree[bb] = []
     return tree, nodes
 
 
@@ -185,7 +190,7 @@ def build_dominance_frontier(func):
         for nodeB in cfg:
             if nodeB not in strict_dom[nodeA]:
                 for nodeC in cfg[nodeB][PREDS]:
-                    if nodeC != nodeA and nodeC in dom[nodeA]:
+                    if nodeC in dom[nodeA]:
                         nodeA_dominance_frontier.add(nodeB)
                         break
         out[nodeA] = list(nodeA_dominance_frontier)

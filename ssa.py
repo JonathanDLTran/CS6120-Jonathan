@@ -1,17 +1,11 @@
-from ntpath import join
 import click
 import sys
 import json
-
-from numpy import s_
+from collections import defaultdict
 
 from bril_core_constants import *
-from cfg import SUCCS, TERMINATORS, form_cfg_succs_preds, form_blocks, form_block_dict, join_blocks
-from dominator_utilities import build_dominance_tree
-
-
-def gen_var_name():
-    pass
+from cfg import PREDS, SUCCS, TERMINATORS, form_cfg_succs_preds, form_blocks, form_block_dict, join_blocks
+from dominator_utilities import build_dominance_tree, build_dominance_frontier
 
 
 def insert_at_end_of_bb(block, instr):
@@ -24,6 +18,19 @@ def insert_at_end_of_bb(block, instr):
         return
     else:
         block.append(instr)
+        return
+
+
+def insert_at_front_of_bb(block, instr):
+    if len(block) == 0:
+        block.append(instr)
+        return
+    first_instr = block[0]
+    if LABEL in first_instr:
+        block.insert(1, instr)
+        return
+    else:
+        block.insert(0, instr)
         return
 
 
@@ -55,26 +62,66 @@ def ssa_to_bril(program):
     return program
 
 
-def insert_phi(func):
-    pass
+def insert_phi(func, df, cfg, block_dict, entry):
+    assert type(func) == dict
+
+    variables = defaultdict(list)
+    var_types = dict()
+    if ARGS in func:
+        args = func[ARGS]
+        for a in args:
+            variables[a[NAME]].append(entry)
+            var_types[a[NAME]] = a[TYPE]
+
+    for block, instrs in block_dict.items():
+        for instr in instrs:
+            if DEST in instr:
+                dst = instr[DEST]
+                variables[dst].append(block)
+                var_types[dst] = instr[TYPE]
+            if ARGS in instr:
+                args = instr[ARGS]
+                for a in args:
+                    if a not in variables:
+                        raise RuntimeError(
+                            f"SSA: INSERT PHI: Undefined variable {a} used in {instr}.")
+
+    for v in variables:
+        added_blocks = set()
+        for defined_block in variables[v]:
+            for df_block in df[defined_block]:
+                if df_block not in added_blocks:
+                    args = []
+                    preds = cfg[df_block][PREDS]
+                    for _ in range(len(preds)):
+                        args.append(v)
+                    phi = {OP: PHI, TYPE: var_types[v],
+                           LABELS: preds,  ARGS: args, DEST: v}
+                    insert_at_front_of_bb(block_dict[df_block], phi)
+                    added_blocks.add(df_block)
+                if df_block not in variables[v]:
+                    variables[v].append(df_block)
 
 
-def rename(block_map, block_name, stack, cfg, dom_tree):
+def rename(block_dict, block_name, stack, cfg, dom_tree, var_to_fresh_index):
     pushed_names = dict()
 
-    block = block_map[block_name]
+    block = block_dict[block_name]
     for instr in block:
         if ARGS in instr:
             old_args = instr[ARGS]
             new_args = []
             for old in old_args:
-                (v, i) = stack[old]
+                (v, i) = stack[old][-1]
                 var = f"{v}_{i}"
                 new_args.append(var)
             instr[ARGS] = new_args
         if DEST in instr:
             dst = instr[DEST]
-            (v, i) = stack[dst]
+            if dst in stack:
+                (v, i) = stack[dst][-1]
+            else:
+                (v, i) = (dst, 0)
             new_name = f"{v}_{i + 1}"
             instr[DEST] = new_name
             stack[dst].append((v, i + 1))
@@ -84,7 +131,7 @@ def rename(block_map, block_name, stack, cfg, dom_tree):
             else:
                 pushed_names[dst] = [new_name]
 
-    for s in cfg[block][SUCCS]:
+    for s in cfg[block_name][SUCCS]:
         s_phi_nodes = []
         for instr in s:
             if OP in instr and instr[OP] == PHI:
@@ -94,7 +141,7 @@ def rename(block_map, block_name, stack, cfg, dom_tree):
             new_p_args = []
             for a in p_args:
                 if a in stack:
-                    (v, i) = stack[a]
+                    (v, i) = stack[a][-1]
                     new_var = f"{v}_{i}"
                     new_p_args.append(new_var)
                 else:
@@ -102,7 +149,7 @@ def rename(block_map, block_name, stack, cfg, dom_tree):
             p[ARGS] = new_p_args
 
     for new_block_name in dom_tree[block_name]:
-        rename(block_map, new_block_name, stack, cfg, dom_tree)
+        rename(block_dict, new_block_name, stack, cfg, dom_tree)
 
     for var, new_names in pushed_names.items():
         while new_names != []:
@@ -111,13 +158,33 @@ def rename(block_map, block_name, stack, cfg, dom_tree):
 
 
 def func_to_ssa(func):
-    assert type(func) == list
+    # set up stack with arguments as needed
+    stack = defaultdict(list)
+    if ARGS in func:
+        new_args = []
+        for a in func[ARGS]:
+            stack[a].append((a, 0))
+            new_args.append(f"{a}_0")
+        func[ARGS] = new_args
+
+    cfg = form_cfg_succs_preds(func["instrs"])
+    block_dict = form_block_dict(form_blocks(func["instrs"]))
+    dom_tree, _ = build_dominance_tree(func)
+    dom_frontier = build_dominance_frontier(func)
+    entry = list(block_dict.keys())[0]
+
+    insert_phi(func, dom_frontier, cfg, block_dict, entry)
+
+    rename(block_dict, entry, stack, cfg, dom_tree)
+
+    return join_blocks([block_dict[key] for key in block_dict])
 
 
 def bril_to_ssa(program):
     for func in program["functions"]:
-        new_func_instrs = func_to_ssa(func["instrs"])
-        func["instrs"] = new_func_instrs
+        new_instrs = func_to_ssa(func)
+        func["instrs"] = new_instrs
+    return program
     return is_ssa(program)
 
 

@@ -1,0 +1,21 @@
+@main {
+    cond : bool = const false;
+    cond : bool = and cond cond;
+    cond : bool = not cond;
+    cond : bool = or cond cond;
+    br cond .first .second;
+.first:
+    a: int = const 3;
+    cond: bool = const true;
+    jmp .end;
+.second:
+    cond: bool = const false;
+.end:
+    print a;
+    cond: bool = not cond;
+    cond: bool = and cond cond;
+    print cond;
+    a: int = const 5;
+    a: int = add a a;
+    print a;
+}
