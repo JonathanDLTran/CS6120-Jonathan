@@ -1,0 +1,20 @@
+@main {
+.b0:
+  a_1: int = const 0;
+  jmp .first;
+.first:
+  a_2: int = add a_1 a_1;
+  print a_2;
+  jmp .end;
+.skip:
+  print a_1;
+  one_1: int = const 1;
+  a_5: int = sub a_1 one_1;
+  jmp .end;
+.end:
+  a_3: int = mul a_2 a_2;
+  b_1: int = id a_3;
+  a_4: int = sub b_1 a_3;
+  print b_1;
+  print a_4;
+}

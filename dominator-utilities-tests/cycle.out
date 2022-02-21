@@ -1,13 +1,12 @@
 Dominators
-	cycle is dominated by:	[cycle, next]
+	cycle is dominated by:	[cycle]
 	next is dominated by:	[cycle, next]
 Dominator Tree
 digraph main {
   cycle;
   next;
-  next -> cycle;
   cycle -> next;
 }
 Dominance Frontier
 	cycle:	[cycle]
-	next:	[next]
+	next:	[cycle]

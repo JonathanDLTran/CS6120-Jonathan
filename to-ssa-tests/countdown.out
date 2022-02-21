@@ -1,0 +1,21 @@
+@main {
+.b0:
+  a_1: int = const 10;
+  one_1: int = const 0;
+  cond_1: bool = const true;
+  zero_1: int = const 0;
+.header:
+  one_2: int = phi one_1 one_3 .b0 .body;
+  cond_2: bool = phi cond_1 cond_3 .b0 .body;
+  zero_2: int = phi zero_1 zero_3 .b0 .body;
+  a_2: int = phi a_1 a_3 .b0 .body;
+  zero_3: int = const 0;
+  cond_3: bool = eq a_2 zero_3;
+  br cond_3 .end .body;
+.body:
+  print a_2;
+  one_3: int = const 1;
+  a_3: int = sub a_2 one_3;
+  jmp .header;
+.end:
+}

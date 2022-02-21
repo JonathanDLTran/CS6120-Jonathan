@@ -1,0 +1,36 @@
+@main {
+.b0:
+  a_1: int = const 0;
+  one_1: int = const 0;
+  cond2_1: bool = const true;
+  two_1: int = const 0;
+  cond_1: bool = const true;
+  top_1: int = const 0;
+.header:
+  one_2: int = phi one_1 one_4 .b0 .endif;
+  cond2_2: bool = phi cond2_1 cond2_3 .b0 .endif;
+  two_2: int = phi two_1 two_3 .b0 .endif;
+  cond_2: bool = phi cond_1 cond_3 .b0 .endif;
+  top_2: int = phi top_1 top_3 .b0 .endif;
+  a_2: int = phi a_1 a_5 .b0 .endif;
+  top_3: int = const 10;
+  cond_3: bool = eq a_2 top_3;
+  br cond_3 .end .body;
+.body:
+  print a_2;
+  two_3: int = const 2;
+  cond2_3: bool = eq a_2 two_3;
+  br cond2_3 .if .else;
+.if:
+  a_3: int = add a_2 two_3;
+  jmp .endif;
+.else:
+  one_3: int = const 1;
+  a_4: int = add a_2 one_3;
+.endif:
+  one_4: int = phi one_2 one_3 .if .else;
+  a_5: int = phi a_3 a_4 .if .else;
+  jmp .header;
+.end:
+  print a_2;
+}

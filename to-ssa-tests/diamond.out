@@ -1,0 +1,26 @@
+@main {
+.b0:
+  a_1: int = const 3;
+  cond_1: bool = const false;
+  cond_2: bool = and cond_1 cond_1;
+  cond_3: bool = not cond_2;
+  cond_4: bool = or cond_3 cond_3;
+  br cond_4 .first .second;
+.first:
+  a_2: int = add a_1 a_1;
+  cond_5: bool = const true;
+  jmp .end;
+.second:
+  a_3: int = mul a_1 a_1;
+  cond_6: bool = const false;
+.end:
+  cond_7: bool = phi cond_5 cond_6 .first .second;
+  a_4: int = phi a_2 a_3 .first .second;
+  print a_4;
+  cond_8: bool = not cond_7;
+  cond_9: bool = and cond_8 cond_8;
+  print cond_9;
+  a_5: int = const 5;
+  a_6: int = add a_5 a_5;
+  print a_6;
+}

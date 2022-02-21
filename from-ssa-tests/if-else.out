@@ -1,4 +1,5 @@
 @main {
+.b0:
   a1: int = const 3;
   cond: bool = const true;
   br cond .if .else;

@@ -1,0 +1,27 @@
+# ARGS: 10
+@main(n: int) {
+    result: int = call @fib n;
+    print result;
+}
+
+@fib(n: int): int {
+    zero: int = const 0;
+    one: int = const 1;
+    cond0: bool = eq n zero;
+    br cond0 .zero .not_zero;
+.zero:
+    ret one;
+.not_zero:
+    cond1: bool = eq n one;
+    br cond1 .one .not_one;
+.one:
+    ret one;
+.not_one:
+    nminus1: int = sub n one;
+    two: int = const 2;
+    nminus2: int = sub n two;
+    res1: int = call @fib nminus1;
+    res2: int = call @fib nminus2;
+    res: int = add res1 res2;
+    ret res;
+}

@@ -1,0 +1,16 @@
+@main {
+.b0:
+  a_1: int = const 4;
+  a_2: int = const 5;
+  a_3: int = add a_2 a_2;
+  a_4: int = mul a_3 a_3;
+  a_5: int = div a_4 a_4;
+  a_6: int = sub a_5 a_5;
+  print a_6;
+  a_7: int = const 4;
+  a_8: int = id a_7;
+  a_9: int = id a_8;
+  print a_9;
+  a_10: int = const 0;
+  print a_10;
+}

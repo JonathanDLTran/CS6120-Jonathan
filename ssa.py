@@ -1,3 +1,4 @@
+from copy import deepcopy
 import click
 import sys
 import json
@@ -53,14 +54,14 @@ def func_from_ssa(func):
             else:
                 new_instrs.append(instr)
             block_dict[block_name] = new_instrs
-    return join_blocks([block_dict[block_name] for block_name in block_dict])
+    return join_blocks_w_labels(block_dict)
 
 
 def ssa_to_bril(program):
     for func in program["functions"]:
         new_func_instrs = func_from_ssa(func["instrs"])
         func["instrs"] = new_func_instrs
-    return program
+    return is_not_ssa(program)
 
 
 def insert_phi(func, df, cfg, block_dict, entry):
@@ -104,7 +105,107 @@ def insert_phi(func, df, cfg, block_dict, entry):
                     variables[v].append(df_block)
 
 
+def gen_new_var(var, var_to_fresh_index):
+    if var not in var_to_fresh_index:
+        var_to_fresh_index[var] = 0
+    new_name = f"{var}_{var_to_fresh_index[var] + 1}"
+    var_to_fresh_index[var] += 1
+    return new_name
+
+
+def is_ssa_var(var):
+    return "_" in var and (var[var.rindex("_") + 1:]).isnumeric()
+
+
+def insert_into_new_branch(block_dict, succ_name, cfg, var_to_fresh_index, a, i, phi_node):
+    pred_block_name = cfg[succ_name][PREDS][i]
+    new_var = f"{a}_{var_to_fresh_index[a] + 1}"
+    var_to_fresh_index[a] += 1
+    new_instr_type = phi_node[TYPE]
+    if new_instr_type == BOOL:
+        new_instr = {OP: CONST,
+                     VALUE: True, DEST: new_var, TYPE: BOOL}
+    elif new_instr_type == INT:
+        new_instr = {OP: CONST,
+                     VALUE: 0, DEST: new_var, TYPE: INT}
+    else:
+        raise RuntimeError(
+            f"Unhandled type {new_instr_type}.")
+    insert_at_end_of_bb(
+        block_dict[pred_block_name], new_instr)
+
+    return new_var
+
+
 def rename(block_dict, block_name, stack, cfg, dom_tree, var_to_fresh_index):
+    pushed_names = defaultdict(list)
+
+    block = block_dict[block_name]
+    for instr in block:
+        if not is_phi(instr) and ARGS in instr:
+            old_args = instr[ARGS]
+            new_args = []
+            for old in old_args:
+                var = stack[old][-1]
+                new_args.append(var)
+            instr[ARGS] = new_args
+
+        if DEST in instr:
+            dst = instr[DEST]
+            new_name = gen_new_var(dst, var_to_fresh_index)
+            instr[DEST] = new_name
+            stack[dst].append(new_name)
+            pushed_names[dst].append(new_name)
+
+    for succ_name in cfg[block_name][SUCCS]:
+        succ_phi_nodes = []
+        for instr in block_dict[succ_name]:
+            if OP in instr and instr[OP] == PHI:
+                succ_phi_nodes.append(instr)
+
+        for phi_node in succ_phi_nodes:
+            p_args = phi_node[ARGS]
+            p_labels = phi_node[LABELS]
+            if block_name not in p_labels:
+                raise RuntimeError(
+                    f"Block name {block_name} is not in the labels of phi node {phi_node} in basic block {succ_name}.")
+
+            label_index = p_labels.index(block_name)
+            new_p_args = []
+            for i, a in enumerate(p_args):
+                if i != label_index:
+                    new_p_args.append(a)
+                    continue
+                # a was defined before
+                if a in stack:
+                    # if stack[a] is empty, a is not defined along a certain branch
+                    if stack[a] == []:
+                        new_var = insert_into_new_branch(
+                            block_dict, succ_name, cfg, var_to_fresh_index, a, i, phi_node)
+                    else:
+                        new_var = stack[a][-1]
+                elif is_ssa_var(a):
+                    new_var = a
+                # a was never defined before, we add a new branch
+                else:
+                    var_to_fresh_index[a] = 0
+                    new_var = insert_into_new_branch(
+                        block_dict, succ_name, cfg, var_to_fresh_index, a, i, phi_node)
+
+                new_p_args.append(new_var)
+            phi_node[ARGS] = new_p_args
+
+    for new_block_name in dom_tree[block_name]:
+        rename(block_dict, new_block_name, stack,
+               cfg, dom_tree, var_to_fresh_index)
+
+    for var, new_names in pushed_names.items():
+        while new_names != []:
+            new_names.pop()
+            stack[var].pop()
+
+
+def rename_old(block_dict, block_name, stack, cfg, dom_tree, var_to_fresh_index):
     pushed_names = defaultdict(list)
 
     block = block_dict[block_name]
@@ -202,8 +303,8 @@ def rename(block_dict, block_name, stack, cfg, dom_tree, var_to_fresh_index):
                     f"Block name {block_name} is not in the labels of phi node {p} in basic block {succ_name}.")
 
     for new_block_name in dom_tree[block_name]:
-        rename(block_dict, new_block_name, stack,
-               cfg, dom_tree, var_to_fresh_index)
+        rename_old(block_dict, new_block_name, stack,
+                   cfg, dom_tree, var_to_fresh_index)
 
     for var, new_names in pushed_names.items():
         while new_names != []:
@@ -212,13 +313,6 @@ def rename(block_dict, block_name, stack, cfg, dom_tree, var_to_fresh_index):
 
 
 def func_to_ssa(func):
-    # set up stack with arguments as needed
-    stack = defaultdict(list)
-    var_to_fresh_index = {}
-    if ARGS in func:
-        for a in func[ARGS]:
-            var_to_fresh_index[a] = 0
-
     cfg = form_cfg_succs_preds(func["instrs"])
     block_dict = form_block_dict(form_blocks(func["instrs"]))
     dom_tree, _ = build_dominance_tree(func)
@@ -226,6 +320,20 @@ def func_to_ssa(func):
     entry = list(block_dict.keys())[0]
 
     insert_phi(func, dom_frontier, cfg, block_dict, entry)
+
+    # set up stack with arguments as needed
+    stack = defaultdict(list)
+    var_to_fresh_index = {}
+    if ARGS in func:
+        new_args = []
+        for a in func[ARGS]:
+            new_arg_name = f"{a[NAME]}_1"
+            stack[a[NAME]] = [new_arg_name]
+            var_to_fresh_index[a[NAME]] = 1
+            new_arg = deepcopy(a)
+            new_arg[NAME] = new_arg_name
+            new_args.append(new_arg)
+        func[ARGS] = new_args
 
     rename(block_dict, entry, stack, cfg, dom_tree, var_to_fresh_index)
 
@@ -244,13 +352,22 @@ def is_ssa(program):
         def_vars = set()
         if ARGS in func:
             for a in func[ARGS]:
-                def_vars.add(a)
+                def_vars.add(a[NAME])
         for instr in func["instrs"]:
             if DEST in instr:
                 dst = instr[DEST]
                 if dst in def_vars:
                     raise RuntimeError(f"Program is not in SSA form.")
                 def_vars.add(dst)
+    return program
+
+
+def is_not_ssa(program):
+    for func in program["functions"]:
+        for instr in func["instrs"]:
+            if OP in instr and instr[OP] == PHI:
+                raise RuntimeError(
+                    f"Program is still in SSA form: contains phi at {instr}.")
     return program
 
 

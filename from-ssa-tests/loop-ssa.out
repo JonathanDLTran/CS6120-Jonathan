@@ -1,0 +1,44 @@
+@main {
+.b0:
+  a_1: int = const 0;
+  one_1: int = const 0;
+  cond2_1: bool = const true;
+  two_1: int = const 0;
+  cond_1: bool = const true;
+  top_1: int = const 0;
+  one_2: int = id one_1;
+  cond2_2: bool = id cond2_1;
+  two_2: int = id two_1;
+  cond_2: bool = id cond_1;
+  top_2: int = id top_1;
+  a_2: int = id a_1;
+.header:
+  top_3: int = const 10;
+  cond_3: bool = eq a_2 top_3;
+  br cond_3 .end .body;
+.body:
+  print a_2;
+  two_3: int = const 2;
+  cond2_3: bool = eq a_2 two_3;
+  br cond2_3 .if .else;
+.if:
+  a_3: int = add a_2 two_3;
+  one_4: int = id one_2;
+  a_5: int = id a_3;
+  jmp .endif;
+.else:
+  one_3: int = const 1;
+  a_4: int = add a_2 one_3;
+  one_4: int = id one_3;
+  a_5: int = id a_4;
+.endif:
+  one_2: int = id one_4;
+  cond2_2: bool = id cond2_3;
+  two_2: int = id two_3;
+  cond_2: bool = id cond_3;
+  top_2: int = id top_3;
+  a_2: int = id a_5;
+  jmp .header;
+.end:
+  print a_2;
+}

@@ -1,14 +1,16 @@
 Dominators
 	b0 is dominated by:	[b0]
-	next is dominated by:	[next]
-	final is dominated by:	[final]
+	final is dominated by:	[b0, final]
+	next is dominated by:	[b0]
 Dominator Tree
 digraph main {
   b0;
-  next;
   final;
+  next;
+  b0 -> final;
+  b0 -> next;
 }
 Dominance Frontier
-	b0:	[final]
-	next:	[final]
+	b0:	[]
+	next:	[]
 	final:	[]

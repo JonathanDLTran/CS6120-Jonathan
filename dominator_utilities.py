@@ -1,4 +1,3 @@
-from email.policy import strict
 import sys
 import json
 import click
@@ -6,6 +5,10 @@ from collections import OrderedDict
 from copy import deepcopy
 
 from cfg import form_cfg_succs_preds, PREDS, SUCCS
+from bril_core_constants import LABEL
+
+
+NO_PREDECESSOR_HEADER = "no.predecessor.header"
 
 
 def big_intersection(lst):
@@ -44,6 +47,7 @@ def get_dominators(func):
     assert type(func) == dict
     func_instructions = func["instrs"]
     cfg = form_cfg_succs_preds(func_instructions)
+    entry = list(cfg.keys())[0]
 
     # set up before iteration
     # NOTE: I am not sure if this is completely correct, but it *SEEMS* to handle
@@ -53,22 +57,32 @@ def get_dominators(func):
     if len(cfg) >= 1:
         reachable_blocks = dfs(cfg, list(cfg.keys())[0], set())
     for bb_name in cfg:
-        if bb_name in reachable_blocks:
+        if bb_name == entry:
+            domby[bb_name] = {bb_name}
+        elif bb_name in reachable_blocks:
             domby[bb_name] = reachable_blocks
-        else:
-            domby[bb_name] = set()
 
     # iterate to convergence
     dom_changed = True
     while dom_changed:
         old_dom = deepcopy(domby)
 
-        for bb_name in cfg:
-            dom_predecessors = [domby[p] for p in cfg[bb_name][PREDS]]
+        for bb_name in [name for name in cfg if name in reachable_blocks]:
+            dom_predecessors = [domby[p]
+                                for p in cfg[bb_name][PREDS] if p in reachable_blocks]
+
+            if bb_name == entry:
+                continue
             intersection = big_intersection(dom_predecessors)
             domby[bb_name] = {bb_name}.union(intersection)
 
         dom_changed = old_dom != domby
+
+    # for unreachable blocks, for the purpose of ssa, we say they are dominated by entry
+    # actually they are domijnated by all nodes
+    for node in cfg:
+        if node not in reachable_blocks:
+            domby[node] = {entry}
 
     dom = OrderedDict()
     for bb in cfg:
@@ -115,25 +129,26 @@ def get_immediate_dominators(strict_dom):
     (Kinda like a LUB for strict dominators)
     """
     imm_dom = OrderedDict()
-    for node1, strict_lst in strict_dom.items():
+    for node_A, node_A_strict in strict_dom.items():
         immediate = []
-        for node2 in strict_lst:
+        for node_B in node_A_strict:
             can_add = True
-            for node3 in strict_lst:
-                if node2 != node3:
-                    node3_strict = strict_dom[node3]
-                    if node2 in node3_strict:
+            for node_C in node_A_strict:
+                if node_B != node_C:
+                    node_C_strict = strict_dom[node_C]
+                    if node_B in node_C_strict:
                         can_add = False
                         break
             if can_add:
-                immediate.append(node2)
-                break
+                # B immediately dominates A
+                immediate.append(node_B)
+
         if immediate != []:
             assert len(immediate) == 1
-            imm_dom[node1] = immediate[0]
+            imm_dom[node_A] = immediate[0]
         else:
-            # special case: entry immediately dominates itself
-            imm_dom[node1] = node1
+            # special case: entry is immediately dominated by itself
+            imm_dom[node_A] = node_A
     return imm_dom
 
 

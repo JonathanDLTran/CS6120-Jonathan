@@ -1,10 +1,10 @@
 Dominators
-	cycle is dominated by:	[cycle, next]
+	cycle is dominated by:	[cycle]
 	next is dominated by:	[cycle, next]
-	unreachable is dominated by:	[final.unreachable, unreachable]
-	final.unreachable is dominated by:	[final.unreachable, unreachable]
-	second.unreachable is dominated by:	[second.unreachable]
-	second.unreachable.continued is dominated by:	[second.unreachable, second.unreachable.continued]
+	unreachable is dominated by:	[cycle]
+	final.unreachable is dominated by:	[cycle]
+	second.unreachable is dominated by:	[cycle]
+	second.unreachable.continued is dominated by:	[cycle]
 Dominator Tree
 digraph main {
   cycle;
@@ -13,16 +13,16 @@ digraph main {
   final.unreachable;
   second.unreachable;
   second.unreachable.continued;
-  next -> cycle;
   cycle -> next;
-  final.unreachable -> unreachable;
-  unreachable -> final.unreachable;
-  second.unreachable -> second.unreachable.continued;
+  cycle -> unreachable;
+  cycle -> final.unreachable;
+  cycle -> second.unreachable;
+  cycle -> second.unreachable.continued;
 }
 Dominance Frontier
 	cycle:	[cycle]
-	next:	[next]
-	unreachable:	[unreachable]
-	final.unreachable:	[final.unreachable]
+	next:	[cycle]
+	unreachable:	[]
+	final.unreachable:	[]
 	second.unreachable:	[]
 	second.unreachable.continued:	[]

@@ -1,0 +1,28 @@
+Dominators
+	b0 is dominated by:	[b0]
+	first is dominated by:	[b0, first]
+	end is dominated by:	[b0, end, first]
+	skip is dominated by:	[b0]
+	skip2 is dominated by:	[b0]
+	skip3 is dominated by:	[b0]
+Dominator Tree
+digraph main {
+  b0;
+  first;
+  end;
+  skip;
+  skip2;
+  skip3;
+  b0 -> first;
+  b0 -> skip;
+  b0 -> skip2;
+  b0 -> skip3;
+  first -> end;
+}
+Dominance Frontier
+	b0:	[]
+	first:	[]
+	skip:	[]
+	skip2:	[]
+	skip3:	[]
+	end:	[]

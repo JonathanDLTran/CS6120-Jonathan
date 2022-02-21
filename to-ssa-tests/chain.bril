@@ -1,0 +1,21 @@
+@main {
+    a: int = const 3;
+    b: int = const 4;
+    c: int = add a b;
+    c: int = mul a b;
+    print c;
+    jmp .next;
+.next:
+    a: int = const 4;
+    b: int = add b b;
+    c: int = add c c;
+    jmp .final;
+.final:
+    c: int = add b a;
+    c: int = mul c c;
+    print c;
+    d: int = add a a;
+    d: int = sub a c;
+    d: int = sub d d;
+    print d;
+}

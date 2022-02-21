@@ -1,0 +1,25 @@
+@main {
+.b0:
+  a_1: int = const 10;
+  one_1: int = const 0;
+  cond_1: bool = const true;
+  zero_1: int = const 0;
+  one_2: int = id one_1;
+  cond_2: bool = id cond_1;
+  zero_2: int = id zero_1;
+  a_2: int = id a_1;
+.header:
+  zero_3: int = const 0;
+  cond_3: bool = eq a_2 zero_3;
+  br cond_3 .end .body;
+.body:
+  print a_2;
+  one_3: int = const 1;
+  a_3: int = sub a_2 one_3;
+  one_2: int = id one_3;
+  cond_2: bool = id cond_3;
+  zero_2: int = id zero_3;
+  a_2: int = id a_3;
+  jmp .header;
+.end:
+}
