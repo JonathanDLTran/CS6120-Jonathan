@@ -1,0 +1,22 @@
+@main {
+.b0:
+  a_1: int = const 3;
+  b_1: int = const 4;
+  c_1: int = add a_1 b_1;
+  c_2: int = mul a_1 b_1;
+  print c_2;
+  jmp .next;
+.next:
+  a_2: int = const 4;
+  b_2: int = add b_1 b_1;
+  c_3: int = add c_2 c_2;
+  jmp .final;
+.final:
+  c_4: int = add b_2 a_2;
+  c_5: int = mul c_4 c_4;
+  print c_5;
+  d_1: int = add a_2 a_2;
+  d_2: int = sub a_2 c_5;
+  d_3: int = sub d_2 d_2;
+  print d_3;
+}

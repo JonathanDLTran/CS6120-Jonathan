@@ -1,0 +1,27 @@
+@main(n_1: int) {
+.b0:
+  result_1: int = call @fib n_1;
+  print result_1;
+}
+@fib(n_1: int): int {
+.b0:
+  zero_1: int = const 0;
+  one_1: int = const 1;
+  cond0_1: bool = eq n_1 zero_1;
+  br cond0_1 .zero .not_zero;
+.zero:
+  ret one_1;
+.not_zero:
+  cond1_1: bool = eq n_1 one_1;
+  br cond1_1 .one .not_one;
+.one:
+  ret one_1;
+.not_one:
+  nminus1_1: int = sub n_1 one_1;
+  two_1: int = const 2;
+  nminus2_1: int = sub n_1 two_1;
+  res1_1: int = call @fib nminus1_1;
+  res2_1: int = call @fib nminus2_1;
+  res_1: int = add res1_1 res2_1;
+  ret res_1;
+}
