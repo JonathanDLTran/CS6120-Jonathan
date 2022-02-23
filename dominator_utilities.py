@@ -5,7 +5,7 @@ from collections import OrderedDict
 from copy import deepcopy
 
 from cfg import form_cfg_succs_preds, PREDS, SUCCS
-from bril_core_constants import LABEL
+from bril_core_constants import NAME
 
 
 NO_PREDECESSOR_HEADER = "no.predecessor.header"
@@ -219,12 +219,42 @@ def dominance_frontier(prog):
             print(f"\t{bb_name}:\t[{', '.join(sorted(dominated))}]")
 
 
+def get_backedges(func):
+    func_instructions = func["instrs"]
+    cfg = form_cfg_succs_preds(func_instructions)
+    dom, _ = get_dominators(func)
+    backedges = []
+    for A in cfg:
+        for B in cfg:
+            if B in cfg[A][SUCCS] and A in dom[B]:
+                backedges.append((A, B))
+    return backedges
+
+
+def backedges(prog):
+    for func in prog["functions"]:
+        backedges = get_backedges(func)
+        print(func[NAME])
+        for A, B in backedges:
+            print(f"\tEdge from {A}->{B}, where {B} dominates {A}.]")
+
+
+def get_natural_loops(func):
+    pass
+
+
+def natural_loops(prog):
+    pass
+
+
 @click.command()
 @click.option('--dominator', default=False, help='Print Dominators.')
 @click.option('--tree', default=False, help='Print Dominator Tree.')
 @click.option('--frontier', default=False, help='Print Domination Frontier.')
+@click.option('--back', default=False, help='Pretty Back Edges of Program.')
+@click.option('--loops', default=False, help='Pretty Natural Loops of Program.')
 @click.option('--pretty-print', default=False, help='Pretty Print Original Program.')
-def main(dominator, tree, frontier, pretty_print):
+def main(dominator, tree, frontier, back, loops, pretty_print):
     prog = json.load(sys.stdin)
     if pretty_print:
         print(json.dumps(prog, indent=4, sort_keys=True))
@@ -237,6 +267,12 @@ def main(dominator, tree, frontier, pretty_print):
     if frontier:
         print("Dominance Frontier")
         dominance_frontier(prog)
+    if back:
+        print("Back Edges")
+        backedges(prog)
+    if loops:
+        print("Natural Loops")
+        natural_loops(prog)
 
 
 if __name__ == "__main__":
