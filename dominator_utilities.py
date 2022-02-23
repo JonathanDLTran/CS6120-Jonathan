@@ -236,15 +236,53 @@ def backedges(prog):
         backedges = get_backedges(func)
         print(func[NAME])
         for A, B in backedges:
-            print(f"\tEdge from {A}->{B}, where {B} dominates {A}.]")
+            print(f"\tEdge from {A}->{B}, where {B} dominates {A}.")
 
 
 def get_natural_loops(func):
-    pass
+    func_instructions = func["instrs"]
+    cfg = form_cfg_succs_preds(func_instructions)
+    backedges = get_backedges(func)
+
+    loops = []
+
+    for (A, B) in backedges:
+        natural_loop = [A, B]
+
+        continue_checking = True
+        while continue_checking:
+            new_natural_loop = deepcopy(natural_loop)
+            for v in natural_loop:
+                if v != B:
+                    v_preds = cfg[v][PREDS]
+                    for p in v_preds:
+                        if p not in natural_loop:
+                            new_natural_loop.append(p)
+
+            if new_natural_loop == natural_loop:
+                continue_checking = False
+            natural_loop = new_natural_loop
+
+        # check only 1 entrance to natural loop is via B, the loop header.
+        is_natural = True
+        for node in [n for n in cfg if n not in natural_loop]:
+            successors = cfg[node][SUCCS]
+            for s in successors:
+                if s != B and s in natural_loop:
+                    is_natural = False
+
+        if is_natural:
+            loops.append(natural_loop)
+
+    return loops
 
 
 def natural_loops(prog):
-    pass
+    for func in prog["functions"]:
+        natural_loops = get_natural_loops(func)
+        print(func[NAME])
+        for loop in natural_loops:
+            print(f"\tNatural Loop: {{ {', '.join(loop)} }}")
 
 
 @click.command()
