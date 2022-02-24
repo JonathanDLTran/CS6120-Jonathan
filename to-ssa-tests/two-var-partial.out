@@ -1,0 +1,17 @@
+@main {
+.b0:
+  cond_1: bool = const true;
+  br cond_1 .first .second;
+.first:
+  a_1: int = const 3;
+  b_1: int = const 0;
+  jmp .end;
+.second:
+  b_2: int = const 4;
+  a_2: int = const 0;
+  jmp .end;
+.end:
+  b_3: int = phi b_1 b_2 .first .second;
+  a_3: int = phi a_1 a_2 .first .second;
+  print a_3;
+}
