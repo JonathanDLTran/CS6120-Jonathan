@@ -1,0 +1,12 @@
+@main {
+    cond: bool = const true;
+    br cond .first .second;
+.first:
+    a: int = const 3;
+    jmp .end;
+.second:
+    b: int = const 4;
+    jmp .end;
+.end:
+    print a;
+}
