@@ -221,6 +221,21 @@ def dominance_tree(prog):
         get_tree_graph(tree, func, nodes)
 
 
+def check_dominance_frontier(df, strict_dom, dom, cfg):
+    for nodeA in df:
+        strict_dom_A = strict_dom[nodeA]
+        for nodeB in df[nodeA]:
+            assert nodeB not in strict_dom_A
+            predBs = cfg[nodeB][PREDS]
+            exists = False
+            for p in predBs:
+                if p in dom[nodeA]:
+                    exists = True
+            if not exists:
+                assert False
+    return df
+
+
 def build_dominance_frontier(func):
     """
     The dominator frontier is a set of nodes defined for every node (basic block)
@@ -241,6 +256,7 @@ def build_dominance_frontier(func):
                         nodeA_dominance_frontier.add(nodeB)
                         break
         out[nodeA] = list(nodeA_dominance_frontier)
+    check_dominance_frontier(out, strict_dom, dom, cfg)
     return out
 
 
