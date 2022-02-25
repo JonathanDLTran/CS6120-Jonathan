@@ -60,7 +60,7 @@ def paths_dfs(node, visited_nodes, prefix_paths, cfg, terminating_node):
 def check_domination(domby, cfg):
     entry = list(cfg.keys())[0]
     for b in domby:
-        paths = paths_dfs(b, set(), [], cfg, entry)
+        paths = paths_dfs(entry, set(), [], cfg, b)
         for a in domby[b]:
             for pp in paths:
                 if a not in pp:

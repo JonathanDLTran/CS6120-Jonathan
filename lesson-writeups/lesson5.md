@@ -36,6 +36,10 @@ Dominance Frontier
 ```
 Something left desired is making larger CFGs to test on, and making these CFGs be examples of "tricky" edge cases.
 
+To also help validate that the dominators are calculated correctly, I have a function called check_dominators, which verifies that node B really is dominated by node A if every path from the entry to B contains A in it. I don't allow loops in these paths, because I thought even if there was a loop, we could ignore the loop and continue trying to find our way from the entry to B. 
+
+This validation function is called every time the get_dominators function is called, to validate the result actually makes sense. I run this on the turnt tests, and no exception is raised, meaning that the validtor function cannot find a counter example path to the dominatorss I found.
+
 ## Difficulties
 
 Implementing dominators ended up being a bit trickier than I imagined. In particular, I was caught off guard by some edge cases when computing dominators, which ended up exposing some confusion that I had with the dominator definitions. This caused me to change some implementational details when calculating dominators. For example, I wrote an example program where the CFG consists of 2 basic blocks (A and B, A being an entry), forming a loop. The naive algorithm computes A as being dominated by both B and A, while B is dominated both A and B. This does not make sense as the path from the entry to the entry does not include B in it. I changed the algorithm to only consider A to be dominated by itself. 
