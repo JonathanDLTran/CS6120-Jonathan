@@ -38,6 +38,37 @@ def dfs(cfg, current, visited):
     return visited
 
 
+def paths_dfs(node, visited_nodes, prefix_paths, cfg, terminating_node):
+    visited_nodes.add(node)
+    if prefix_paths == []:
+        prefix_paths = [[node]]
+    else:
+        for pp in prefix_paths:
+            pp.append(node)
+    if node == terminating_node:
+        return prefix_paths
+    if cfg[node][SUCCS] == []:
+        return []
+    paths = []
+    for next_node in cfg[node][SUCCS]:
+        if next_node not in visited_nodes:
+            paths += paths_dfs(next_node, visited_nodes,
+                               prefix_paths, cfg, terminating_node)
+    return paths
+
+
+def check_domination(domby, cfg):
+    entry = list(cfg.keys())[0]
+    for b in domby:
+        paths = paths_dfs(b, set(), [], cfg, entry)
+        for a in domby[b]:
+            for pp in paths:
+                if a not in pp:
+                    raise RuntimeError(
+                        f"Path {', '.join(pp)} from {b} to {entry} does not contain {a};\n Therefore {a} does not dominate {b}.")
+    return domby
+
+
 def get_dominators(func):
     """
     Calculates Dominators for a function
@@ -92,6 +123,7 @@ def get_dominators(func):
                 dominates.add(otherbb)
         dom[bb] = list(dominates)
 
+    domby = check_domination(domby, cfg)
     return dom, domby
 
 
