@@ -1,0 +1,33 @@
+# ARGS: 5
+# From Wikipedia on Syracuse function
+@main(n: int){
+    one: int = const 1;
+.header:
+    print n;
+    cond: bool = eq n one;
+    br cond .end .loop;
+.loop:
+    mod_cond: bool = call @mod2 n;
+    br mod_cond .divide .multiply;
+.multiply:
+    three: int = const 3;
+    mult_value: int = mul n three;
+    mult_value: int = add mult_value one;
+    n: int = id mult_value;
+    jmp .header;
+.divide:
+    two: int = const 2;
+    n: int = div n two;
+    jmp .header;
+.end:
+}
+
+@mod2(n: int): bool{
+    two: int = const 2;
+    divisor: int = div n two;
+    mult: int = mul two divisor;
+    remainder: int = sub n mult;
+    zero: int = const 0;
+    cond: bool = eq remainder zero;
+    ret cond;
+}

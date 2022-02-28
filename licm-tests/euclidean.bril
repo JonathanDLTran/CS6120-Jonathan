@@ -1,0 +1,26 @@
+# ARGS: 14, 57
+# from Wikipedia on Euclidean Algorithm
+@main(a: int, b: int){
+    zero: int = const 0;
+.header:
+    cond: bool = eq b zero;
+    br cond .end .loop;
+.loop:
+    t: int = id b;
+    b: int = call @mod a b;
+    a: int = id t;
+    jmp .header;
+.end:
+    print a;
+}
+
+@mod(a: int, b: int): int{
+.header:
+    cond: bool = lt a b;
+    br cond .end .loop;
+.loop:
+    a: int = sub a b;
+    jmp .header;
+.end:
+    ret a;
+}

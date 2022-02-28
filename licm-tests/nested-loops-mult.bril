@@ -1,0 +1,26 @@
+# ARGS: 5 7
+@main(n: int, m: int){
+    zero: int = const 0;
+    one: int = const 1;
+    sum: int = id zero;
+.header1:
+    cond: bool = eq n zero;
+    br cond .end1 .loop1;
+.loop1:
+
+    save_m: int = id m;
+    .header2:
+        cond: bool = eq m zero;
+        br cond .end2 .loop2;
+    .loop2:
+        sum: int = add sum one;
+        m: int = sub m one;
+        jmp .header2;
+    .end2:
+        m: int = id save_m;
+
+    n: int = sub n one;
+    jmp .header1;
+.end1:
+    print sum;
+}

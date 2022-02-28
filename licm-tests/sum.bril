@@ -1,0 +1,15 @@
+# ARGS: 10
+@main(n: int){
+    zero: int = const 0;
+    sum: int = id zero;
+.header:
+    cond: bool = eq n zero;
+    br cond .end .loop;
+.loop:
+    sum: int = add sum n;
+    one: int = const 1;
+    n: int = sub n one;
+    jmp .header;
+.end:
+    print sum;
+}

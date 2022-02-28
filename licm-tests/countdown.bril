@@ -1,0 +1,13 @@
+# ARGS: 10
+@main(n: int){
+    zero: int = const 0;
+.header:
+    cond: bool = eq n zero;
+    br cond .end .loop;
+.loop:
+    print n;
+    one: int = const 1;
+    n: int = sub n one;
+    jmp .header;
+.end:
+}
