@@ -321,7 +321,7 @@ def get_natural_loops(func):
 
         if is_natural:
             header = B
-            loops.append((natural_loop, header))
+            loops.append((natural_loop, (A, B), header))
 
     return loops
 
@@ -330,7 +330,7 @@ def natural_loops(prog):
     for func in prog["functions"]:
         natural_loops = get_natural_loops(func)
         print(func[NAME])
-        for loop, _ in natural_loops:
+        for loop, _, _ in natural_loops:
             print(f"\tNatural Loop: {{ {', '.join(loop)} }}")
 
 

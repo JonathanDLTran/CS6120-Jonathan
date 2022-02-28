@@ -1,9 +1,10 @@
 from copy import deepcopy
+from collections import OrderedDict
 import click
 import sys
 import json
 
-from cfg import form_cfg_succs_preds, join_blocks_w_labels
+from cfg import form_cfg_w_blocks, insert_into_cfg, join_cfg
 from dominator_utilities import get_natural_loops
 from bril_core_constants import *
 
@@ -22,12 +23,24 @@ def gen_loop_preheader():
     return f"{NEW_LOOP_PREHEADER}.{LOOP_PREHEADER_COUNTER}"
 
 
-def insert_preheaders(func):
-    instrs = func["instrs"]
-    cfg = form_cfg_succs_preds(instrs)
-    natural_loops = get_natural_loops(instrs)
-    for loop, header in natural_loops:
-        preheader =
+def insert_preheaders(natural_loops, cfg):
+    headers = set()
+    preheadermap = OrderedDict()
+    backedgemap = OrderedDict()
+    for _, (A, _), header in natural_loops:
+        if header not in backedgemap:
+            backedgemap[header] = [A]
+        else:
+            backedgemap[header].append(A)
+    for _, _, header in natural_loops:
+        if header in headers:
+            # loop header shared with another prior loop header
+            continue
+        preheader = gen_loop_preheader()
+        headers.add(header)
+        preheadermap[header] = preheader
+        insert_into_cfg(preheader, backedgemap[header], header, cfg)
+    return preheadermap
 
 
 def identify_loop_invariant_instrs(loop_instrs):
@@ -45,15 +58,20 @@ def move_loop_invariant_instrs():
 
 
 def func_licm(func):
-    instrs = func["instrs"]
+    natural_loops = get_natural_loops(func)
+    cfg = form_cfg_w_blocks(func)
+    preheadermap = insert_preheaders(natural_loops, cfg)
+    return join_cfg(cfg)
 
 
-def licm(program):
+def licm_main(program):
     """
     LICM wrapper function
     """
     for func in program["functions"]:
-        pass
+        modified_func_instrs = func_licm(func)
+        func["instrs"] = modified_func_instrs
+    return program
 
 
 @click.command()
@@ -63,7 +81,10 @@ def main(licm, pretty_print):
     prog = json.load(sys.stdin)
     if pretty_print:
         print(json.dumps(prog, indent=4, sort_keys=True))
-    final_prog = licm(prog)
+    if licm:
+        final_prog = licm_main(prog)
+    else:
+        final_prog = prog
     if pretty_print:
         print(json.dumps(final_prog, indent=4, sort_keys=True))
     print(json.dumps(final_prog))
