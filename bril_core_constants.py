@@ -66,3 +66,5 @@ BRIL_CORE_INSTRS = [
 BRIL_COMMUTE_BINOPS = [
     ADD, MUL, AND, OR, EQ
 ]
+
+TERMINATORS = ["jmp", "br", "ret"]

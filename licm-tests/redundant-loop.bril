@@ -5,7 +5,7 @@
     y: int = add x x;
     z: int = mul y x;
     w: int = mul z z;
-    h: int = add h w;
+    h: int = add n w;
     max: int = const 1000;
     cond: bool = ge h max;
     br cond .end .next;

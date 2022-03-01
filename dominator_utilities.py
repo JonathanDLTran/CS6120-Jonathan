@@ -320,8 +320,15 @@ def get_natural_loops(func):
                     is_natural = False
 
         if is_natural:
+            # get exits for natural loop
+            exits = []
+            for node in natural_loop:
+                for s in cfg[node][SUCCS]:
+                    if s not in natural_loop:
+                        exits.append((node, s))
+
             header = B
-            loops.append((natural_loop, (A, B), header))
+            loops.append((natural_loop, (A, B), header, exits))
 
     return loops
 
@@ -330,7 +337,7 @@ def natural_loops(prog):
     for func in prog["functions"]:
         natural_loops = get_natural_loops(func)
         print(func[NAME])
-        for loop, _, _ in natural_loops:
+        for loop, _, _, _ in natural_loops:
             print(f"\tNatural Loop: {{ {', '.join(loop)} }}")
 
 

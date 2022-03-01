@@ -1,0 +1,9 @@
+@main{
+.header:
+    a: int = const 3;
+    b: int = const 5;
+    c: int = const 7;
+    d: int = add a b;
+    e: int = add c d;
+    jmp .header;
+}
