@@ -1,0 +1,16 @@
+@main{
+    n: int = const 10;
+.header:
+    x: int = const 2;
+    y: int = add x x;
+    z: int = mul y x;
+    w: int = mul z z;
+    h: int = add h w;
+    max: int = const 1000;
+    cond: bool = ge h max;
+    br cond .end .next;
+.next:
+    jmp .header;
+.end:
+    print h;
+}
