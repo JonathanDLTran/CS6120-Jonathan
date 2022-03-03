@@ -54,6 +54,9 @@ BRIL_BINOPS = [
     AND, OR,
 ]
 
+BOOL_OPS = [NOT, AND, OR, LT, GT, LE, GE, EQ]
+INT_OPS = [ADD, SUB, MUL, DIV]
+
 BRIL_UNOPS = [NOT]
 
 
@@ -68,3 +71,8 @@ BRIL_COMMUTE_BINOPS = [
 ]
 
 TERMINATORS = ["jmp", "br", "ret"]
+
+OP_TO_TYPE = {**{b: BOOL for b in BOOL_OPS}, **{i: INT for i in INT_OPS}}
+
+
+ARGUMENT = "argument"

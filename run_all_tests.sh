@@ -21,5 +21,7 @@ echo "Running From SSA Tests"
 turnt from-ssa-tests/*.bril
 echo "Running To SSA Tests"
 turnt to-ssa-tests/*.bril
+echo "Running To GVN Tests"
+turnt gvn-tests/*.bril
 echo "Running To LICM Tests"
 turnt licm-tests/*.bril

@@ -1,0 +1,23 @@
+# ARGS: 1 2 3 4 5 6
+@main(a0: int, b0: int, c0: int, d0: int, e0: int, f0: int, cond: bool){
+.block1: 
+    u0: int = add a0 b0;
+    v0: int = add c0 d0;
+    w0: int = add e0 f0;
+    br cond .block2 .block3;
+.block2:
+    x0: int = add c0 d0;
+    y0: int = add c0 d0;
+    jmp .block4;
+.block3:
+    u1: int = add a0 b0;
+    x1: int = add e0 f0;
+    y1: int = add e0 f0;
+    jmp .block4;
+.block4:
+    u2: int = phi u0 .block1 u1 .block3;
+    x2: int = phi x0 .block2 x1 .block3;
+    y2: int = phi y0 .block2 y1 .block3;
+    z0: int = add u2 y2;
+    u3: int = add a0 b0;
+}
