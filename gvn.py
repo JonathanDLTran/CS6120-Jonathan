@@ -14,7 +14,11 @@ from ssa import is_ssa, bril_to_ssa
 from cfg import form_cfg_w_blocks, join_cfg, INSTRS, SUCCS
 from dominator_utilities import build_dominance_tree
 from bril_core_constants import *
-from bril_core_utilities import reverse_postorder_traversal, is_phi, is_unop, is_binop, is_const, is_id
+from bril_core_utilities import (
+    reverse_postorder_traversal,
+    is_phi, is_unop, is_binop, is_const, is_id,
+    interpret_lvn_value,
+)
 
 
 def instr_to_expr(instr):
@@ -62,17 +66,18 @@ def canonocalize_expr(expr):
     assert len(expr) >= 2
 
     op = expr[0]
-    if op in BRIL_COMMUTE_BINOPS:
+    if op in BRIL_COMMUTE_BINOPS + [PHI]:
 
         return (op, *sorted(list(expr[1:])))
     return expr
 
 
-def simplify_expr(expr):
+def simplify_expr(expr, var2value_num, expr2value_num):
     # TODO simplification, with interpretation
     assert type(expr) == tuple
     canonical = canonocalize_expr(expr)
-    return canonical
+    interpreted = interpret_lvn_value(canonical, var2value_num, expr2value_num)
+    return interpreted
 
 
 def meaningless(instr):
@@ -91,7 +96,7 @@ def meaningless(instr):
 
 
 def redundant(instr, phi2value_num):
-    expr = simplify_expr(instr_to_expr(instr))
+    expr = canonocalize_expr(instr_to_expr(instr))
     if expr in phi2value_num:
         return True, phi2value_num[expr]
     return False, None
@@ -149,7 +154,7 @@ def dvnt(block, cfg, dominator_tree, var2value_num, expr2value_num):
 
             # get canonical expression
             expr = instr_to_expr(instr)
-            new_expr = simplify_expr(expr)
+            new_expr = simplify_expr(expr, var2value_num, expr2value_num)
             dst = instr[DEST]
             if new_expr != expr:
                 expr = new_expr
