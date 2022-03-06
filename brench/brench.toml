@@ -1,0 +1,15 @@
+extract = '(.*?)'
+benchmarks = '../int-benchmarks/*.bril'
+
+[runs.baseline]
+pipeline = [
+    "bril2json",
+    "brili {args}",
+]
+
+[runs.ssa]
+pipeline = [
+    "bril2json",
+    "python ../ssa.py --to-ssa=True",
+    "brili {args}",
+]

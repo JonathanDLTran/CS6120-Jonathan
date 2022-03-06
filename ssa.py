@@ -188,7 +188,8 @@ def rename(block_dict, block_name, stack, cfg, dom_tree, var_to_fresh_index):
                     new_var = a
                 # a was never defined before, we add a new branch
                 else:
-                    var_to_fresh_index[a] = 0
+                    if a not in var_to_fresh_index:
+                        var_to_fresh_index[a] = 0
                     new_var = insert_into_new_branch(
                         block_dict, succ_name, cfg, var_to_fresh_index, a, i, phi_node)
 
@@ -357,7 +358,8 @@ def is_ssa(program):
             if DEST in instr:
                 dst = instr[DEST]
                 if dst in def_vars:
-                    raise RuntimeError(f"Program is not in SSA form.")
+                    raise RuntimeError(
+                        f"Program is not in SSA form: {dst} in {instr} detected at least twice.")
                 def_vars.add(dst)
     return program
 
