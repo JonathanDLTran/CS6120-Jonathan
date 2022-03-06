@@ -314,6 +314,12 @@ def rename_old(block_dict, block_name, stack, cfg, dom_tree, var_to_fresh_index)
 
 
 def func_to_ssa(func):
+    # add args to stop arg ssa issues with hpi nodes
+    if ARGS in func:
+        for a in func[ARGS]:
+            new_instr = {DEST: a[NAME], TYPE: a[TYPE], OP: ID, ARGS: [a[NAME]]}
+            func[INSTRS].insert(0, new_instr)
+
     cfg = form_cfg_succs_preds(func["instrs"])
     block_dict = form_block_dict(form_blocks(func["instrs"]))
     dom_tree, _ = build_dominance_tree(func)
