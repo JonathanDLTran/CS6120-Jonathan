@@ -6,6 +6,16 @@ import json
 from cfg import form_blocks, join_blocks
 
 
+def mark_sweep_dce(program):
+    """
+    Implementation of Mark Sweep Style DCE to remove more dead code. Meant to 
+    work in conjunction with SSA code.
+
+    Can be run alongside other passes with lvn/gvn.
+    """
+    pass
+
+
 def delete_unused_dce(program):
     """
     Delete all instructions for which a variable is assigned but never read from.
