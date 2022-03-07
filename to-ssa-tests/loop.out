@@ -1,5 +1,5 @@
 @main {
-.b0:
+.UNIQUE.HEADER:
   a_1: int = const 0;
   one_1: int = const 0;
   cond2_1: bool = const true;
@@ -7,12 +7,12 @@
   cond_1: bool = const true;
   top_1: int = const 0;
 .header:
-  one_2: int = phi one_1 one_4 .b0 .endif;
-  cond2_2: bool = phi cond2_1 cond2_3 .b0 .endif;
-  two_2: int = phi two_1 two_3 .b0 .endif;
-  cond_2: bool = phi cond_1 cond_3 .b0 .endif;
-  top_2: int = phi top_1 top_3 .b0 .endif;
-  a_2: int = phi a_1 a_5 .b0 .endif;
+  one_2: int = phi one_1 one_4 .UNIQUE.HEADER .endif;
+  cond2_2: bool = phi cond2_1 cond2_3 .UNIQUE.HEADER .endif;
+  two_2: int = phi two_1 two_3 .UNIQUE.HEADER .endif;
+  cond_2: bool = phi cond_1 cond_3 .UNIQUE.HEADER .endif;
+  top_2: int = phi top_1 top_3 .UNIQUE.HEADER .endif;
+  a_2: int = phi a_1 a_5 .UNIQUE.HEADER .endif;
   top_3: int = const 10;
   cond_3: bool = eq a_2 top_3;
   br cond_3 .end .body;

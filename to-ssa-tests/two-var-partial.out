@@ -1,5 +1,5 @@
 @main {
-.b0:
+.UNIQUE.HEADER:
   cond_1: bool = const true;
   br cond_1 .first .second;
 .first:

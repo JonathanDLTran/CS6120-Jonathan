@@ -10,6 +10,9 @@ from cfg import PREDS, SUCCS, TERMINATORS, form_cfg_succs_preds, form_blocks, fo
 from dominator_utilities import build_dominance_tree, build_dominance_frontier
 
 
+UNIQUE_HEADER = "UNIQUE.HEADER"
+
+
 def insert_at_end_of_bb(block, instr):
     if len(block) == 0:
         block.append(instr)
@@ -314,11 +317,8 @@ def rename_old(block_dict, block_name, stack, cfg, dom_tree, var_to_fresh_index)
 
 
 def func_to_ssa(func):
-    # add args to stop arg ssa issues with hpi nodes
-    if ARGS in func:
-        for a in func[ARGS]:
-            new_instr = {DEST: a[NAME], TYPE: a[TYPE], OP: ID, ARGS: [a[NAME]]}
-            func[INSTRS].insert(0, new_instr)
+    # add in unique header to stop issues with header not having previous
+    func[INSTRS].insert(0, {LABEL: UNIQUE_HEADER})
 
     cfg = form_cfg_succs_preds(func["instrs"])
     block_dict = form_block_dict(form_blocks(func["instrs"]))

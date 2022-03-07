@@ -1,5 +1,5 @@
 @main {
-.b0:
+.UNIQUE.HEADER:
   a_1: int = const 0;
   jmp .first;
 .first:

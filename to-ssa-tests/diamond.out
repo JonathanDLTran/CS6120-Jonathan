@@ -1,5 +1,5 @@
 @main {
-.b0:
+.UNIQUE.HEADER:
   a_1: int = const 3;
   cond_1: bool = const false;
   cond_2: bool = and cond_1 cond_1;

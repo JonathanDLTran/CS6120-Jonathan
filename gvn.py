@@ -181,8 +181,11 @@ def dvnt(block, cfg, dominator_tree, var2value_num, expr2value_num):
                 args = instr[ARGS]
                 new_args = [var2value_num[arg] for arg in args]
                 instr[ARGS] = new_args
-            # don't bother changing destination, if it exists, as it
-            # could be a call, and calls can have side effects
+            if DEST in instr:
+                dst = instr[DEST]
+                var2value_num[dst] = dst
+                # CALL, dst will be unique and never match anything as dst is unique in SSA
+                expr2value_num[(CALL, dst)] = dst
 
             # add instr
             gvn_instructions.append(instr)

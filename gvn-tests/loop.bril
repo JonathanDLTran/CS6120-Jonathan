@@ -1,0 +1,28 @@
+# ARGS: 1
+@main(one: int) {
+.header:
+    a: int = const 3;
+    b: int = const 4;
+    c: int = const 5;
+    d: int = add a b;
+    e: int = add c d;
+    one: int = const 1;
+    counter: int = const 1;
+    zero: int = const 0;
+    cond: bool = eq counter zero;
+    br cond .end .loop;
+.loop:
+    f: int = add a b;
+    g: int = add c f;
+    print g;
+    h: int = id a;
+    i: int = id b;
+    j: int = id c;
+    k: int = add i h;
+    l: int = add k j;
+    print l;
+    one: int = const 1;
+    counter: int = sub counter one;
+    jmp .header;
+.end:
+}

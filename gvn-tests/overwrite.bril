@@ -1,0 +1,15 @@
+# ARGS: 10 11
+@main(a: int, b: int){
+    a: int = add a b;
+    b: int = id a;
+    cond: bool = const true;
+    br cond .left .right;
+.left:
+    c: int = add a b;
+    jmp .end;
+.right:
+    c: int = add a b;
+    jmp .end;
+.end:
+    print c;
+}

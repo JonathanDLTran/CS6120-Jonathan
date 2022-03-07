@@ -1,0 +1,27 @@
+# ARGS: 10
+@main(a : int) {
+    b: int = const 3;
+    a: int = add a a;
+    a: int = sub b a;
+    print a;
+    cond: bool = const false;
+    cond: bool = not cond;
+    br cond .first .second;
+.first:
+    a: int = mul b b;
+    b: int = sub a b;
+    print a;
+    print b;
+    jmp .end;
+.second:
+    a: int = sub b a;
+    b: int = div b a;
+    print b;
+    print a;
+    jmp .end;
+.end:
+    a: int = mul b b;
+    b: int = add a a;
+    print a;
+    print b;
+}

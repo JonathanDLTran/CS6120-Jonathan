@@ -57,6 +57,12 @@ def lvn_value_is_id(lvn_value):
     return lvn_value[0] == ID
 
 
+def lvn_value_is_call(lvn_value):
+    assert type(lvn_value) == tuple
+    assert len(lvn_value) >= 2
+    return lvn_value[0] == CALL
+
+
 def get_lvn_value(curr_lvn_num, var2value_num, expr2value_num):
     if curr_lvn_num in var2value_num:
         value_num = var2value_num[curr_lvn_num]
@@ -74,6 +80,8 @@ def interpret_lvn_value(lvn_value, var2value_num, expr2value_num):
     if lvn_value_is_const(lvn_value):
         return lvn_value
     elif lvn_value_is_arg(lvn_value):
+        return lvn_value
+    elif lvn_value_is_call(lvn_value):
         return lvn_value
     new_args = []
     for arg_lvn_num in lvn_value[1:]:
@@ -122,58 +130,58 @@ def interpret_lvn_value(lvn_value, var2value_num, expr2value_num):
         return lvn_value
     elif op == NOT:
         assert len(new_args) == 1
-        (_, result) = new_args[0]
-        return (CONST, not result)
+        (_, result, _) = new_args[0]
+        return (CONST, not result, BOOL)
     elif op == AND:
         assert len(new_args) == 2
         (_, result1, _) = new_args[0]
         (_, result2, _) = new_args[1]
-        return (CONST, result1 and result2)
+        return (CONST, result1 and result2, BOOL)
     elif op == OR:
         assert len(new_args) == 2
         (_, result1, _) = new_args[0]
         (_, result2, _) = new_args[1]
-        return (CONST, result1 or result2)
+        return (CONST, result1 or result2, BOOL)
     elif op == EQ:
         assert len(new_args) == 2
         (_, result1, _) = new_args[0]
         (_, result2, _) = new_args[1]
-        return (CONST, result1 == result2)
+        return (CONST, result1 == result2, BOOL)
     elif op == LE:
         assert len(new_args) == 2
         (_, result1, _) = new_args[0]
         (_, result2, _) = new_args[1]
-        return (CONST, result1 <= result2)
+        return (CONST, result1 <= result2, BOOL)
     elif op == GE:
         assert len(new_args) == 2
         (_, result1, _) = new_args[0]
         (_, result2, _) = new_args[1]
-        return (CONST, result1 >= result2)
+        return (CONST, result1 >= result2, BOOL)
     elif op == LT:
         assert len(new_args) == 2
         (_, result1, _) = new_args[0]
         (_, result2, _) = new_args[1]
-        return (CONST, result1 < result2)
+        return (CONST, result1 < result2, BOOL)
     elif op == GT:
         assert len(new_args) == 2
         (_, result1, _) = new_args[0]
         (_, result2, _) = new_args[1]
-        return (CONST, result1 > result2)
+        return (CONST, result1 > result2, BOOL)
     elif op == ADD:
         assert len(new_args) == 2
         (_, result1, _) = new_args[0]
         (_, result2, _) = new_args[1]
-        return (CONST, result1 + result2)
+        return (CONST, result1 + result2, INT)
     elif op == SUB:
         assert len(new_args) == 2
         (_, result1, _) = new_args[0]
         (_, result2, _) = new_args[1]
-        return (CONST, result1 - result2)
+        return (CONST, result1 - result2, INT)
     elif op == MUL:
         assert len(new_args) == 2
         (_, result1, _) = new_args[0]
         (_, result2, _) = new_args[1]
-        return (CONST, result1 * result2)
+        return (CONST, result1 * result2, INT)
     elif op == DIV:
         assert len(new_args) == 2
         (_, result1, _) = new_args[0]
@@ -181,5 +189,5 @@ def interpret_lvn_value(lvn_value, var2value_num, expr2value_num):
         # bail on interpretation if divisor is 0
         if result2 == 0:
             return lvn_value
-        return (CONST, result1 // result2)
+        return (CONST, result1 // result2, INT)
     raise RuntimeError(f"LVN Interpretation: Unmatched type {op}.")
