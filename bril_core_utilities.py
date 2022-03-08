@@ -26,6 +26,44 @@ def is_id(instr):
     return OP in instr and instr[OP] == ID
 
 
+def is_print(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == PRINT
+
+
+def is_io(instr):
+    return is_print(instr)
+
+
+def is_call(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == CALL
+
+
+def is_label(instr):
+    assert type(instr) == dict
+    return LABEL in instr
+
+
+def is_ret(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == RET
+
+
+def is_jmp(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == JMP
+
+
+def is_br(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == BR
+
+
+def is_terminator(instr):
+    return is_jmp(instr) or is_br(instr) or is_ret(instr)
+
+
 def postorder_traversal(node, tree):
     assert node in tree
     postorder = []

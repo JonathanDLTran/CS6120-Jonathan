@@ -1,19 +1,118 @@
 from copy import deepcopy
+from collections import OrderedDict
 import click
 import sys
 import json
 
-from cfg import form_blocks, join_blocks
+from ssa import bril_to_ssa, is_ssa
+from dominator_utilities import build_dominance_frontier_w_cfg
+from cfg import (form_blocks, join_blocks,
+                 form_cfg_w_blocks, add_unique_exit_to_cfg, reverse_cfg, join_cfg, INSTRS, SUCCS, PREDS)
+from bril_core_constants import *
+from bril_core_utilities import *
+
+
+# ---------- MARK SWEEP DEAD CODE ELIMINATIONS -------------
 
 
 def mark_sweep_dce(program):
     """
-    Implementation of Mark Sweep Style DCE to remove more dead code. Meant to 
+    Implementation of Mark Sweep Style DCE to remove more dead code. Meant to
     work in conjunction with SSA code.
 
     Can be run alongside other passes with lvn/gvn.
     """
     pass
+
+
+# ---------- AGGRESSIVE DEAD CODE ELIMINATIONS -------------
+
+
+UNIQUE_CFG_EXIT = "UNIQUE.EXIT"
+
+LIVE = True
+NOT_LIVE = not LIVE
+
+
+def func_has_side_effects():
+    pass
+
+
+def function_adce(func):
+    """
+    From: http://www.cs.cmu.edu/afs/cs/academic/class/15745-s12/public/lectures/L14-SSA-Optimizations-1up.pdf
+    Mark all instructions as Live that are:
+        I/O
+        Store into memory TODO: when Bril has memory instructions
+        Terminator - RET
+        Calls a function with side effects (e.g. most functions)
+        Label
+    """
+    instrs = func[INSTRS]
+    cfg = form_cfg_w_blocks(func)
+
+    id2instr = OrderedDict()
+    id2block = OrderedDict()
+    def2id = OrderedDict()
+    for block in cfg:
+        for instr in cfg[block][INSTRS]:
+            id2instr[id(instr)] = instr
+            if DEST in instr:
+                def2id[instr[DEST]] = id(instr)
+            id2block[id(instr)] = block
+
+    marked_instrs = {id(instr): NOT_LIVE for instr in instrs}
+    worklist = []
+    for instr in instrs:
+        if is_io(instr) or is_jmp(instr) or is_ret(instr) or is_call(instr) or is_label(instr):
+            marked_instrs[id(instr)] = LIVE
+            if ARGS in instr:
+                for a in instr[ARGS]:
+                    worklist.append(def2id[a])
+
+    cfg_w_exit = add_unique_exit_to_cfg(cfg, UNIQUE_CFG_EXIT)
+    cdg = reverse_cfg(cfg_w_exit)
+    control_dependence = build_dominance_frontier_w_cfg(cdg, UNIQUE_CFG_EXIT)
+
+    while worklist != []:
+        instr_id = worklist.pop()
+        if marked_instrs[instr_id] == LIVE:
+            continue
+        # Grab Operands of S
+        marked_instrs[instr_id] = LIVE
+        instr = id2instr[instr_id]
+        if ARGS in instr:
+            args = instr[ARGS]
+            for a in args:
+                worklist.append(def2id[a])
+
+        for cd_block in control_dependence[id2block[instr_id]]:
+            for instr in reversed(cfg[cd_block][INSTRS]):
+                if is_terminator(instr):
+                    worklist.append(id(instr))
+
+    final_instrs = []
+    for instr_id in marked_instrs:
+        if marked_instrs[instr_id] == LIVE:
+            final_instrs.append(id2instr[instr_id])
+    return final_instrs
+
+
+def global_adce(program):
+    """
+    Aggressive Dead Code Elimination
+    """
+    try:
+        is_ssa(program)
+    except:
+        program = bril_to_ssa(program)
+    for func in program[FUNCTIONS]:
+        new_instrs = function_adce(func)
+        func[INSTRS] = new_instrs
+    return program
+
+
+# ---------- TRIVIAL DEAD CODE ELIMINATIONS -------------
 
 
 def delete_unused_dce(program):
@@ -46,7 +145,7 @@ def delete_unused_dce(program):
 
 def local_dce(program):
     """
-    Eliminate instructions that are written over without being read, inside a 
+    Eliminate instructions that are written over without being read, inside a
     basic block.
     """
     for func in program["functions"]:
@@ -99,10 +198,12 @@ def iterate_dce(program, dce_method):
     return program
 
 
-def dce(program, global_delete, local_delete):
+def dce(program, global_delete, local_delete, adce):
     """
     Naive DCE wrapper method
     """
+    if bool(adce) == True:
+        return global_adce(program)
     if global_delete == None and local_delete == None:
         return iterate_dce(iterate_dce(program, local_dce), delete_unused_dce)
     elif global_delete == None and local_delete:
@@ -115,12 +216,13 @@ def dce(program, global_delete, local_delete):
 @click.command()
 @click.option('--global-delete', default=1, help='Delete Globally.')
 @click.option('--local-delete', default=1, help='Delete Locally.')
+@click.option('--adce', default=False, help='Delete Aggressively.')
 @click.option('--pretty-print', default=False, help='Pretty Print Before and After Optimization.')
-def main(global_delete, local_delete, pretty_print):
+def main(global_delete, local_delete, adce, pretty_print):
     prog = json.load(sys.stdin)
     if pretty_print:
         print(json.dumps(prog, indent=4, sort_keys=True))
-    final_prog = dce(prog, global_delete, local_delete)
+    final_prog = dce(prog, global_delete, local_delete, adce)
     if pretty_print:
         print(json.dumps(final_prog, indent=4, sort_keys=True))
     print(json.dumps(final_prog))

@@ -232,6 +232,28 @@ def join_cfg(cfg):
     return new_instrs
 
 
+def reverse_cfg(cfg):
+    new_cfg = OrderedDict()
+    for basic_block in cfg:
+        new_dict = {SUCCS: cfg[basic_block][PREDS],
+                    INSTRS: cfg[basic_block][INSTRS],
+                    PREDS: cfg[basic_block][SUCCS]}
+        new_cfg[basic_block] = new_dict
+    return new_cfg
+
+
+def add_unique_exit_to_cfg(cfg, exit_name):
+    preds_of_exit = []
+    for basic_block in cfg:
+        if cfg[basic_block][SUCCS] == []:
+            preds_of_exit.append(basic_block)
+            cfg[basic_block][SUCCS].append(exit_name)
+
+    exit_dict = {SUCCS: [], INSTRS: [], PREDS: preds_of_exit}
+    cfg[exit_name] = exit_dict
+    return cfg
+
+
 def form_cfg_w_blocks(func):
     return get_cfg_w_blocks(form_block_dict(form_blocks(func['instrs'])))
 

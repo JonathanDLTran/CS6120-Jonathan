@@ -57,8 +57,9 @@ def paths_dfs(node, visited_nodes, prefix_paths, cfg, terminating_node):
     return paths
 
 
-def check_domination(domby, cfg):
-    entry = list(cfg.keys())[0]
+def check_domination(domby, cfg, entry=None):
+    if entry == None:
+        entry = list(cfg.keys())[0]
     for b in domby:
         paths = paths_dfs(entry, set(), [], cfg, b)
         for a in domby[b]:
@@ -69,16 +70,14 @@ def check_domination(domby, cfg):
     return domby
 
 
-def get_dominators(func):
+def get_dominators_helper(cfg, entry=None):
     """
     Calculates Dominators for a function
 
     Gives the dominators as a dictionary, e.g. BasicBlock::[Dominators of BasicBlock]
     """
-    assert type(func) == dict
-    func_instructions = func["instrs"]
-    cfg = form_cfg_succs_preds(func_instructions)
-    entry = list(cfg.keys())[0]
+    if entry == None:
+        entry = list(cfg.keys())[0]
 
     # set up before iteration
     # NOTE: I am not sure if this is completely correct, but it *SEEMS* to handle
@@ -86,7 +85,7 @@ def get_dominators(func):
     domby = OrderedDict()
     reachable_blocks = set()
     if len(cfg) >= 1:
-        reachable_blocks = dfs(cfg, list(cfg.keys())[0], set())
+        reachable_blocks = dfs(cfg, entry, set())
     for bb_name in cfg:
         if bb_name == entry:
             domby[bb_name] = {bb_name}
@@ -123,8 +122,19 @@ def get_dominators(func):
                 dominates.add(otherbb)
         dom[bb] = list(dominates)
 
-    domby = check_domination(domby, cfg)
+    domby = check_domination(domby, cfg, entry)
     return dom, domby
+
+
+def get_dominators(func):
+    assert type(func) == dict
+    func_instructions = func["instrs"]
+    cfg = form_cfg_succs_preds(func_instructions)
+    return get_dominators_helper(cfg)
+
+
+def get_dominators_w_cfg(cfg, entry):
+    return get_dominators_helper(cfg, entry)
 
 
 def dominators(prog):
@@ -236,16 +246,12 @@ def check_dominance_frontier(df, strict_dom, dom, cfg):
     return df
 
 
-def build_dominance_frontier(func):
+def build_dominance_frontier_helper(cfg, dom, strict_dom):
     """
     The dominator frontier is a set of nodes defined for every node (basic block)
     Consider a basic block A. The dominance frontier of A contains a node B
     iff A does not strictly dominate B but A dominiates some predecessor of B.
     """
-    func_instructions = func["instrs"]
-    cfg = form_cfg_succs_preds(func_instructions)
-    dom, _ = get_dominators(func)
-    strict_dom = get_strict_dominators(dom)
     out = OrderedDict()
     for nodeA in cfg:
         nodeA_dominance_frontier = set()
@@ -258,6 +264,23 @@ def build_dominance_frontier(func):
         out[nodeA] = list(nodeA_dominance_frontier)
     check_dominance_frontier(out, strict_dom, dom, cfg)
     return out
+
+
+def build_dominance_frontier(func):
+    func_instructions = func["instrs"]
+    cfg = form_cfg_succs_preds(func_instructions)
+    dom, _ = get_dominators(func)
+    strict_dom = get_strict_dominators(dom)
+    return build_dominance_frontier_helper(cfg, dom, strict_dom)
+
+
+def build_dominance_frontier_w_cfg(cfg, entry):
+    """
+    CFG version of build_dominance_frontier
+    """
+    dom, _ = get_dominators_w_cfg(cfg, entry)
+    strict_dom = get_strict_dominators(dom)
+    return build_dominance_frontier_helper(cfg, dom, strict_dom)
 
 
 def dominance_frontier(prog):
