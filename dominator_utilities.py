@@ -290,16 +290,25 @@ def dominance_frontier(prog):
             print(f"\t{bb_name}:\t[{', '.join(sorted(dominated))}]")
 
 
-def get_backedges(func):
-    func_instructions = func["instrs"]
-    cfg = form_cfg_succs_preds(func_instructions)
-    dom, _ = get_dominators(func)
+def get_backedges_helper(cfg, dom):
     backedges = []
     for A in cfg:
         for B in cfg:
             if B in cfg[A][SUCCS] and A in dom[B]:
                 backedges.append((A, B))
     return backedges
+
+
+def get_backedges(func):
+    func_instructions = func["instrs"]
+    cfg = form_cfg_succs_preds(func_instructions)
+    dom, _ = get_dominators(func)
+    return get_backedges_helper(cfg, dom)
+
+
+def get_backedges_w_cfg(cfg, entry):
+    dom, _ = get_dominators_w_cfg(cfg, entry)
+    return get_backedges_helper(cfg, dom)
 
 
 def backedges(prog):

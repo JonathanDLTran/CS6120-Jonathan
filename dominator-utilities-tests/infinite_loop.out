@@ -1,0 +1,12 @@
+Dominators
+	loop is dominated by:	[loop]
+	loop2 is dominated by:	[loop]
+Dominator Tree
+digraph main {
+  loop;
+  loop2;
+  loop -> loop2;
+}
+Dominance Frontier
+	loop:	[loop]
+	loop2:	[]

@@ -1,6 +1,7 @@
 import json
 import sys
 from collections import OrderedDict
+from copy import deepcopy
 
 from bril_core_constants import *
 
@@ -235,9 +236,9 @@ def join_cfg(cfg):
 def reverse_cfg(cfg):
     new_cfg = OrderedDict()
     for basic_block in cfg:
-        new_dict = {SUCCS: cfg[basic_block][PREDS],
+        new_dict = {SUCCS: deepcopy(cfg[basic_block][PREDS]),
                     INSTRS: cfg[basic_block][INSTRS],
-                    PREDS: cfg[basic_block][SUCCS]}
+                    PREDS: deepcopy(cfg[basic_block][SUCCS])}
         new_cfg[basic_block] = new_dict
     return new_cfg
 

@@ -1,0 +1,7 @@
+@main{
+.loop:
+    jmp .loop;
+.loop2:
+    cond: bool = const true;
+    br cond .loop2 .loop2;
+}

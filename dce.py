@@ -5,9 +5,9 @@ import sys
 import json
 
 from ssa import bril_to_ssa, is_ssa
-from dominator_utilities import build_dominance_frontier_w_cfg
+from dominator_utilities import build_dominance_frontier_w_cfg, get_backedges_w_cfg
 from cfg import (form_blocks, join_blocks,
-                 form_cfg_w_blocks, add_unique_exit_to_cfg, reverse_cfg, join_cfg, INSTRS, SUCCS, PREDS)
+                 form_cfg_w_blocks, add_unique_exit_to_cfg, reverse_cfg, INSTRS, SUCCS, PREDS)
 from bril_core_constants import *
 from bril_core_utilities import *
 
@@ -35,7 +35,124 @@ NOT_LIVE = not LIVE
 
 
 def func_has_side_effects():
+    """
+    This is also incorrect, in that if a function has no side effects
+    that does not mean it can be removed;
+    in particular, one could have a function that is a simple infinite loop.
+    These should be kept!
+    """
     pass
+
+
+def function_safe_adce(func):
+    """
+    From: http://www.cs.cmu.edu/afs/cs/academic/class/15745-s12/public/lectures/L14-SSA-Optimizations-1up.pdf
+    Mark all instructions as Live that are:
+        I/O
+        Store into memory TODO: when Bril has memory instructions
+        Terminator - RET
+        Calls a function with side effects (e.g. most functions)
+        Label
+
+    Conservative Safer version of ADCE
+    Keeps all Labels in Graph
+    When an instruction in a block is live, add the terminator to that block automatically, e.g. jmp, ret, br
+    When a backedge is detected heading in a block, add the terminator for the other block heading into this block
+        - This keeps all loops in the program
+        - Does not remove infinite loops that do nothing.
+        - Use backedge detector for this 
+    """
+    # build important auxillary data structures (READ-ONLY)
+    instrs = func[INSTRS]
+
+    cfg = form_cfg_w_blocks(func)
+    entry = list(cfg.keys())[0]
+    cfg_w_exit = add_unique_exit_to_cfg(cfg, UNIQUE_CFG_EXIT)
+    backedge_start_blocks = set(
+        list(map(lambda pair: pair[1], get_backedges_w_cfg(cfg, entry))))
+    cdg = reverse_cfg(cfg_w_exit)
+    cdg[entry][PREDS].append(UNIQUE_CFG_EXIT)
+    cdg[UNIQUE_CFG_EXIT][SUCCS].append(entry)
+    control_dependence = build_dominance_frontier_w_cfg(cdg, UNIQUE_CFG_EXIT)
+
+    # initialize data structures (WRITE TO)
+    id2instr = OrderedDict()
+    id2block = OrderedDict()
+    def2id = OrderedDict()
+    for block in cfg:
+        for instr in cfg[block][INSTRS]:
+            id2instr[id(instr)] = instr
+            if DEST in instr:
+                def2id[instr[DEST]] = id(instr)
+            id2block[id(instr)] = block
+
+    # initialize worklist
+    marked_instrs = {id(instr): NOT_LIVE for instr in instrs}
+    worklist = []
+    for instr in instrs:
+        curr_block = id2block[id(instr)]
+        if is_io(instr) or is_ret(instr) or is_call(instr):
+            # mark current instr as live
+            marked_instrs[id(instr)] = LIVE
+            # add arguments of current instr as live
+            if ARGS in instr:
+                for a in instr[ARGS]:
+                    # add only if not an argument of the function
+                    if a in def2id:
+                        worklist.append(def2id[a])
+            # add terminator for block for current instr
+            for instr in reversed(cfg[curr_block][INSTRS]):
+                if is_terminator(instr):
+                    worklist.append(id(instr))
+            # add the control dependency parent of this instruction's block
+            for cd_block in control_dependence[curr_block]:
+                for instr in reversed(cfg[cd_block][INSTRS]):
+                    if is_terminator(instr):
+                        worklist.append(id(instr))
+        # add terminators for any start of a backedge
+        if curr_block in backedge_start_blocks:
+            for instr in reversed(cfg[curr_block][INSTRS]):
+                if is_terminator(instr):
+                    worklist.append(id(instr))
+
+    # DO WORKLIST
+    while worklist != []:
+        instr_id = worklist.pop()
+        if marked_instrs[instr_id] == LIVE:
+            continue
+        # Grab Operands of S
+        marked_instrs[instr_id] = LIVE
+        # add arguments of current_instr
+        instr = id2instr[instr_id]
+        if ARGS in instr:
+            for a in instr[ARGS]:
+                # add only if not an argument of the function
+                if a in def2id:
+                    worklist.append(def2id[a])
+        # add terminator for block for current instr
+        curr_block = id2block[instr_id]
+        for inner_instr in reversed(cfg[curr_block][INSTRS]):
+            if is_terminator(inner_instr):
+                worklist.append(id(inner_instr))
+        # add the control dependency parent of this instruction's block
+        for cd_block in control_dependence[curr_block]:
+            for inner_instr in reversed(cfg[cd_block][INSTRS]):
+                if is_terminator(inner_instr):
+                    worklist.append(id(inner_instr))
+        # add terminators for any start of a backedge
+        if curr_block in backedge_start_blocks:
+            for inner_instr in reversed(cfg[curr_block][INSTRS]):
+                if is_terminator(inner_instr):
+                    worklist.append(id(inner_instr))
+
+    # FINISH by keeping alive instructions
+    final_instrs = []
+    for instr_id in marked_instrs:
+        if marked_instrs[instr_id] == LIVE:
+            final_instrs.append(id2instr[instr_id])
+        elif is_label(id2instr[instr_id]):
+            final_instrs.append(id2instr[instr_id])
+    return final_instrs
 
 
 def function_adce(func):
@@ -47,6 +164,10 @@ def function_adce(func):
         Terminator - RET
         Calls a function with side effects (e.g. most functions)
         Label
+
+    NOTE: This algorithm is actually incorrect in that for infinite loops
+    that do not have I/O or memory access or function call, the loop gets entirely
+    eliminated. This is a consequence of the no-use conditions that are searched for.
     """
     # build important auxillary data structures (READ-ONLY)
     instrs = func[INSTRS]
@@ -74,7 +195,7 @@ def function_adce(func):
     marked_instrs = {id(instr): NOT_LIVE for instr in instrs}
     worklist = []
     for instr in instrs:
-        if is_io(instr) or is_jmp(instr) or is_ret(instr) or is_call(instr) or is_label(instr):
+        if is_io(instr) or is_jmp(instr) or is_ret(instr) or is_call(instr):
             marked_instrs[id(instr)] = LIVE
             if ARGS in instr:
                 for a in instr[ARGS]:
@@ -112,20 +233,29 @@ def function_adce(func):
     for instr_id in marked_instrs:
         if marked_instrs[instr_id] == LIVE:
             final_instrs.append(id2instr[instr_id])
+        elif is_label(id2instr[instr_id]):
+            final_instrs.append(id2instr[instr_id])
     return final_instrs
 
 
 def global_adce(program):
     """
     Aggressive Dead Code Elimination
+
+    NOTE: The ADCE is actually incorrect in that for infinite loops
+    that do not have I/O or memory access or function call, the loop gets entirely
+    eliminated. This is a consequence of the no-use conditions that are searched for.
+
+    NOTE: SAFE_ADCE should be conservatively sound
     """
     try:
         is_ssa(program)
     except:
         program = bril_to_ssa(program)
     for func in program[FUNCTIONS]:
-        new_instrs = function_adce(func)
+        new_instrs = function_safe_adce(func)
         func[INSTRS] = new_instrs
+    is_ssa(program)
     return program
 
 
