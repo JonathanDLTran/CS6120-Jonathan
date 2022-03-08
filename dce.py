@@ -48,9 +48,18 @@ def function_adce(func):
         Calls a function with side effects (e.g. most functions)
         Label
     """
+    # build important auxillary data structures (READ-ONLY)
     instrs = func[INSTRS]
-    cfg = form_cfg_w_blocks(func)
 
+    cfg = form_cfg_w_blocks(func)
+    entry = list(cfg.keys())[0]
+    cfg_w_exit = add_unique_exit_to_cfg(cfg, UNIQUE_CFG_EXIT)
+    cdg = reverse_cfg(cfg_w_exit)
+    cdg[entry][PREDS].append(UNIQUE_CFG_EXIT)
+    cdg[UNIQUE_CFG_EXIT][SUCCS].append(entry)
+    control_dependence = build_dominance_frontier_w_cfg(cdg, UNIQUE_CFG_EXIT)
+
+    # initialize data structures (WRITE TO)
     id2instr = OrderedDict()
     id2block = OrderedDict()
     def2id = OrderedDict()
@@ -61,6 +70,7 @@ def function_adce(func):
                 def2id[instr[DEST]] = id(instr)
             id2block[id(instr)] = block
 
+    # initialize worklist
     marked_instrs = {id(instr): NOT_LIVE for instr in instrs}
     worklist = []
     for instr in instrs:
@@ -68,12 +78,16 @@ def function_adce(func):
             marked_instrs[id(instr)] = LIVE
             if ARGS in instr:
                 for a in instr[ARGS]:
-                    worklist.append(def2id[a])
+                    # add only if not an argument of the function
+                    if a in def2id:
+                        worklist.append(def2id[a])
+            # add the control dependency parent of this instruction's block
+            for cd_block in control_dependence[id2block[id(instr)]]:
+                for instr in reversed(cfg[cd_block][INSTRS]):
+                    if is_terminator(instr):
+                        worklist.append(id(instr))
 
-    cfg_w_exit = add_unique_exit_to_cfg(cfg, UNIQUE_CFG_EXIT)
-    cdg = reverse_cfg(cfg_w_exit)
-    control_dependence = build_dominance_frontier_w_cfg(cdg, UNIQUE_CFG_EXIT)
-
+    # DO WORKLIST
     while worklist != []:
         instr_id = worklist.pop()
         if marked_instrs[instr_id] == LIVE:
@@ -84,13 +98,16 @@ def function_adce(func):
         if ARGS in instr:
             args = instr[ARGS]
             for a in args:
-                worklist.append(def2id[a])
+                # add only if not an argument of the function
+                if a in def2id:
+                    worklist.append(def2id[a])
 
         for cd_block in control_dependence[id2block[instr_id]]:
             for instr in reversed(cfg[cd_block][INSTRS]):
                 if is_terminator(instr):
                     worklist.append(id(instr))
 
+    # FINISH by keeping oive instructions
     final_instrs = []
     for instr_id in marked_instrs:
         if marked_instrs[instr_id] == LIVE:

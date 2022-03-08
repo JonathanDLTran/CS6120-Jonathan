@@ -1,0 +1,24 @@
+Dominators
+	exit is dominated by:	[exit]
+	y is dominated by:	[exit, y]
+	u is dominated by:	[exit, u]
+	v is dominated by:	[exit, v, y]
+	x is dominated by:	[exit, x]
+Dominator Tree
+digraph main {
+  exit;
+  y;
+  u;
+  v;
+  x;
+  exit -> y;
+  exit -> u;
+  exit -> x;
+  y -> v;
+}
+Dominance Frontier
+	exit:	[]
+	y:	[u, x]
+	u:	[x]
+	v:	[x]
+	x:	[]

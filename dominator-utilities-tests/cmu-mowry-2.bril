@@ -1,0 +1,14 @@
+# http://www.cs.cmu.edu/afs/cs/academic/class/15745-s12/public/lectures/L14-SSA-Optimizations-1up.pdf
+
+@main{
+.exit:
+    cond: bool = const true;
+    br cond .two .entry;
+.two:
+    jmp. one;
+.one:
+    br cond .zero .one;
+.zero:
+    jmp .entry;
+.entry:
+}

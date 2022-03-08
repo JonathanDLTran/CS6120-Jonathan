@@ -1,0 +1,10 @@
+@main{
+.entry:
+    jmp .zero;
+.zero:
+    jmp .one;
+.one:
+    cond: bool = const false;
+    br cond .one .two;
+.two:
+}

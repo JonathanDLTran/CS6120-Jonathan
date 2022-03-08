@@ -1,0 +1,24 @@
+Dominators
+	exit is dominated by:	[exit]
+	two is dominated by:	[exit, two]
+	one is dominated by:	[exit, one, two]
+	zero is dominated by:	[exit, one, two, zero]
+	entry is dominated by:	[entry, exit]
+Dominator Tree
+digraph main {
+  exit;
+  two;
+  one;
+  zero;
+  entry;
+  exit -> two;
+  exit -> entry;
+  two -> one;
+  one -> zero;
+}
+Dominance Frontier
+	exit:	[]
+	two:	[entry]
+	one:	[entry, one]
+	zero:	[entry]
+	entry:	[]
