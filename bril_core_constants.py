@@ -63,14 +63,18 @@ BRIL_UNOPS = [NOT]
 BRIL_CORE_INSTRS = [
     *BRIL_BINOPS, *BRIL_UNOPS,
     JMP, BR, CALL, RET,
-    ID, PRINT, NOP,
+    ID, PRINT, NOP, PHI, CONST,
 ]
 
 BRIL_COMMUTE_BINOPS = [
     ADD, MUL, AND, OR, EQ
 ]
 
-TERMINATORS = ["jmp", "br", "ret"]
+BRIL_CORE_TYPES = [
+    INT, BOOL
+]
+
+TERMINATORS = [JMP, BR, RET]
 
 OP_TO_TYPE = {**{b: BOOL for b in BOOL_OPS}, **{i: INT for i in INT_OPS}}
 
