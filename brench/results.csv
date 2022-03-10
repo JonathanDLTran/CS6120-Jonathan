@@ -35,8 +35,6 @@ binary-fmt,baseline,missing
 binary-fmt,ssa,incorrect
 gcd,baseline,missing
 gcd,ssa,incorrect
-pow,baseline,missing
-pow,ssa,incorrect
 armstrong,baseline,missing
 armstrong,ssa,incorrect
 collatz,baseline,missing
