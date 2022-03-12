@@ -25,6 +25,9 @@ The common workflow to run transformation passes and analyses on bril is
 # Transformations
 - To SSA and out of SSA
 
+# Infrastructure
+- Sample LLVM Pass as part of Lesson 7
+
 # Tests
 
 To run all tests, run the command `bash run_all_tests.sh` in the main directory.
