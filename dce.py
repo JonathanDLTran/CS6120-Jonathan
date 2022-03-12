@@ -15,6 +15,26 @@ from bril_core_utilities import *
 # ---------- MARK SWEEP DEAD CODE ELIMINATIONS -------------
 
 
+def is_critical(instr):
+    return is_io(instr) or is_call(instr) or is_ret(instr)
+
+
+def function_mark_sweep(func):
+    """
+    https://yunmingzhang.files.wordpress.com/2013/12/dcereport-2.pdf
+    """
+    worklist = []
+    for instr in func[INSTRS]:
+        if is_critical(instr):
+            worklist.append(instr)
+
+    while worklist != []:
+        current_inst = worklist.pop()
+        if ARGS in current_inst:
+            for defining in current_inst[ARGS]:
+                pass
+
+
 def mark_sweep_dce(program):
     """
     Implementation of Mark Sweep Style DCE to remove more dead code. Meant to
