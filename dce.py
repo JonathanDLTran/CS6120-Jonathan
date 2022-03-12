@@ -5,7 +5,7 @@ import sys
 import json
 
 from ssa import bril_to_ssa, is_ssa
-from dominator_utilities import build_dominance_frontier_w_cfg, get_backedges_w_cfg
+from dominator_utilities import build_dominance_frontier_w_cfg, get_backedges_w_cfg, get_dominators_w_cfg
 from cfg import (form_blocks, join_blocks,
                  form_cfg_w_blocks, add_unique_exit_to_cfg, reverse_cfg, INSTRS, SUCCS, PREDS)
 from bril_core_constants import *
@@ -15,24 +15,72 @@ from bril_core_utilities import *
 # ---------- MARK SWEEP DEAD CODE ELIMINATIONS -------------
 
 
+MARKED = True
+NOT_MARKED = not MARKED
+
+
 def is_critical(instr):
     return is_io(instr) or is_call(instr) or is_ret(instr)
 
 
 def function_mark_sweep(func):
     """
+    ASSUMES SSA FORM
     https://yunmingzhang.files.wordpress.com/2013/12/dcereport-2.pdf
     """
-    worklist = []
-    for instr in func[INSTRS]:
-        if is_critical(instr):
-            worklist.append(instr)
+    # set up data structures
+    cfg = form_cfg_w_blocks(func)
+    entry = list(cfg.keys())[0]
+    cfg_w_exit = add_unique_exit_to_cfg(cfg, UNIQUE_CFG_EXIT)
+    cdg = reverse_cfg(cfg_w_exit)
+    post_dominators = get_dominators_w_cfg(func, UNIQUE_CFG_EXIT)
+    reverse_dominance_frontier = build_dominance_frontier_w_cfg(
+        cdg, UNIQUE_CFG_EXIT)
 
+    # initialize
+    id2instr = dict()
+    id2block = dict()
+    id2mark = dict()
+    def2id = dict()
+    worklist = []
+    for block in cfg:
+        for instr in cfg[block][INSTRS]:
+            instr_id = id(instr)
+            if is_critical(instr):
+                worklist.append(instr_id)
+                id2mark[instr_id] = MARKED
+            else:
+                id2mark[instr_id] = NOT_MARKED
+            if DEST in instr:
+                def2id[instr[DEST]] = instr_id
+            id2instr[instr_id] = instr
+            id2block[instr_id] = block
+
+    # mark phase
     while worklist != []:
-        current_inst = worklist.pop()
+        current_inst_id = worklist.pop()
+        current_inst = id2instr[current_inst_id]
         if ARGS in current_inst:
             for defining in current_inst[ARGS]:
-                pass
+                if id2mark[def_id] == NOT_MARKED:
+                    def_id = def2id[defining]
+                    id2mark[def_id] = MARKED
+                    worklist.append(def_id)
+
+        curr_block = id2block[current_inst_id]
+        for rdf_block in reverse_dominance_frontier[curr_block]:
+            last_instr = None
+            for block_instr in cfg[rdf_block][INSTRS]:
+                last_instr = block_instr
+                break
+            if last_instr != None:
+                last_instr_id = id(last_instr)
+                id2mark[last_instr_id] = MARKED
+                worklist.append(last_instr_id)
+
+    # sweep phase
+    final_instrs = []
+    return final_instrs
 
 
 def mark_sweep_dce(program):
