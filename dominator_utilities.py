@@ -162,7 +162,7 @@ def get_strict_dominators(dom):
 def get_immediate_dominators(strict_dom):
     """
     For a vertex v, get the unique vertex u that strictly dominates v,
-    but that u does not strictly dominate any other vertex u' that also 
+    but that u does not strictly dominate any other vertex u' that also
     strictly dominates v.
 
     If there is no such vertex, then the vertex is the entry vertex,
@@ -194,8 +194,7 @@ def get_immediate_dominators(strict_dom):
     return imm_dom
 
 
-def build_dominance_tree(func):
-    _, domby = get_dominators(func)
+def build_dominance_tree_helper(domby):
     strict_dom = get_strict_dominators(domby)
     imm_dom = get_immediate_dominators(strict_dom)
     nodes = OrderedDict()
@@ -213,6 +212,16 @@ def build_dominance_tree(func):
             # entry point:
             tree[bb] = []
     return tree, nodes
+
+
+def build_dominance_tree(func):
+    _, domby = get_dominators(func)
+    return build_dominance_tree_helper(domby)
+
+
+def build_dominance_tree_w_cfg(cfg, entry=None):
+    _, domby = get_dominators_w_cfg(cfg, entry)
+    return build_dominance_tree_helper(domby)
 
 
 def get_tree_graph(tree, func, nodes):

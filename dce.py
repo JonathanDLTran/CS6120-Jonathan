@@ -5,7 +5,7 @@ import sys
 import json
 
 from ssa import bril_to_ssa, is_ssa
-from dominator_utilities import build_dominance_frontier_w_cfg, get_backedges_w_cfg, get_dominators_w_cfg
+from dominator_utilities import build_dominance_frontier_w_cfg, get_backedges_w_cfg, get_dominators_w_cfg, build_dominance_tree_w_cfg
 from cfg import (form_blocks, join_blocks,
                  form_cfg_w_blocks, add_unique_exit_to_cfg, reverse_cfg, INSTRS, SUCCS, PREDS)
 from bril_core_constants import *
@@ -23,7 +23,7 @@ def is_critical(instr):
     return is_io(instr) or is_call(instr) or is_ret(instr)
 
 
-def find_nearest_post_dominator(curr_block, post_dominating_block):
+def find_nearest_post_dominator(curr_block, post_dominating_block, useful_blocks, cfg):
     pass
 
 
@@ -36,8 +36,9 @@ def function_mark_sweep(func):
     cfg = form_cfg_w_blocks(func)
     cfg_w_exit = add_unique_exit_to_cfg(cfg, UNIQUE_CFG_EXIT)
     cdg = reverse_cfg(cfg_w_exit)
-    _, post_dominated_by = get_dominators_w_cfg(func, UNIQUE_CFG_EXIT)
-    reverse_dominance_frontier = build_dominance_frontier_w_cfg(
+    _, post_dominated_by = get_dominators_w_cfg(cdg, UNIQUE_CFG_EXIT)
+    post_dominator_tree = build_dominance_tree_w_cfg(cdg, UNIQUE_CFG_EXIT)
+    post_dominator_frontier = build_dominance_frontier_w_cfg(
         cdg, UNIQUE_CFG_EXIT)
 
     # initialize
@@ -74,7 +75,7 @@ def function_mark_sweep(func):
                     worklist.append(def_id)
 
         curr_block = id2block[current_inst_id]
-        for rdf_block in reverse_dominance_frontier[curr_block]:
+        for rdf_block in post_dominator_frontier[curr_block]:
             last_instr = None
             for block_instr in reversed(cfg[rdf_block][INSTRS]):
                 last_instr = block_instr
@@ -97,9 +98,11 @@ def function_mark_sweep(func):
                 curr_block = id2block[instr_id]
                 post_dominating_blocks = list(
                     set(post_dominated_by[curr_block]) - {curr_block})
-                nearest = find_nearest_post_dominator(curr_block, post_dominating_block)
-                new_jmp = {OP:JMP, LABELS:[nearest]}
-                final_instrs.append(new_jmp)
+                nearest = find_nearest_post_dominator(
+                    curr_block, post_dominating_blocks, useful_blocks, post_dominator_tree)
+                if nearest != None:
+                    new_jmp = {OP: JMP, LABELS: [nearest]}
+                    final_instrs.append(new_jmp)
             elif is_label(instr):
                 final_instrs.append(instr)
             elif is_jmp(instr):
@@ -117,7 +120,15 @@ def mark_sweep_dce(program):
 
     Can be run alongside other passes with lvn/gvn.
     """
-    pass
+    try:
+        is_ssa(program)
+    except:
+        program = bril_to_ssa(program)
+    for func in program[FUNCTIONS]:
+        new_instrs = function_safe_adce(func)
+        func[INSTRS] = new_instrs
+    is_ssa(program)
+    return program
 
 
 # ---------- AGGRESSIVE DEAD CODE ELIMINATIONS -------------
@@ -440,12 +451,14 @@ def iterate_dce(program, dce_method):
     return program
 
 
-def dce(program, global_delete, local_delete, adce):
+def dce(program, global_delete, local_delete, adce, ms):
     """
     Naive DCE wrapper method
     """
     if bool(adce) == True:
         return global_adce(program)
+    if bool(ms) == True:
+        return mark_sweep_dce(program)
     if global_delete == None and local_delete == None:
         return iterate_dce(iterate_dce(program, local_dce), delete_unused_dce)
     elif global_delete == None and local_delete:
@@ -459,12 +472,13 @@ def dce(program, global_delete, local_delete, adce):
 @click.option('--global-delete', default=1, help='Delete Globally.')
 @click.option('--local-delete', default=1, help='Delete Locally.')
 @click.option('--adce', default=False, help='Delete Aggressively.')
+@click.option('--ms', default=False, help='Delete with Mark Sweep Algorithm.')
 @click.option('--pretty-print', default=False, help='Pretty Print Before and After Optimization.')
-def main(global_delete, local_delete, adce, pretty_print):
+def main(global_delete, local_delete, adce, ms, pretty_print):
     prog = json.load(sys.stdin)
     if pretty_print:
         print(json.dumps(prog, indent=4, sort_keys=True))
-    final_prog = dce(prog, global_delete, local_delete, adce)
+    final_prog = dce(prog, global_delete, local_delete, adce, ms)
     if pretty_print:
         print(json.dumps(final_prog, indent=4, sort_keys=True))
     print(json.dumps(final_prog))
