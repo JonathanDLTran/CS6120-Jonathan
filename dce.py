@@ -23,8 +23,28 @@ def is_critical(instr):
     return is_io(instr) or is_call(instr) or is_ret(instr)
 
 
-def find_nearest_post_dominator(curr_block, post_dominating_block, useful_blocks, cfg):
-    pass
+def find_nearest_useful_rec(curr_block, useful_post_dominators, post_dominator_tree):
+    children = post_dominator_tree[curr_block]
+    for c in children:
+        if c in useful_post_dominators:
+            return c
+        else:
+            result = find_nearest_useful_rec(
+                c, useful_post_dominators, post_dominator_tree)
+            if result != None:
+                return result
+    return None
+
+
+def find_nearest_useful_post_dominator(curr_block, useful_blocks, post_dominating_blocks, post_dominator_tree):
+    useful_post_dominators = list(
+        set(useful_blocks).intersection(
+            set(post_dominating_blocks)
+        )
+    )
+    if useful_post_dominators == []:
+        return None
+    return find_nearest_useful_rec(curr_block, useful_post_dominators, post_dominator_tree)
 
 
 def function_mark_sweep(func):
@@ -98,8 +118,8 @@ def function_mark_sweep(func):
                 curr_block = id2block[instr_id]
                 post_dominating_blocks = list(
                     set(post_dominated_by[curr_block]) - {curr_block})
-                nearest = find_nearest_post_dominator(
-                    curr_block, post_dominating_blocks, useful_blocks, post_dominator_tree)
+                nearest = find_nearest_useful_post_dominator(
+                    curr_block, useful_blocks, post_dominating_blocks, post_dominator_tree)
                 if nearest != None:
                     new_jmp = {OP: JMP, LABELS: [nearest]}
                     final_instrs.append(new_jmp)
@@ -166,7 +186,7 @@ def function_safe_adce(func):
     When a backedge is detected heading in a block, add the terminator for the other block heading into this block
         - This keeps all loops in the program
         - Does not remove infinite loops that do nothing.
-        - Use backedge detector for this 
+        - Use backedge detector for this
     """
     # build important auxillary data structures (READ-ONLY)
     instrs = func[INSTRS]
