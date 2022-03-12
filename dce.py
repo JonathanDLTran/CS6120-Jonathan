@@ -23,6 +23,10 @@ def is_critical(instr):
     return is_io(instr) or is_call(instr) or is_ret(instr)
 
 
+def find_nearest_post_dominator(curr_block, post_dominating_block):
+    pass
+
+
 def function_mark_sweep(func):
     """
     ASSUMES SSA FORM
@@ -32,7 +36,7 @@ def function_mark_sweep(func):
     cfg = form_cfg_w_blocks(func)
     cfg_w_exit = add_unique_exit_to_cfg(cfg, UNIQUE_CFG_EXIT)
     cdg = reverse_cfg(cfg_w_exit)
-    post_dominators = get_dominators_w_cfg(func, UNIQUE_CFG_EXIT)
+    _, post_dominated_by = get_dominators_w_cfg(func, UNIQUE_CFG_EXIT)
     reverse_dominance_frontier = build_dominance_frontier_w_cfg(
         cdg, UNIQUE_CFG_EXIT)
 
@@ -89,7 +93,13 @@ def function_mark_sweep(func):
             final_instrs.append(instr)
         else:
             if is_br(instr):
-                pass
+                # replace branch to jmp to nearest useful post dominator
+                curr_block = id2block[instr_id]
+                post_dominating_blocks = list(
+                    set(post_dominated_by[curr_block]) - {curr_block})
+                nearest = find_nearest_post_dominator(curr_block, post_dominating_block)
+                new_jmp = {OP:JMP, LABELS:[nearest]}
+                final_instrs.append(new_jmp)
             elif is_label(instr):
                 final_instrs.append(instr)
             elif is_jmp(instr):
