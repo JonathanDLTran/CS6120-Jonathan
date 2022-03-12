@@ -30,7 +30,6 @@ def function_mark_sweep(func):
     """
     # set up data structures
     cfg = form_cfg_w_blocks(func)
-    entry = list(cfg.keys())[0]
     cfg_w_exit = add_unique_exit_to_cfg(cfg, UNIQUE_CFG_EXIT)
     cdg = reverse_cfg(cfg_w_exit)
     post_dominators = get_dominators_w_cfg(func, UNIQUE_CFG_EXIT)
@@ -42,6 +41,7 @@ def function_mark_sweep(func):
     id2block = dict()
     id2mark = dict()
     def2id = dict()
+    useful_blocks = set()
     worklist = []
     for block in cfg:
         for instr in cfg[block][INSTRS]:
@@ -49,6 +49,7 @@ def function_mark_sweep(func):
             if is_critical(instr):
                 worklist.append(instr_id)
                 id2mark[instr_id] = MARKED
+                useful_blocks.add(block)
             else:
                 id2mark[instr_id] = NOT_MARKED
             if DEST in instr:
@@ -65,21 +66,37 @@ def function_mark_sweep(func):
                 if id2mark[def_id] == NOT_MARKED:
                     def_id = def2id[defining]
                     id2mark[def_id] = MARKED
+                    useful_blocks.add(id2block[def_id])
                     worklist.append(def_id)
 
         curr_block = id2block[current_inst_id]
         for rdf_block in reverse_dominance_frontier[curr_block]:
             last_instr = None
-            for block_instr in cfg[rdf_block][INSTRS]:
+            for block_instr in reversed(cfg[rdf_block][INSTRS]):
                 last_instr = block_instr
                 break
             if last_instr != None:
                 last_instr_id = id(last_instr)
                 id2mark[last_instr_id] = MARKED
+                useful_blocks.add(id2block[last_instr_id])
                 worklist.append(last_instr_id)
 
     # sweep phase
     final_instrs = []
+    for instr in func[INSTRS]:
+        instr_id = id(instr)
+        if id2mark[instr_id] == MARKED:
+            final_instrs.append(instr)
+        else:
+            if is_br(instr):
+                pass
+            elif is_label(instr):
+                final_instrs.append(instr)
+            elif is_jmp(instr):
+                final_instrs.append(instr)
+            else:
+                # deleted
+                pass
     return final_instrs
 
 
