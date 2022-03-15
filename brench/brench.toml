@@ -1,5 +1,6 @@
-extract = '(total_dyn_inst: (\d+))'
+extract = 'total_dyn_inst: (\d+)'
 benchmarks = '../int-benchmarks/*.bril'
+timeout = 60
 
 [runs.baseline]
 pipeline = [
@@ -7,9 +8,52 @@ pipeline = [
     "brili -p {args}",
 ]
 
-[runs.ssa]
+[runs.lvn]
 pipeline = [
     "bril2json",
-    "python ../ssa.py --to-ssa=True",
+    "python3 ../lvn.py",
+    "brili -p {args}",
+]
+
+[runs.tossa]
+pipeline = [
+    "bril2json",
+    "python3 ../ssa.py --to-ssa=True",
+    "brili -p {args}",
+]
+
+[runs.fromssa]
+pipeline = [
+    "bril2json",
+    "python3 ../ssa.py --to-ssa=True",
+    "python3 ../ssa.py --from-ssa=True",
+    "brili -p {args}",
+]
+
+[runs.gvn]
+pipeline = [
+    "bril2json",
+    "python3 ../ssa.py --to-ssa=True",
+    "python3 ../gvn.py --gvn=True",
+    "brili -p {args}",
+]
+
+[runs.dce]
+pipeline = [
+    "bril2json",
+    "python3 ../ssa.py --to-ssa=True",
+    "python3 ../gvn.py --gvn=True",
+    "python3 ../dce.py --adce=True",
+    "brili -p {args}",
+]
+
+[runs.all]
+pipeline = [
+    "bril2json",
+    "python3 ../ssa.py --to-ssa=True",
+    "python3 ../gvn.py --gvn=True",
+    "python3 ../dce.py --adce=True",
+    "python3 ../ssa.py --from-ssa=True",
+    "python3 ../dce.py",
     "brili -p {args}",
 ]

@@ -217,7 +217,7 @@ def function_safe_adce(func):
     worklist = []
     for instr in instrs:
         curr_block = id2block[id(instr)]
-        if is_io(instr) or is_ret(instr) or is_call(instr):
+        if is_io(instr) or is_ret(instr) or is_jmp(instr) or is_call(instr):
             # mark current instr as live
             marked_instrs[id(instr)] = LIVE
             # add arguments of current instr as live
