@@ -1,5 +1,11 @@
 """
 Implementation of Induction Variable Elimination for Loops 
+
+Would it be worth to add in other features as well? E.g. pointer programs ??
+Might be worth to demonstrate optimizations on it.
+Another thing to consider is Alias Analysis for these pointers
+Alais Analysis sounds interesting to do if I had more time.
+
 TODO
 """
 
