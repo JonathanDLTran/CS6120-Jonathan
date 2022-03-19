@@ -14,7 +14,7 @@ primes-between,fromssa,1117844
 primes-between,gvn,832702
 primes-between,dce,570440
 primes-between,all,610483
-primes-between,licm,494847
+primes-between,licm,491191
 orders,baseline,5352
 orders,lvn,5352
 orders,tossa,8631
