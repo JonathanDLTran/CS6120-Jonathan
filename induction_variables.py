@@ -3,15 +3,12 @@ Implementation of Induction Variable Elimination for Loops
 
 ASSSUMED NOT TO BE IN SSA FORM
 """
-
-from audioop import mul
 import sys
 import json
 import click
 from collections import OrderedDict
 
-from numpy import var
-
+from reaching_definitions import reaching_defs_func
 from licm import insert_preheaders, identify_loop_invariant_instrs, LOOP_INVARIANT
 from cfg import form_cfg_w_blocks, join_cfg, INSTRS
 from dominator_utilities import get_natural_loops
@@ -184,16 +181,39 @@ def find_derived_ivs(cfg, loop_blocks, var_invariant_map, basic_variable_map):
     return derived_ivs
 
 
-def replace_ivs():
+def replace_ivs(cfg, derived_ivs, preheadermap):
+    """
+    Replaces Induction Variables
+    """
     pass
 
 
-def loop_induction_variables(func):
-    pass
+def loop_induction_variables(func_args, cfg, reaching_definitions, natural_loop, preheadermap):
+    """
+    Calculate and move induction variables for a single loop corresponding to natural loop
+    """
+    (natural_loop_blocks, _, natural_loop_header, _) = natural_loop
+    _, var_invariant_map = identify_loop_invariant_instrs(
+        cfg, func_args, natural_loop_blocks, natural_loop_header, reaching_definitions)
+    basic_ivs = find_basic_ivs(cfg, natural_loop_blocks, var_invariant_map)
+    derived_ivs = find_derived_ivs(
+        cfg, natural_loop_blocks, var_invariant_map, basic_ivs)
+    replace_ivs(cfg, derived_ivs, preheadermap)
 
 
 def func_induction_variables(func):
+    """
+    Calculate and move induction variables for a single function
+    """
     natural_loops = get_natural_loops(func)
+
+    # grab args
+    func_args = []
+    if ARGS in func:
+        for a in func[ARGS]:
+            func_args.append(a[NAME])
+
+    # add preheaders to loops in func
     old_cfg = form_cfg_w_blocks(func)
     instrs_w_blocks = []
     for block in old_cfg:
@@ -204,11 +224,19 @@ def func_induction_variables(func):
     func[INSTRS] = new_instrs
     cfg = form_cfg_w_blocks(func)
 
+    reaching_definitions = reaching_defs_func(func)
+
     for natural_loop in natural_loops:
-        pass
+        loop_induction_variables(
+            func_args, cfg, reaching_definitions, natural_loop, preheadermap)
+
+    return join_cfg(cfg)
 
 
 def induction_variables(prog):
+    """
+    Apply Induction Variable Elimination to a Program
+    """
     for func in prog[FUNCTIONS]:
         new_instrs = func_induction_variables(func)
         func[INSTRS] = new_instrs
