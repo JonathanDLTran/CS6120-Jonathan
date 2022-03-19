@@ -4,7 +4,6 @@ import click
 import sys
 import json
 
-from numpy import inner
 from bril_core_utilities import has_side_effects, is_label, is_jmp, is_br
 
 from cfg import form_cfg_w_blocks, join_cfg, INSTRS
@@ -83,71 +82,75 @@ def insert_preheaders(natural_loops, instrs_w_blocks):
     return preheadermap, final_instrs
 
 
-def identify_li_recursive(cfg, dominance_tree, reaching_definitions, func_args, loop_blocks, basic_block, instrs_invariant_map, var_invariant_map):
+def identify_li_recursive(cfg, reaching_definitions, func_args, loop_blocks, basic_block, instrs_invariant_map, var_invariant_map):
     (in_dict, _) = reaching_definitions
-    instrs = cfg[basic_block][INSTRS]
-    for instr in instrs:
-        # constants
-        if VALUE in instr and DEST in instr:
-            instrs_invariant_map[id(instr)] = LOOP_INVARIANT
-            var_invariant_map[instr[DEST]] = LOOP_INVARIANT
-        # consider instructions with arguments
-        elif ARGS in instr and DEST in instr:
-            args = instr[ARGS]
-            dst = instr[DEST]
-            is_loop_invariant = True
-            for x in args:
-                # condition 1: Arguments are defined by
-                # values defined outside of loop
-                x_reaches_from_outside_loop = True
-                for block in cfg:
-                    for (_, var) in in_dict[block]:
-                        if var == dst and block in loop_blocks:
-                            x_reaches_from_outside_loop = False
+    for basic_block in loop_blocks:
+        instrs = cfg[basic_block][INSTRS]
+        for instr in instrs:
+            # constants
+            if VALUE in instr and DEST in instr:
+                # constants have no arguments, so we just need to make sure there is exactly 1 definition in the loop
+                val_is_loop_invariant = True
+                for other_block in loop_blocks:
+                    for other_instr in cfg[other_block][INSTRS]:
+                        if DEST in other_instr and id(instr) != id(other_instr):
+                            if other_instr[DEST] == instr[DEST]:
+                                val_is_loop_invariant = False
+                instrs_invariant_map[id(
+                    instr)] = LOOP_INVARIANT if val_is_loop_invariant else NOT_LOOP_INVARIANT
+                var_invariant_map[instr[DEST]
+                                  ] = LOOP_INVARIANT if val_is_loop_invariant else NOT_LOOP_INVARIANT
+            # consider instructions with arguments
+            elif ARGS in instr and DEST in instr:
+                args = instr[ARGS]
+                dst = instr[DEST]
+                is_loop_invariant = True
+                for x in args:
+                    # condition 1: Arguments are defined by
+                    # values defined outside of loop
+                    x_reaches_from_outside_loop = True
+                    for block in cfg:
+                        for (_, var) in in_dict[block]:
+                            if var == dst and block in loop_blocks:
+                                x_reaches_from_outside_loop = False
+                                break
+                        if not x_reaches_from_outside_loop:
                             break
-                    if not x_reaches_from_outside_loop:
-                        break
-                if x_reaches_from_outside_loop:
-                    continue
+                    if x_reaches_from_outside_loop:
+                        continue
 
-                # condition 2: Arguments are defined exactly once
-                # inside the entire function (not just loop), and the argument itself was
-                # marked as loop invariant
-                # We make sure to add function arguments as definitions
-                x_def_counter = 0
-                for a in func_args:
-                    if a == dst:
-                        x_def_counter += 1
-                for def_instr in instrs:
-                    if DEST in def_instr:
-                        other_dst = def_instr[DEST]
-                        if other_dst == dst:
+                    # condition 2: Arguments are defined exactly once
+                    # inside the entire function (not just loop), and the argument itself was
+                    # marked as loop invariant
+                    # We make sure to add function arguments as definitions
+                    x_def_counter = 0
+                    for a in func_args:
+                        if a == dst:
                             x_def_counter += 1
-                if x_def_counter == 1 and (x in var_invariant_map and var_invariant_map[x]):
-                    continue
+                    for def_instr in instrs:
+                        if DEST in def_instr:
+                            other_dst = def_instr[DEST]
+                            if other_dst == dst:
+                                x_def_counter += 1
+                    if x_def_counter == 1 and (x in var_invariant_map and var_invariant_map[x]):
+                        continue
 
-                is_loop_invariant = False
-                break
+                    is_loop_invariant = False
+                    break
 
-            if is_loop_invariant:
-                instrs_invariant_map[id(instr)] = LOOP_INVARIANT
-                var_invariant_map[dst] = LOOP_INVARIANT
+                if is_loop_invariant:
+                    instrs_invariant_map[id(instr)] = LOOP_INVARIANT
+                    var_invariant_map[dst] = LOOP_INVARIANT
+                else:
+                    instrs_invariant_map[id(instr)] = NOT_LOOP_INVARIANT
+                    var_invariant_map[dst] = NOT_LOOP_INVARIANT
             else:
                 instrs_invariant_map[id(instr)] = NOT_LOOP_INVARIANT
-                var_invariant_map[dst] = NOT_LOOP_INVARIANT
-        else:
-            instrs_invariant_map[id(instr)] = NOT_LOOP_INVARIANT
-
-    children = dominance_tree[basic_block]
-    for c in children:
-        if c in loop_blocks:
-            instrs_invariant_map = identify_li_recursive(
-                cfg, dominance_tree, reaching_definitions, func_args, loop_blocks, c, instrs_invariant_map, deepcopy(var_invariant_map))
 
     return instrs_invariant_map
 
 
-def identify_loop_invariant_instrs(cfg, func_args, loop_blocks, loop_instrs, loop_header, reaching_definitions, dominance_tree):
+def identify_loop_invariant_instrs(cfg, func_args, loop_blocks, loop_instrs, loop_header, reaching_definitions):
     """
     For a Given Loop, identify those instructions in the loop that are loop invariant
     """
@@ -166,7 +169,7 @@ def identify_loop_invariant_instrs(cfg, func_args, loop_blocks, loop_instrs, loo
         for loop_instr, _ in loop_instrs:
             if DEST in loop_instr:
                 var_invariant_map[loop_instr[DEST]] = NOT_LOOP_INVARIANT
-        instrs_invariant_map = identify_li_recursive(cfg, dominance_tree, reaching_definitions, func_args, loop_blocks, loop_header,
+        instrs_invariant_map = identify_li_recursive(cfg, reaching_definitions, func_args, loop_blocks, loop_header,
                                                      instrs_invariant_map, var_invariant_map)
 
         if loop_instrs == old_loop_instrs:
@@ -319,12 +322,7 @@ def loop_licm(natural_loop, cfg, func_args, preheadermap, reaching_definitions, 
                 loop_instrs.append((instr, block_name))
 
     loop_instrs_map = identify_loop_invariant_instrs(
-        cfg, func_args, loop_blocks, loop_instrs, header, reaching_definitions, dominance_tree)
-
-    # for instr, block_name in loop_instrs:
-    #     if id(instr) in loop_instrs_map:
-    #         print(
-    #             f"{id(instr)} | {block_name} | {instr} | {loop_instrs_map[id(instr)]}")
+        cfg, func_args, loop_blocks, loop_instrs, header, reaching_definitions)
 
     # buold map from id to identifier
     id2instr = OrderedDict()

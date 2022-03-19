@@ -25,3 +25,5 @@ echo "Running To GVN Tests"
 turnt gvn-tests/*.bril
 echo "Running To LICM Tests"
 turnt licm-tests/*.bril
+echo "Running To IVE Tests"
+turnt ive-tests/*.bril

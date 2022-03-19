@@ -1,0 +1,24 @@
+# ARGS: 10
+@main(n: int){
+    i: int = const 0;
+.header:
+    cond: bool = eq i n;
+    br cond .end .loop;
+.loop:
+    four: int = const 4;
+    three: int = const 3; 
+    j: int = mul i four;
+    j: int = add j three;
+    print j;
+    
+    one: int = const 1;
+    i: int = add i one;
+
+    five: int = const 5;
+    two: int = const 2;
+    k: int = mul i two;
+    k: int = add k five;
+    print k;
+    jmp .header;
+.end:
+}
