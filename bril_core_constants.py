@@ -78,6 +78,10 @@ TERMINATORS = [JMP, BR, RET]
 
 OP_TO_TYPE = {**{b: BOOL for b in BOOL_OPS}, **{i: INT for i in INT_OPS}}
 
+SIDE_EFFECT_OPS = [
+    PRINT, DIV
+]
+
 
 ARGUMENT = "argument"
 

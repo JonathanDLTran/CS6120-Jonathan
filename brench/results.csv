@@ -6,6 +6,7 @@ quadratic,fromssa,1427
 quadratic,gvn,1131
 quadratic,dce,557
 quadratic,all,557
+quadratic,licm,703
 primes-between,baseline,574100
 primes-between,lvn,574100
 primes-between,tossa,877586
@@ -13,6 +14,7 @@ primes-between,fromssa,1117844
 primes-between,gvn,832702
 primes-between,dce,570440
 primes-between,all,610483
+primes-between,licm,494847
 orders,baseline,5352
 orders,lvn,5352
 orders,tossa,8631
@@ -20,6 +22,7 @@ orders,fromssa,8631
 orders,gvn,8107
 orders,dce,6064
 orders,all,6064
+orders,licm,4928
 relative-primes,baseline,1923
 relative-primes,lvn,1923
 relative-primes,tossa,2942
@@ -27,6 +30,7 @@ relative-primes,fromssa,2942
 relative-primes,gvn,2397
 relative-primes,dce,1735
 relative-primes,all,1735
+relative-primes,licm,1858
 check-primes,baseline,8468
 check-primes,lvn,8468
 check-primes,tossa,16745
@@ -34,6 +38,7 @@ check-primes,fromssa,16745
 check-primes,gvn,13313
 check-primes,dce,6230
 check-primes,all,6230
+check-primes,licm,8058
 sum-sq-diff,baseline,3038
 sum-sq-diff,lvn,incorrect
 sum-sq-diff,tossa,5686
@@ -41,6 +46,7 @@ sum-sq-diff,fromssa,5686
 sum-sq-diff,gvn,4959
 sum-sq-diff,dce,2734
 sum-sq-diff,all,2734
+sum-sq-diff,licm,2840
 loopfact,baseline,116
 loopfact,lvn,116
 loopfact,tossa,224
@@ -48,6 +54,7 @@ loopfact,fromssa,224
 loopfact,gvn,182
 loopfact,dce,100
 loopfact,all,100
+loopfact,licm,101
 recfact,baseline,104
 recfact,lvn,104
 recfact,tossa,104
@@ -55,6 +62,7 @@ recfact,fromssa,104
 recfact,gvn,82
 recfact,dce,81
 recfact,all,81
+recfact,licm,104
 pythagorean-triple,baseline,61518
 pythagorean-triple,lvn,61518
 pythagorean-triple,tossa,108154
@@ -62,6 +70,7 @@ pythagorean-triple,fromssa,108905
 pythagorean-triple,gvn,108025
 pythagorean-triple,dce,69144
 pythagorean-triple,all,69269
+pythagorean-triple,licm,61518
 factors,baseline,72
 factors,lvn,72
 factors,tossa,133
@@ -69,6 +78,7 @@ factors,fromssa,133
 factors,gvn,125
 factors,dce,84
 factors,all,84
+factors,licm,72
 perfect,baseline,232
 perfect,lvn,232
 perfect,tossa,436
@@ -76,6 +86,7 @@ perfect,fromssa,441
 perfect,gvn,427
 perfect,dce,136
 perfect,all,137
+perfect,licm,232
 digital-root,baseline,247
 digital-root,lvn,247
 digital-root,tossa,344
@@ -83,6 +94,7 @@ digital-root,fromssa,350
 digital-root,gvn,340
 digital-root,dce,277
 digital-root,all,279
+digital-root,licm,247
 up-arrow,baseline,252
 up-arrow,lvn,252
 up-arrow,tossa,490
@@ -90,6 +102,7 @@ up-arrow,fromssa,490
 up-arrow,gvn,476
 up-arrow,dce,337
 up-arrow,all,337
+up-arrow,licm,252
 sum-divisors,baseline,159
 sum-divisors,lvn,159
 sum-divisors,tossa,264
@@ -97,6 +110,7 @@ sum-divisors,fromssa,345
 sum-divisors,gvn,257
 sum-divisors,dce,190
 sum-divisors,all,217
+sum-divisors,licm,159
 ackermann,baseline,1464231
 ackermann,lvn,1464231
 ackermann,tossa,1464231
@@ -104,6 +118,7 @@ ackermann,fromssa,1464231
 ackermann,gvn,1464231
 ackermann,dce,1464231
 ackermann,all,1464231
+ackermann,licm,1464231
 euclid,baseline,563
 euclid,lvn,incorrect
 euclid,tossa,889
@@ -111,6 +126,7 @@ euclid,fromssa,889
 euclid,gvn,793
 euclid,dce,539
 euclid,all,539
+euclid,licm,563
 binary-fmt,baseline,100
 binary-fmt,lvn,100
 binary-fmt,tossa,154
@@ -118,6 +134,7 @@ binary-fmt,fromssa,178
 binary-fmt,gvn,127
 binary-fmt,dce,100
 binary-fmt,all,100
+binary-fmt,licm,100
 gcd,baseline,46
 gcd,lvn,46
 gcd,tossa,79
@@ -125,6 +142,7 @@ gcd,fromssa,79
 gcd,gvn,77
 gcd,dce,61
 gcd,all,61
+gcd,licm,46
 armstrong,baseline,133
 armstrong,lvn,133
 armstrong,tossa,195
@@ -132,6 +150,7 @@ armstrong,fromssa,195
 armstrong,gvn,189
 armstrong,dce,158
 armstrong,all,158
+armstrong,licm,133
 collatz,baseline,169
 collatz,lvn,169
 collatz,tossa,258
@@ -139,6 +158,7 @@ collatz,fromssa,258
 collatz,gvn,245
 collatz,dce,175
 collatz,all,175
+collatz,licm,169
 sum-bits,baseline,73
 sum-bits,lvn,73
 sum-bits,tossa,103
@@ -146,6 +166,7 @@ sum-bits,fromssa,103
 sum-bits,gvn,101
 sum-bits,dce,86
 sum-bits,all,86
+sum-bits,licm,73
 rectangles-area-difference,baseline,14
 rectangles-area-difference,lvn,14
 rectangles-area-difference,tossa,17
@@ -153,6 +174,7 @@ rectangles-area-difference,fromssa,19
 rectangles-area-difference,gvn,17
 rectangles-area-difference,dce,15
 rectangles-area-difference,all,16
+rectangles-area-difference,licm,14
 fizz-buzz,baseline,3652
 fizz-buzz,lvn,3652
 fizz-buzz,tossa,10303
@@ -160,3 +182,4 @@ fizz-buzz,fromssa,10303
 fizz-buzz,gvn,9242
 fizz-buzz,dce,2705
 fizz-buzz,all,2705
+fizz-buzz,licm,2929

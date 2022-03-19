@@ -4,7 +4,10 @@ import click
 import sys
 import json
 
-from cfg import form_cfg_w_blocks, insert_into_cfg, join_cfg, INSTRS
+from numpy import inner
+from bril_core_utilities import has_side_effects, is_label, is_jmp, is_br
+
+from cfg import form_cfg_w_blocks, join_cfg, INSTRS
 from reaching_definitions import reaching_defs_func
 from dominator_utilities import get_natural_loops, build_dominance_tree
 from bril_core_constants import *
@@ -18,33 +21,69 @@ LOOP_PREHEADER_COUNTER = 0
 NEW_LOOP_PREHEADER = "new.loop.preheader"
 
 
+NEW_CFG_LABEL = "new.cfg.label"
+NEW_CFG_LABEL_IDX = 0
+
+
 def gen_loop_preheader():
     global LOOP_PREHEADER_COUNTER
     LOOP_PREHEADER_COUNTER += 1
     return f"{NEW_LOOP_PREHEADER}.{LOOP_PREHEADER_COUNTER}"
 
 
-def insert_preheaders(natural_loops, cfg):
+def insert_preheaders(natural_loops, instrs_w_blocks):
     headers = set()
     preheadermap = OrderedDict()
     backedgemap = OrderedDict()
+    preheaders = set()
     for _, (A, _), header, _ in natural_loops:
         if header not in backedgemap:
             backedgemap[header] = [A]
         else:
             backedgemap[header].append(A)
-    for _, _, header, _ in natural_loops:
-        if header in headers:
-            # loop header shared with another prior loop header
-            continue
-        preheader = gen_loop_preheader()
-        headers.add(header)
-        preheadermap[header] = preheader
-        insert_into_cfg(preheader, backedgemap[header], header, cfg)
-    return preheadermap
+    new_instrs = []
+    for (instr, instr_block) in instrs_w_blocks:
+        if is_label(instr):
+            for natural_loop_blocks, _, header, _ in natural_loops:
+                if header == instr[LABEL]:
+                    if header in headers:
+                        # loop header shared with another prior loop header
+                        continue
+                    headers.add(header)
+                    preheader = gen_loop_preheader()
+                    preheaders.add(preheader)
+                    preheadermap[header] = preheader
+                    new_preheader_instr = {LABEL: preheader}
+
+                    for (inner_instr, block) in instrs_w_blocks:
+                        if (is_br(inner_instr) or is_jmp(inner_instr)) and block not in natural_loop_blocks:
+                            if header in inner_instr[LABELS]:
+                                new_labels = []
+                                for label in inner_instr[LABELS]:
+                                    if label != header:
+                                        new_labels.append(label)
+                                    else:
+                                        new_labels.append(preheader)
+                                inner_instr[LABELS] = new_labels
+                    for (inner_instr, block) in new_instrs:
+                        if is_br(inner_instr) or is_jmp(inner_instr) and block not in preheaders and block not in natural_loop_blocks:
+                            if header in inner_instr[LABELS]:
+                                new_labels = []
+                                for label in inner_instr[LABELS]:
+                                    if label != header:
+                                        new_labels.append(label)
+                                    else:
+                                        new_labels.append(preheader)
+                                inner_instr[LABELS] = new_labels
+
+                    new_instrs.append((new_preheader_instr, preheader))
+        new_instrs.append((instr, instr_block))
+
+    final_instrs = list(map(lambda pair: pair[0], new_instrs))
+    return preheadermap, final_instrs
 
 
-def identify_li_recursive(cfg, dominance_tree, reaching_definitions, loop_instrs, loop_blocks, basic_block, instrs_invariant_map, var_invariant_map):
+def identify_li_recursive(cfg, dominance_tree, reaching_definitions, func_args, loop_blocks, basic_block, instrs_invariant_map, var_invariant_map):
     (in_dict, _) = reaching_definitions
     instrs = cfg[basic_block][INSTRS]
     for instr in instrs:
@@ -72,15 +111,19 @@ def identify_li_recursive(cfg, dominance_tree, reaching_definitions, loop_instrs
                     continue
 
                 # condition 2: Arguments are defined exactly once
-                # inside the loop, and the argument itself was
+                # inside the entire function (not just loop), and the argument itself was
                 # marked as loop invariant
+                # We make sure to add function arguments as definitions
                 x_def_counter = 0
-                for loop_instr, _ in loop_instrs:
-                    if DEST in loop_instr:
-                        other_dst = loop_instr[DEST]
+                for a in func_args:
+                    if a == dst:
+                        x_def_counter += 1
+                for def_instr in instrs:
+                    if DEST in def_instr:
+                        other_dst = def_instr[DEST]
                         if other_dst == dst:
                             x_def_counter += 1
-                if x_def_counter == 1 and (x not in var_invariant_map or var_invariant_map[x]):
+                if x_def_counter == 1 and (x in var_invariant_map and var_invariant_map[x]):
                     continue
 
                 is_loop_invariant = False
@@ -99,12 +142,12 @@ def identify_li_recursive(cfg, dominance_tree, reaching_definitions, loop_instrs
     for c in children:
         if c in loop_blocks:
             instrs_invariant_map = identify_li_recursive(
-                cfg, dominance_tree, reaching_definitions, loop_instrs, loop_blocks, c, instrs_invariant_map, deepcopy(var_invariant_map))
+                cfg, dominance_tree, reaching_definitions, func_args, loop_blocks, c, instrs_invariant_map, deepcopy(var_invariant_map))
 
     return instrs_invariant_map
 
 
-def identify_loop_invariant_instrs(cfg, loop_blocks, loop_instrs, loop_header, reaching_definitions, dominance_tree):
+def identify_loop_invariant_instrs(cfg, func_args, loop_blocks, loop_instrs, loop_header, reaching_definitions, dominance_tree):
     """
     For a Given Loop, identify those instructions in the loop that are loop invariant
     """
@@ -123,7 +166,7 @@ def identify_loop_invariant_instrs(cfg, loop_blocks, loop_instrs, loop_header, r
         for loop_instr, _ in loop_instrs:
             if DEST in loop_instr:
                 var_invariant_map[loop_instr[DEST]] = NOT_LOOP_INVARIANT
-        instrs_invariant_map = identify_li_recursive(cfg, dominance_tree, reaching_definitions, loop_instrs, loop_blocks, loop_header,
+        instrs_invariant_map = identify_li_recursive(cfg, dominance_tree, reaching_definitions, func_args, loop_blocks, loop_header,
                                                      instrs_invariant_map, var_invariant_map)
 
         if loop_instrs == old_loop_instrs:
@@ -209,7 +252,7 @@ def filter_loop_invariant_instrs(cfg, natural_loop, dominator_tree, loop_instrs,
     # check instruction dominates all exits
     exit_filter = []
     for identifier in def_filter:
-        _, identifier_block = id2instr[identifier]
+        def_instr, identifier_block = id2instr[identifier]
         dominated_blocks = set(gather_nodes(
             identifier_block, dominator_tree, natural_loop_nodes))
 
@@ -217,6 +260,23 @@ def filter_loop_invariant_instrs(cfg, natural_loop, dominator_tree, loop_instrs,
         for (start_node, _) in exits:
             if start_node not in dominated_blocks:
                 dominates_exits = False
+
+        # Side condition: If variable is dead after loop and has no side effects
+        used_after_loop = False
+        for after_block in cfg:
+            if after_block not in natural_loop_nodes:
+                for after_instr in cfg[after_block][INSTRS]:
+                    if ARGS in after_instr and DEST in def_instr:
+                        for arg in after_instr[ARGS]:
+                            if arg == def_instr[DEST]:
+                                used_after_loop = True
+
+        no_side_effects = False
+        if not has_side_effects(def_instr):
+            no_side_effects = True
+
+        if not used_after_loop and no_side_effects:
+            dominates_exits = True
 
         if dominates_exits:
             exit_filter.append(identifier)
@@ -249,7 +309,7 @@ def move_instructions(cfg, header, preheadermap, identifiers_to_move, id2instr):
         remove_from_bb(cfg, basic_block, identifier)
 
 
-def loop_licm(natural_loop, cfg, preheadermap, reaching_definitions, dominance_tree):
+def loop_licm(natural_loop, cfg, func_args, preheadermap, reaching_definitions, dominance_tree):
     # Grab the instructions in a loop
     (loop_blocks, _, header, _) = natural_loop
     loop_instrs = []
@@ -259,7 +319,7 @@ def loop_licm(natural_loop, cfg, preheadermap, reaching_definitions, dominance_t
                 loop_instrs.append((instr, block_name))
 
     loop_instrs_map = identify_loop_invariant_instrs(
-        cfg, loop_blocks, loop_instrs, header, reaching_definitions, dominance_tree)
+        cfg, func_args, loop_blocks, loop_instrs, header, reaching_definitions, dominance_tree)
 
     # for instr, block_name in loop_instrs:
     #     if id(instr) in loop_instrs_map:
@@ -283,13 +343,24 @@ def loop_licm(natural_loop, cfg, preheadermap, reaching_definitions, dominance_t
 
 def func_licm(func):
     natural_loops = get_natural_loops(func)
+    old_cfg = form_cfg_w_blocks(func)
+    instrs_w_blocks = []
+    for block in old_cfg:
+        for instr in old_cfg[block][INSTRS]:
+            instrs_w_blocks.append((instr, block))
+    preheadermap, new_instrs = insert_preheaders(
+        natural_loops, instrs_w_blocks)
+    func[INSTRS] = new_instrs
     cfg = form_cfg_w_blocks(func)
-    preheadermap = insert_preheaders(natural_loops, cfg)
     reaching_definitions = reaching_defs_func(func)
     dominance_tree, _ = build_dominance_tree(func)
+    func_args = []
+    if ARGS in func:
+        for a in func[ARGS]:
+            func_args.append(a[NAME])
 
     for natural_loop in natural_loops:
-        cfg = loop_licm(natural_loop, cfg, preheadermap,
+        cfg = loop_licm(natural_loop, cfg, func_args, preheadermap,
                         reaching_definitions, dominance_tree)
 
     return join_cfg(cfg)

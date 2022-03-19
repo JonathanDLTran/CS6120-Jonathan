@@ -64,6 +64,10 @@ def is_terminator(instr):
     return is_jmp(instr) or is_br(instr) or is_ret(instr)
 
 
+def has_side_effects(instr):
+    return OP in instr and instr[OP] in SIDE_EFFECT_OPS
+
+
 def postorder_traversal(node, tree):
     assert node in tree
     postorder = []
