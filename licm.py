@@ -4,11 +4,10 @@ import click
 import sys
 import json
 
-from bril_core_utilities import has_side_effects, is_label, is_jmp, is_br
-
 from cfg import form_cfg_w_blocks, join_cfg, INSTRS
 from reaching_definitions import reaching_defs_func
 from dominator_utilities import get_natural_loops, build_dominance_tree
+from bril_core_utilities import has_side_effects, is_label, is_jmp, is_br
 from bril_core_constants import *
 
 
@@ -147,7 +146,7 @@ def identify_li_recursive(cfg, reaching_definitions, func_args, loop_blocks, bas
             else:
                 instrs_invariant_map[id(instr)] = NOT_LOOP_INVARIANT
 
-    return instrs_invariant_map
+    return instrs_invariant_map, var_invariant_map
 
 
 def identify_loop_invariant_instrs(cfg, func_args, loop_blocks, loop_instrs, loop_header, reaching_definitions):
@@ -169,8 +168,8 @@ def identify_loop_invariant_instrs(cfg, func_args, loop_blocks, loop_instrs, loo
         for loop_instr, _ in loop_instrs:
             if DEST in loop_instr:
                 var_invariant_map[loop_instr[DEST]] = NOT_LOOP_INVARIANT
-        instrs_invariant_map = identify_li_recursive(cfg, reaching_definitions, func_args, loop_blocks, loop_header,
-                                                     instrs_invariant_map, var_invariant_map)
+        instrs_invariant_map, _ = identify_li_recursive(cfg, reaching_definitions, func_args, loop_blocks, loop_header,
+                                                        instrs_invariant_map, var_invariant_map)
 
         if loop_instrs == old_loop_instrs:
             continue_while = False

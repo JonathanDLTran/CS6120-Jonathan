@@ -31,6 +31,26 @@ def is_print(instr):
     return OP in instr and instr[OP] == PRINT
 
 
+def is_add(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == ADD
+
+
+def is_sub(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == SUB
+
+
+def is_mul(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == MUL
+
+
+def is_div(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == div
+
+
 def is_io(instr):
     return is_print(instr)
 
