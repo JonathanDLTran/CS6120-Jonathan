@@ -9,7 +9,7 @@ The common workflow to run transformation passes and analyses on bril is
 - Dead Code Elimination (Trivial, Aggressive, TODO: Mark and Sweep)
 - Local Value Numbering / Global Value Numbering with Dominator Tree
 - Loop Invariant Code Motion 
-- Induction Variable Elimination (TODO)
+- Induction Variable Elimination 
 
 # Analyses
 - Live Variables 
