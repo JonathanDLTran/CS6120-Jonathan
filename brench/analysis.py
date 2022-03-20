@@ -1,6 +1,7 @@
-# code from: https://matplotlib.org/stable/gallery/lines_bars_and_markers/barchart.html
-# and: https://docs.python.org/3/library/csv.html
-# and: https://evanhahn.com/python-skip-header-csv-reader/ to skip headers
+# code from: https://matplotlib.org/stable/gallery/lines_bars_and_markers/barchart.html on how to make pair bar charts
+# and: https://docs.python.org/3/library/csv.html on how to use CSVs
+# and: https://evanhahn.com/python-skip-header-csv-reader/ to skip headers with dictionary readers
+# and: https://stackabuse.com/rotate-axis-labels-in-matplotlib/ to rotate the ticks on the x axist
 
 import matplotlib.pyplot as plt
 import numpy as np
