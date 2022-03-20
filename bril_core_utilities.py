@@ -1,6 +1,16 @@
 from bril_core_constants import *
 
 
+def is_int(instr):
+    assert type(instr) == dict
+    return TYPE in instr and instr[TYPE] == INT
+
+
+def is_bool(instr):
+    assert type(instr) == dict
+    return TYPE in instr and instr[TYPE] == BOOL
+
+
 def is_phi(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] == PHI
