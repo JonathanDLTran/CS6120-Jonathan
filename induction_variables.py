@@ -9,11 +9,21 @@ import click
 from collections import OrderedDict
 
 from reaching_definitions import reaching_defs_func
-from licm import insert_preheaders, identify_loop_invariant_instrs, LOOP_INVARIANT
+from licm import insert_preheaders, identify_loop_invariant_instrs, insert_into_bb, LOOP_INVARIANT
 from cfg import form_cfg_w_blocks, join_cfg, INSTRS
 from dominator_utilities import get_natural_loops
 from bril_core_constants import *
-from bril_core_utilities import is_add, is_mul
+from bril_core_utilities import is_add, is_mul, is_const
+
+
+UNIQUE_VAR_NAME = "unique_var"
+UNIQUE_VAR_IDX = 0
+
+
+def gen_new_var():
+    global UNIQUE_VAR_IDX
+    UNIQUE_VAR_IDX += 1
+    return f"{UNIQUE_VAR_NAME}_{UNIQUE_VAR_IDX}"
 
 
 class InductionVariable(object):
@@ -71,15 +81,16 @@ class DerivedInductionVariable(InductionVariable):
     instruction for j.
     """
 
-    def __init__(self, j_id, j, c, i, d) -> None:
+    def __init__(self, j_id, j, c, i, d, basic_block) -> None:
         self.j_id = j_id
         self.c = c
         self.d = d
         self.i = i
         self.j = j
+        self.basic_block = basic_block
 
     def __str__(self) -> str:
-        return f"{self.j} = {self.c} * {self.i} + {self.d} @{self.j_id}"
+        return f"{self.j} = {self.c} * {self.i} + {self.d} @{self.j_id}, {self.basic_block}"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -143,6 +154,7 @@ def find_derived_ivs(cfg, loop_blocks, var_invariant_map, basic_variable_map):
     """
     derived_ivs = OrderedDict()
     mul_invariant_map = OrderedDict()
+    const_map = OrderedDict()
     for loop_basic_block in loop_blocks:
         for instr in cfg[loop_basic_block][INSTRS]:
             instr_id = id(instr)
@@ -165,27 +177,67 @@ def find_derived_ivs(cfg, loop_blocks, var_invariant_map, basic_variable_map):
                         mul_inv = MulInvariant(instr_id, def_var, left, right)
                         mul_invariant_map[def_var] = mul_inv
 
+            elif is_const(instr):
+                def_var = instr[DEST]
+                # check only 1 defintion of this variable in the loop
+                has_one_def = True
+                for other_block in loop_blocks:
+                    for other_instr in cfg[other_block][INSTRS]:
+                        if DEST in other_instr and id(other_instr) != instr_id and other_instr[DEST] == def_var:
+                            has_one_def = False
+
+                if has_one_def:
+                    val = instr[VALUE]
+                    const_map[def_var] = val
+
             elif is_add(instr):
                 def_var = instr[DEST]
                 left = instr[ARGS][0]
                 right = instr[ARGS][1]
-                if left in mul_invariant_map and right in var_invariant_map:
+                if left in mul_invariant_map and right in const_map:
                     derived_inv = DerivedInductionVariable(
-                        instr_id, def_var, left.c, left.i, right)
+                        instr_id, def_var, mul_invariant_map[left].c, mul_invariant_map[left].i, right, loop_basic_block)
                     derived_ivs[def_var] = derived_inv
-                elif right in mul_invariant_map and left in var_invariant_map:
+                elif right in mul_invariant_map and left in const_map:
                     derived_inv = DerivedInductionVariable(
-                        instr_id, def_var, right.c, right.i, left)
+                        instr_id, def_var, mul_invariant_map[right].c, mul_invariant_map[right].i, left, loop_basic_block)
                     derived_ivs[def_var] = derived_inv
 
-    return derived_ivs
+    return derived_ivs, const_map
 
 
-def replace_ivs(cfg, derived_ivs, preheadermap):
+def replace_ivs(cfg, derived_ivs, const_map, loop_preheader):
     """
-    Replaces Induction Variables
+    Replaces Induction Variables by changing j's update in the loop after i
+    as well as the initialization of j in the preheader
     """
-    pass
+    for _, derived_iv in derived_ivs.keys():
+        assert type(derived_iv) == DerivedInductionVariable
+
+        # insert initialization of j in the preheader
+        j = derived_iv.j
+        i = derived_iv.i
+        c = derived_iv.c
+        d = derived_iv.d
+        j_init_instr = {DEST: j, TYPE: INT, OP: CONST, VALUE: const_map[d]}
+        insert_into_bb(cfg, loop_preheader, j_init_instr)
+
+        # insert update of j in the loop
+        new_var = gen_new_var()
+        j_update_instr1 = {DEST: new_var, TYPE: INT, OP: ADD, ARGS: [c, i]}
+        j_update_instr2 = {DEST: j, TYPE: INT, OP: CONST, ARGS: [new_var]}
+
+        j_bb = derived_iv.basic_block
+        j_id = derived_iv.j_id
+        bb_instrs = cfg[j_bb][INSTRS]
+        new_instrs = []
+        for instr in bb_instrs:
+            if id(instr) == j_id:
+                new_instrs.append(j_update_instr1)
+                new_instrs.append(j_update_instr2)
+            else:
+                new_instrs.append(instr)
+        cfg[j_bb] = new_instrs
 
 
 def loop_induction_variables(func_args, cfg, reaching_definitions, natural_loop, preheadermap):
@@ -193,12 +245,16 @@ def loop_induction_variables(func_args, cfg, reaching_definitions, natural_loop,
     Calculate and move induction variables for a single loop corresponding to natural loop
     """
     (natural_loop_blocks, _, natural_loop_header, _) = natural_loop
+    loop_instrs = []
+    for block in natural_loop_blocks:
+        for instr in cfg[block][INSTRS]:
+            loop_instrs.append((instr, block))
     _, var_invariant_map = identify_loop_invariant_instrs(
-        cfg, func_args, natural_loop_blocks, natural_loop_header, reaching_definitions)
+        cfg, func_args, natural_loop_blocks, loop_instrs, natural_loop_header, reaching_definitions)
     basic_ivs = find_basic_ivs(cfg, natural_loop_blocks, var_invariant_map)
-    derived_ivs = find_derived_ivs(
+    derived_ivs, const_map = find_derived_ivs(
         cfg, natural_loop_blocks, var_invariant_map, basic_ivs)
-    replace_ivs(cfg, derived_ivs, preheadermap)
+    replace_ivs(cfg, derived_ivs, const_map, preheadermap[natural_loop_header])
 
 
 def func_induction_variables(func):

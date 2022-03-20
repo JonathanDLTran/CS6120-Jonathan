@@ -1,0 +1,23 @@
+# ARGS: 10
+@main (n : int) {
+.header:
+    zero: int = const 0;
+    cond: bool = eq n zero;
+    br cond .end .loop;
+.loop:
+    a: int = const 3;
+    b: int = add a a;
+    c: int = add b a;
+    d: int = add c a;
+    e: int = mul c c;
+    f: int = sub c d;
+    g: int = sub c a;
+    h: int = mul g f;
+    print h;
+    one: int = const 1;
+    two: int = add one one;
+    print two;
+    n: int = sub n one;
+    jmp .header;
+.end:
+}

@@ -168,13 +168,13 @@ def identify_loop_invariant_instrs(cfg, func_args, loop_blocks, loop_instrs, loo
         for loop_instr, _ in loop_instrs:
             if DEST in loop_instr:
                 var_invariant_map[loop_instr[DEST]] = NOT_LOOP_INVARIANT
-        instrs_invariant_map, _ = identify_li_recursive(cfg, reaching_definitions, func_args, loop_blocks, loop_header,
-                                                        instrs_invariant_map, var_invariant_map)
+        instrs_invariant_map, var_invariant_map = identify_li_recursive(cfg, reaching_definitions, func_args, loop_blocks, loop_header,
+                                                                        instrs_invariant_map, var_invariant_map)
 
         if loop_instrs == old_loop_instrs:
             continue_while = False
 
-    return instrs_invariant_map
+    return instrs_invariant_map, var_invariant_map
 
 
 def gather_nodes(node, dominator_tree, natural_loop_nodes):
@@ -320,7 +320,7 @@ def loop_licm(natural_loop, cfg, func_args, preheadermap, reaching_definitions, 
             for instr in cfg[block_name][INSTRS]:
                 loop_instrs.append((instr, block_name))
 
-    loop_instrs_map = identify_loop_invariant_instrs(
+    loop_instrs_map, _ = identify_loop_invariant_instrs(
         cfg, func_args, loop_blocks, loop_instrs, header, reaching_definitions)
 
     # buold map from id to identifier
