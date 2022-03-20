@@ -12,7 +12,7 @@ As an aside, to learn more about loop optimization, which I found interesting, I
 
 # Optimization Results
 
-I found that the loop invariant code motion optimization was able to achieve an average of ... improvement in the number of dynamic Bril instructions executed by the interpreter, when compared to running the benchmark without loop invariant code motion. I use the same arguments that the benchmark writer speicified. The results come from evaluating the optimization on the Bril benchmarks that only use the Bril core language (Excluding Floating Point extensions and Memory Extensions). Because I measure the number of dynamic instructions using the interpreter, I do not have to measure many runs (unlike measuring an LLVM optimization, which when run on a machine, would have variability in timing.)
+I found that the loop invariant code motion optimization was able to achieve an average of 3.5% improvement in the number of dynamic Bril instructions executed by the interpreter (with standard deviation of 5.6%), when compared to running the benchmark without loop invariant code motion. I use the same arguments that the benchmark writer speicified. The results come from evaluating the optimization on the Bril benchmarks that only use the Bril core language (Excluding Floating Point extensions and Memory Extensions). Because I measure the number of dynamic instructions using the interpreter, I do not have to measure many runs (unlike measuring an LLVM optimization, which when run on a machine, would have variability in timing.)
 
 A sample of the table with the data is included here, to avoid making the post too large, but note that this sample is not representative across all benchmarks, it is just the first 8 on my benchmarks ordering:
 
@@ -36,6 +36,8 @@ Here benchmark refers to the benchmark name, run is either baseline, referring t
 | loopfact | licm | 101 |
 | recfact | baseline | 104 |
 | recfact | licm | 104 |
+
+A plot is also shown in the repository, and the full CSV is also in the repository.
 
 Overall, across all the benchmarks evaluated, Loop Invariant Code Motion reported no increase in the number of dynamic instructions. Indeed, for a majority of the benchmarks (15 of the 23 benchmarks), the number of dynamic insturctions executed was exactly the same as the number of dynamic instructions executed for the baseline. For a 8 of the 23 total benchmarks, a decrease in number of dynamic optimizations was achieved. For the benchmarks where a decrease was observed, the decrease was generally a result of pulling out instructions that were defining constants; these constants were then removed to the loop header, thus decreasing dynamic instruction count. 
 
