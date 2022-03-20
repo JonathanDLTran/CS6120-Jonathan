@@ -303,22 +303,80 @@ def remove_from_bb(cfg, basic_block, identifier):
     cfg[basic_block][INSTRS] = new_instrs
 
 
-def move_instructions(cfg, header, preheadermap, identifiers_to_move, id2instr):
+def recursively_move_instructions(cfg, header, preheadermap, identifiers_to_move, destination, id2instr, vars_inside_loop, moved_vars):
+    """
+    Move instructions in an order such that argument dependencies are correct
+    If a = b op c depends on b and c, and b is inisde the loop, then b must be computed first
+    If c is otuside the looop, it does not need to be computed.
+
+    If b cannot be moved, e.g. was a div instruction, then neither can a.
+    """
+    identifier = None
+    for curr_identifier in identifiers_to_move:
+        instr, _ = id2instr[curr_identifier]
+        dst = instr[DEST]
+        if dst == destination:
+            identifier = curr_identifier
+    if identifier == None:
+        return False
+
+    instr, basic_block = id2instr[identifier]
+    dst = instr[DEST]
+
+    if ARGS in instr:
+        for a in instr[ARGS]:
+            if a not in moved_vars and a in vars_inside_loop:
+                result = recursively_move_instructions(
+                    cfg, header, preheadermap, identifiers_to_move, a, id2instr, vars_inside_loop, moved_vars)
+                if not result:
+                    return False
+
+    preheader = preheadermap[header]
+    insert_into_bb(cfg, preheader, instr)
+    remove_from_bb(cfg, basic_block, identifier)
+
+    moved_vars.add(dst)
+    return True
+
+
+def move_instructions(cfg, header, preheadermap, identifiers_to_move, id2instr, vars_inside_loop, moved_vars):
     for identifier in identifiers_to_move:
         instr, basic_block = id2instr[identifier]
+
+        skip_identifier = False
+        if ARGS in instr:
+            for a in instr[ARGS]:
+                if a not in moved_vars and a in vars_inside_loop:
+                    result = recursively_move_instructions(
+                        cfg, header, preheadermap, identifiers_to_move, a, id2instr, vars_inside_loop, moved_vars)
+                    if not result:
+                        skip_identifier = True
+        if skip_identifier:
+            continue
+
+        dst = instr[DEST]
+        if dst in moved_vars:
+            continue
+
         preheader = preheadermap[header]
         insert_into_bb(cfg, preheader, instr)
         remove_from_bb(cfg, basic_block, identifier)
+
+        moved_vars.add(dst)
+    return
 
 
 def loop_licm(natural_loop, cfg, func_args, preheadermap, reaching_definitions, dominance_tree):
     # Grab the instructions in a loop
     (loop_blocks, _, header, _) = natural_loop
     loop_instrs = []
+    vars_inside_loop = set()
     for block_name in cfg:
         if block_name in loop_blocks:
             for instr in cfg[block_name][INSTRS]:
                 loop_instrs.append((instr, block_name))
+                if DEST in instr:
+                    vars_inside_loop.add(instr[DEST])
 
     loop_instrs_map, _ = identify_loop_invariant_instrs(
         cfg, func_args, loop_blocks, loop_instrs, header, reaching_definitions)
@@ -333,7 +391,8 @@ def loop_licm(natural_loop, cfg, func_args, preheadermap, reaching_definitions, 
     identifiers_to_move = filter_loop_invariant_instrs(
         cfg, natural_loop, dominance_tree, loop_instrs, loop_instrs_map, id2instr)
 
-    move_instructions(cfg, header, preheadermap, identifiers_to_move, id2instr)
+    move_instructions(cfg, header, preheadermap, identifiers_to_move,
+                      id2instr, vars_inside_loop, set())
 
     return cfg
 
