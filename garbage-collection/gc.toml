@@ -1,0 +1,15 @@
+extract = 'total_dyn_inst: (\d+)'
+benchmarks = '../all-benchmarks/*.bril'
+timeout = 60
+
+[runs.brili]
+pipeline = [
+    "bril2json",
+    "brili -p {args}",
+]
+
+[runs.brili-gc]
+pipeline = [
+    "bril2json",
+    "brili-gc -p {args}",
+]
