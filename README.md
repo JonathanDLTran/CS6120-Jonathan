@@ -29,6 +29,9 @@ The common workflow to run transformation passes and analyses on bril is
 # Infrastructure
 - Sample LLVM Pass as part of Lesson 7
 
+# Garbage Collection
+- A garbage collector in the reference collector style is implemented in brili-gc. This is in the bril fork. Recursive update of reference counters is in progress.
+
 # Tests
 
 To run all tests, run the command `bash run_all_tests.sh` in the main directory.
