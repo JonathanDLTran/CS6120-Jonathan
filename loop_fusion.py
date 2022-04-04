@@ -1,7 +1,19 @@
+"""
+Simple Loop Fusion
+
+Loops can be fused if they iterate the same number of times (e.g. conditions are identical)
+And interleaving the orders does not change the computation or intrduce side effects
+
+In particular, we expect that if 
+a;a;a; b;b;b
+then a;b;a;b;a;b as well
+"""
+
 import json
 import sys
 import click
 
+from dominator_utilities import get_natural_loops
 from bril_core_constants import *
 from bril_core_utilities import *
 
@@ -10,7 +22,7 @@ def loop_fuse_loop():
     pass
 
 
-def loop_fuse_func():
+def loop_fuse_func(func):
     pass
 
 
