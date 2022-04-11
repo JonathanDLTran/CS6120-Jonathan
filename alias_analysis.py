@@ -1,3 +1,9 @@
+"""
+Basic Alias Analysis
+
+TODO: Figuring out how alias analysis works and debugging
+"""
+
 import json
 import sys
 import click
