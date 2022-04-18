@@ -1,0 +1,14 @@
+extract = 'total_dyn_inst: (\d+)'
+benchmarks = '../all-benchmarks/*.bril'
+timeout = 60
+
+[runs.baseline]
+pipeline = [
+    "bril2json",
+    "brili -p {args}",
+]
+
+[runs.trace]
+pipeline = [
+    "trace.sh",
+]
