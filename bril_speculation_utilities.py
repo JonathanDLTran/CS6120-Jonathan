@@ -1,5 +1,5 @@
 from bril_speculation_constants import *
-from bril_core_constants import (OP, ARGS, LABEL)
+from bril_core_constants import (OP, ARGS, LABELS)
 
 
 def is_speculate(instr):
@@ -35,5 +35,5 @@ def build_guard(cond_var, jump_loc):
     return {
         OP: GUARD,
         ARGS: [cond_var],
-        LABEL: [jump_loc],
+        LABELS: [jump_loc],
     }

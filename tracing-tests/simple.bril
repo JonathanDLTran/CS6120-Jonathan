@@ -1,0 +1,18 @@
+@main {
+    x: int = const 3;
+    y: int = const 4;
+    b: bool = const true;
+    br b .first .end;
+.first:
+    z: int = const 5;
+.longjump:
+    jmp .second;
+.second:
+.end:
+}
+
+@f() {
+.longjumpend:
+    jmp .first;
+.second:
+}

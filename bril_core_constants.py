@@ -87,3 +87,5 @@ ARGUMENT = "argument"
 
 INSTRS = "instrs"
 FUNCTIONS = "functions"
+
+MAIN = "main"

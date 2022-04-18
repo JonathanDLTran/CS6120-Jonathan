@@ -18,26 +18,71 @@ from bril_core_utilities import *
 from bril_memory_extension_utilities import is_mem
 
 
+BAILOUT_LABEL = "bailout.label"
+FINISH_LABEL = "finish.label"
+
+
 def trace(instrs: list) -> list:
     # check trace for memory instructions, print instructions or other side effects
     # bail if found
-    for instr in instrs:
+    for instr_pair in instrs:
+        instr = instr_pair["instr"]
         if is_mem(instr) or is_print(instr):
             return []
 
     final_instrs = []
     spec_instr = build_speculate()
     final_instrs.append(spec_instr)
-    for instr in instrs:
+    for instr_pair in instrs:
+        instr = instr_pair["instr"]
         if is_jmp(instr):
             continue
         elif is_br(instr):
-            pass
+            # get false branch of br instr for guard and jump to BAILOUT_LABEL
+            guard_instr = build_guard(instr[ARGS][0], BAILOUT_LABEL)
+            final_instrs.append(guard_instr)
+        elif is_label(instr):
+            continue
         else:
             final_instrs.append(instr)
     commit_instr = build_commit()
     final_instrs.append(commit_instr)
     return final_instrs
+
+
+def insert_trace(program, trace_instrs, trace_file):
+    funcs = program[FUNCTIONS]
+    end_func = trace_file["end_func"]
+    if end_func == "":
+        end_func = MAIN
+    end_offset = trace_file["end_offset"]
+    if end_offset < 0:
+        # find end of main function
+        for func in funcs:
+            if func[NAME] == MAIN:
+                end_offset = len(func[INSTRS])
+    for func in funcs:
+        # get location where tracing ends
+        if func[NAME] == end_func:
+            instrs = func[INSTRS]
+            finish_label = {LABEL: FINISH_LABEL}
+            instrs.insert(end_offset, finish_label)
+            func[INSTRS] = instrs
+        if func[NAME] == MAIN:
+            instrs = func[INSTRS]
+
+            # jump to finish
+            jmp_to_finish_instr = {
+                OP: JMP,
+                LABELS: [FINISH_LABEL],
+            }
+            # bailout label
+            bailout_label = {LABEL: BAILOUT_LABEL}
+            instrs = trace_instrs + \
+                [jmp_to_finish_instr, bailout_label] + instrs
+
+            func[INSTRS] = instrs
+    return program
 
 
 @click.command()
@@ -50,11 +95,14 @@ def main(pretty_print):
 
     if bool(pretty_print) == True:
         print(json.dumps(trace_file, indent=4, sort_keys=True))
-    new_instrs = trace(trace_file["instrs"])
-    print(new_instrs)
+
+    trace_instrs = trace(trace_file["instrs"])
+    # print(trace_instrs)
+    new_program = insert_trace(program, trace_instrs, trace_file)
+
     if bool(pretty_print) == True:
         print(json.dumps(trace_file, indent=4, sort_keys=True))
-    # print(json.dumps(trace_file))
+    print(json.dumps(new_program))
 
 
 if __name__ == "__main__":
