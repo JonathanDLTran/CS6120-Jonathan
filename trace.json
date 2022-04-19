@@ -1,1 +1,1 @@
-{"instrs":[{"instr":{"dest":"v0","op":"const","type":"int","value":23789216},"label":null},{"instr":{"args":["v0"],"dest":"x","op":"id","type":"int"},"label":null},{"instr":{"dest":"v1","op":"const","type":"int","value":1748698766},"label":null},{"instr":{"args":["v1"],"dest":"y","op":"id","type":"int"},"label":null},{"instr":{"args":["x"],"dest":"v2","op":"id","type":"int"},"label":null},{"instr":{"args":["y"],"dest":"v3","op":"id","type":"int"},"label":null}],"end_offset":6,"end_func":"main"}
+{"instrs":[],"end_offset":-1,"end_func":"","start_func":"","start_offset":-1}

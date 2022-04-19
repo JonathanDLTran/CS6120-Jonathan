@@ -6,6 +6,7 @@ Simplication of JIT to do everything on a trace AOT.
 TODO: Change tracing to take arbitray end points
 Current traces entire execution!
 """
+from tracemalloc import start
 import click
 import sys
 import json
@@ -52,15 +53,23 @@ def trace(instrs: list) -> list:
 
 def insert_trace(program, trace_instrs, trace_file):
     funcs = program[FUNCTIONS]
+    start_func = trace_file["start_func"]
+    start_offset = trace_file["start_offset"]
+    end_offset = trace_file["end_offset"]
     end_func = trace_file["end_func"]
     if end_func == "":
         end_func = MAIN
-    end_offset = trace_file["end_offset"]
     if end_offset < 0:
         # find end of main function
         for func in funcs:
             if func[NAME] == MAIN:
                 end_offset = len(func[INSTRS])
+    if start_func == "":
+        start_func = MAIN
+    if start_offset < 0:
+        start_offset = 0
+    if start_offset == 0:
+        return program
     for func in funcs:
         # get location where tracing ends
         if func[NAME] == end_func:
@@ -68,7 +77,7 @@ def insert_trace(program, trace_instrs, trace_file):
             finish_label = {LABEL: FINISH_LABEL}
             instrs.insert(end_offset, finish_label)
             func[INSTRS] = instrs
-        if func[NAME] == MAIN:
+        if func[NAME] == start_func:
             instrs = func[INSTRS]
 
             # jump to finish
@@ -78,8 +87,10 @@ def insert_trace(program, trace_instrs, trace_file):
             }
             # bailout label
             bailout_label = {LABEL: BAILOUT_LABEL}
-            instrs = trace_instrs + \
-                [jmp_to_finish_instr, bailout_label] + instrs
+
+            trace_instrs += [jmp_to_finish_instr, bailout_label]
+            for trace_instr in reversed(trace_instrs):
+                instrs.insert(start_offset, trace_instr)
 
             func[INSTRS] = instrs
     return program
