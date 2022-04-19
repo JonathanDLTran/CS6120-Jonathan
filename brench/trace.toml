@@ -10,5 +10,8 @@ pipeline = [
 
 [runs.trace]
 pipeline = [
-    "trace.sh",
+    "bril2json",
+    "brili-tr {args}",
+    "python3 ../trace.py",
+    "brili -p {args}",
 ]
