@@ -2,6 +2,7 @@ import click
 from copy import deepcopy
 import sys
 import json
+from bril_speculation_utilities import is_guard
 
 
 from cfg import form_blocks, join_blocks
@@ -310,7 +311,7 @@ def instr_lvn(instr, remainder_bb, var_to_num, num_value_loc):
                 var_to_num[dst_var] = new_lvn_num
                 return lvn_value_to_instr(dst_var, new_lvn_val, num_value_loc, instr)
     else:
-        if ARGS in instr and LABELS not in instr:
+        if (ARGS in instr and LABELS not in instr) or is_guard(instr):
             new_instr = deepcopy(instr)
             new_instr_args = []
             for a in instr[ARGS]:

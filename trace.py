@@ -6,7 +6,6 @@ Simplication of JIT to do everything on a trace AOT.
 TODO: Change tracing to take arbitray end points
 Current traces entire execution!
 """
-from tracemalloc import start
 import click
 import sys
 import json
@@ -17,10 +16,17 @@ from bril_speculation_utilities import *
 from bril_core_constants import *
 from bril_core_utilities import *
 from bril_memory_extension_utilities import is_mem
+from bril_float_utilities import is_float
+
+from lvn import lvn
 
 
 BAILOUT_LABEL = "bailout.label"
 FINISH_LABEL = "finish.label"
+
+GUARD_VAR = "guard_var"
+
+LVN_FUNC = "lvn_func"
 
 
 def trace(instrs: list) -> list:
@@ -29,7 +35,7 @@ def trace(instrs: list) -> list:
     for instr_pair in instrs:
         instr = instr_pair["instr"]
         if is_mem(instr) or is_print(instr):
-            return []
+            raise RuntimeError("Should not have mem or print instructions")
 
     final_instrs = []
     spec_instr = build_speculate()
@@ -39,9 +45,18 @@ def trace(instrs: list) -> list:
         if is_jmp(instr):
             continue
         elif is_br(instr):
-            # get false branch of br instr for guard and jump to BAILOUT_LABEL
-            guard_instr = build_guard(instr[ARGS][0], BAILOUT_LABEL)
-            final_instrs.append(guard_instr)
+            br_cond = instr_pair["branch"]
+            assert type(br_cond) == bool
+            if br_cond:
+                guard_instr = build_guard(instr[ARGS][0], BAILOUT_LABEL)
+                final_instrs.append(guard_instr)
+            else:
+                # get false branch of br instr for guard and jump to BAILOUT_LABEL
+                guard_negation = {DEST: GUARD_VAR, OP: NOT,
+                                  TYPE: BOOL, ARGS: [instr[ARGS][0]]}
+                final_instrs.append(guard_negation)
+                guard_instr = build_guard(GUARD_VAR, BAILOUT_LABEL)
+                final_instrs.append(guard_instr)
         elif is_label(instr):
             continue
         else:
@@ -54,9 +69,10 @@ def trace(instrs: list) -> list:
 def insert_trace(program, trace_instrs, trace_file):
     funcs = program[FUNCTIONS]
     start_func = trace_file["start_func"]
-    start_offset = trace_file["start_offset"]
     end_offset = trace_file["end_offset"]
     end_func = trace_file["end_func"]
+    assert (start_func == end_func)
+
     if end_func == "":
         end_func = MAIN
     if end_offset < 0:
@@ -66,10 +82,11 @@ def insert_trace(program, trace_instrs, trace_file):
                 end_offset = len(func[INSTRS])
     if start_func == "":
         start_func = MAIN
-    if start_offset < 0:
-        start_offset = 0
-    if start_offset == 0:
+
+    assert (start_func == end_func)
+    if start_func == MAIN:
         return program
+
     for func in funcs:
         # get location where tracing ends
         if func[NAME] == end_func:
@@ -89,20 +106,57 @@ def insert_trace(program, trace_instrs, trace_file):
             bailout_label = {LABEL: BAILOUT_LABEL}
 
             trace_instrs += [jmp_to_finish_instr, bailout_label]
-            for trace_instr in reversed(trace_instrs):
-                instrs.insert(start_offset, trace_instr)
+            instrs = optimize(trace_instrs) + instrs
 
             func[INSTRS] = instrs
     return program
 
 
+def call_lvn(trace_instrs):
+    # check if float instructions are in there, and bail if so
+    for instr in trace_instrs:
+        if is_float(instr):
+            return trace_instrs
+
+    # grab free vars in trace_instrs and make them arguments
+    free_vars = set()
+    defined_vars = set()
+    for instr in trace_instrs:
+        if ARGS in instr:
+            for a in instr[ARGS]:
+                if a not in defined_vars:
+                    free_vars.add(a)
+        if DEST in instr:
+            defined_vars.add(instr[DEST])
+
+    args = []
+    for a in free_vars:
+        args.append({NAME: a, TYPE: INT})  # fake a type
+
+    prog = {}
+    function = {}
+    function[INSTRS] = trace_instrs
+    function[NAME] = LVN_FUNC
+    function[ARGS] = args
+    prog[FUNCTIONS] = [function]
+
+    optimized_prog = lvn(prog)
+
+    new_trace_instrs = optimized_prog[FUNCTIONS][0][INSTRS]
+
+    return new_trace_instrs
+
+
+def optimize(trace_instrs):
+    return call_lvn(trace_instrs)
+
+
 @click.command()
 @click.option('--pretty-print', default=False, help='Pretty Print Before and After Trace Optimization.')
 def main(pretty_print):
-    trace_fp = open("trace.json", "r")
-    trace_file = json.load(trace_fp)
-    trace_fp.close()
-    program = json.load(sys.stdin)
+    program_dict = json.load(sys.stdin)
+    program = program_dict["prog"]
+    trace_file = program_dict["trace"]
 
     if bool(pretty_print) == True:
         print(json.dumps(trace_file, indent=4, sort_keys=True))
