@@ -1,0 +1,34 @@
+@main {
+    v: vector = veczero;
+    print v;    
+    i: int = const 0;
+    e: int = const 1;
+    vecload v i e;
+    print v;
+    one: int = const 1;
+    i: int = add i one;
+    e: int = add e one;
+    vecload v i e;
+    print v;
+    i: int = add i one;
+    e: int = add e one;
+    vecload v i e;
+    print v;
+    i: int = add i one;
+    e: int = add e one;
+    vecload v i e;
+    print v;
+    x: int = vecstore v i;
+    print x;
+    i: int = sub i one;
+    x: int = vecstore v i;
+    print x;
+    i: int = sub i one;
+    x: int = vecstore v i;
+    print x;
+    i: int = sub i one;
+    x: int = vecstore v i;
+    print x;
+    i: int = sub i one;
+    print v;
+}

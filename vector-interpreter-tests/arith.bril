@@ -1,0 +1,178 @@
+@main {
+    v1: vector = veczero;
+    i1: int = const 0;
+    e1: int = const 1;
+    one: int = const 1;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    print v1;
+
+    v2: vector = veczero;
+    i2: int = const 0;
+    e2: int = const 2;
+    one: int = const 1;
+    vecload v2 i2 e2;
+    i2: int = add i2 one;
+    vecload v2 i2 e2;
+    i2: int = add i2 one;
+    vecload v2 i2 e2;
+    i2: int = add i2 one;
+    vecload v2 i2 e2;
+    print v2;
+
+    sum: vector = vecadd v1 v2;
+    print sum;
+
+    v1: vector = veczero;
+    i1: int = const 0;
+    e1: int = const 1;
+    one: int = const 1;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    print v1;
+
+    v2: vector = veczero;
+    i2: int = const 0;
+    e2: int = const 2;
+    one: int = const 1;
+    vecload v2 i2 e2;
+    i2: int = add i2 one;
+    vecload v2 i2 e2;
+    i2: int = add i2 one;
+    vecload v2 i2 e2;
+    i2: int = add i2 one;
+    vecload v2 i2 e2;
+    print v2;
+
+    diff: vector = vecsub v1 v2;
+    print diff;
+
+    v1: vector = veczero;
+    i1: int = const 0;
+    e1: int = const 1;
+    one: int = const 1;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    print v1;
+
+    v2: vector = veczero;
+    i2: int = const 0;
+    e2: int = const 2;
+    one: int = const 1;
+    vecload v2 i2 e2;
+    i2: int = add i2 one;
+    vecload v2 i2 e2;
+    i2: int = add i2 one;
+    vecload v2 i2 e2;
+    i2: int = add i2 one;
+    vecload v2 i2 e2;
+    print v2;
+
+    prod: vector = vecmul v1 v2;
+    print prod;
+
+    v1: vector = veczero;
+    i1: int = const 0;
+    e1: int = const 1;
+    one: int = const 1;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    print v1;
+
+    v2: vector = veczero;
+    i2: int = const 0;
+    e2: int = const 2;
+    one: int = const 1;
+    vecload v2 i2 e2;
+    i2: int = add i2 one;
+    vecload v2 i2 e2;
+    i2: int = add i2 one;
+    vecload v2 i2 e2;
+    i2: int = add i2 one;
+    vecload v2 i2 e2;
+    print v2;
+
+    div: vector = vecdiv v1 v2;
+    print div;
+
+    v1: vector = veczero;
+    i1: int = const 0;
+    e1: int = const 1;
+    one: int = const 1;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    print v1;
+
+    v2: vector = veczero;
+    i2: int = const 0;
+    e2: int = const 2;
+    one: int = const 1;
+    vecload v2 i2 e2;
+    i2: int = add i2 one;
+    vecload v2 i2 e2;
+    i2: int = add i2 one;
+    vecload v2 i2 e2;
+    i2: int = add i2 one;
+    vecload v2 i2 e2;
+    print v2;
+
+    v3: vector = veczero;
+    i3: int = const 0;
+    e3: int = const 0;
+    one: int = const 1;
+    vecload v3 i3 e3;
+    i3: int = add i3 one;
+    e3: int = add e3 one;
+    vecload v3 i3 e3;
+    i3: int = add i3 one;
+    e3: int = add e3 one;
+    vecload v3 i3 e3;
+    i3: int = add i3 one;
+    e3: int = add e3 one;
+    vecload v3 i3 e3;
+    print v3;
+
+    mac: vector = vecmac v1 v2 v3;
+    print mac;
+
+    v1: vector = veczero;
+    i1: int = const 0;
+    e1: int = const 1;
+    one: int = const 1;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    i1: int = add i1 one;
+    vecload v1 i1 e1;
+    print v1;
+
+    neg: vector = vecneg v1;
+    print neg;
+}

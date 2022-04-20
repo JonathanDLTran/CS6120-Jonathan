@@ -1,0 +1,18 @@
+@main {
+    v: vector = veczero;
+    e: int = const 3;
+    i: int = const 0;
+    print e;
+    print i;
+    print v;
+    vecload v i e;
+    x: int = vecstore v i;
+    print x;
+    print v;
+    v1: vector = veczero;
+    e1: int = const 4;
+    vecload v1 i e1;
+    print v1;
+    vecsum: vector = vecadd v v1;
+    print vecsum;
+}
