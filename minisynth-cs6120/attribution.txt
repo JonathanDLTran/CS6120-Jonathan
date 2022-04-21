@@ -1,0 +1,1 @@
+The work in this folder are by Professor Sampson, and his course materials from CS 6120 at Cornell University.
