@@ -1,0 +1,20 @@
+@main {
+    n: int = const 10;
+    x: int = call @f n;
+    print x;
+}
+
+@f(n: int): int {
+    sum: int = const 0;
+    zero: int = const 0;
+.header:
+    cond: bool = eq n zero;
+    br cond .end .loop;
+.loop:
+    one: int = const 1;
+    sum: int = add sum n;
+    n: int = sub n one;
+    jmp .header;
+.end:
+    ret sum;
+}

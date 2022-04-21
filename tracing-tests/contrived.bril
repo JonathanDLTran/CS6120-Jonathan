@@ -1,0 +1,18 @@
+@main {
+    x: int = const 3;
+    result: int = call @f x;
+    print result;
+}
+
+@f(x: int): int {
+    y: int = const 1;
+    z: int = const 2;
+    a: int = add y z;
+    b: int = add a a;
+    c: int = mul b a;
+    d: int = div c b;
+    e: int = sub a d;
+    f: int = mul d e;
+    g: int = mul b f;
+    ret g;
+}

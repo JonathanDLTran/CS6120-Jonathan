@@ -1,0 +1,1 @@
+command = "bril2json < {filename} | brili-tr {args} | python3 ../trace.py | brili -p {args}"
