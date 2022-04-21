@@ -12,14 +12,25 @@ GRAMMAR = """
   | sum "+" term        -> add
   | sum "-" term        -> sub
 
-?term: item
+?term: comp
   | term "*"  item      -> mul
   | term "/"  item      -> div
   | term ">>" item      -> shr
   | term "<<" item      -> shl
 
+?comp: item
+  | comp "<" comp       -> lt
+  | comp ">" comp       -> gt
+  | comp ">=" comp      -> gte
+  | comp "<=" comp      -> lte
+  | comp "==" comp      -> eq
+  | comp "!=" comp      -> ne
+
 ?item: NUMBER           -> num
   | "-" item            -> neg
+  | "forplus" CNAME "+=" item "inrange" item -> forplus
+  | "fortimes" CNAME "*=" item "inrange" item -> fortimes
+  | "forminus" CNAME "-=" item "inrange" item -> forminus
   | CNAME               -> var
   | "(" start ")"
 
@@ -38,7 +49,8 @@ def interp(tree, lookup):
     """
 
     op = tree.data
-    if op in ('add', 'sub', 'mul', 'div', 'shl', 'shr'):  # Binary operators.
+    # Binary operators.
+    if op in ('add', 'sub', 'mul', 'div', 'shl', 'shr', 'lt', 'gt', 'gte', 'lte', 'eq', 'ne'):
         lhs = interp(tree.children[0], lookup)
         rhs = interp(tree.children[1], lookup)
         if op == 'add':
@@ -53,6 +65,24 @@ def interp(tree, lookup):
             return lhs << rhs
         elif op == 'shr':
             return lhs >> rhs
+        elif op == 'lt':
+            cond = lhs < rhs
+            return z3.If(cond, 1, 0)
+        elif op == 'gt':
+            cond = lhs > rhs
+            return z3.If(cond, 1, 0)
+        elif op == 'lte':
+            cond = lhs <= rhs
+            return z3.If(cond, 1, 0)
+        elif op == 'gte':
+            cond = lhs >= rhs
+            return z3.If(cond, 1, 0)
+        elif op == 'eq':
+            cond = lhs == rhs
+            return z3.If(cond, 1, 0)
+        elif op == 'ne':
+            cond = lhs != rhs
+            return z3.If(cond, 1, 0)
     elif op == 'neg':  # Negation.
         sub = interp(tree.children[0], lookup)
         return -sub
@@ -65,6 +95,21 @@ def interp(tree, lookup):
         true = interp(tree.children[1], lookup)
         false = interp(tree.children[2], lookup)
         return (cond != 0) * true + (cond == 0) * false
+    elif op == 'forplus':  # Contrived For Loop.
+        var = lookup(tree.children[0])
+        incr = interp(tree.children[1], lookup)
+        niter = interp(tree.children[2], lookup)
+        return var + incr * niter
+    elif op == 'forminus':  # Contrived For Loop.
+        var = lookup(tree.children[0])
+        incr = interp(tree.children[1], lookup)
+        niter = interp(tree.children[2], lookup)
+        return var - incr * niter
+    elif op == 'fortimes':  # Contrived For Loop.
+        var = lookup(tree.children[0])
+        incr = interp(tree.children[1], lookup)
+        niter = interp(tree.children[2], lookup)
+        return var * z3.Int2BV(z3.BV2Int(incr) ** z3.BV2Int(niter), 8)
 
 
 def pretty(tree, subst={}, paren=False):
@@ -83,7 +128,7 @@ def pretty(tree, subst={}, paren=False):
             return s
 
     op = tree.data
-    if op in ('add', 'sub', 'mul', 'div', 'shl', 'shr'):
+    if op in ('add', 'sub', 'mul', 'div', 'shl', 'shr', 'lt', 'gt', 'lte', 'gte', 'eq', 'ne'):
         lhs = pretty(tree.children[0], subst, True)
         rhs = pretty(tree.children[1], subst, True)
         c = {
@@ -93,6 +138,12 @@ def pretty(tree, subst={}, paren=False):
             'div': '/',
             'shl': '<<',
             'shr': '>>',
+            'lt': '<',
+            'gt': '>',
+            'lte': '<=',
+            'gte': '>=',
+            'eq': '==',
+            'ne': '!=',
         }[op]
         return par('{} {} {}'.format(lhs, c, rhs))
     elif op == 'neg':
@@ -108,6 +159,24 @@ def pretty(tree, subst={}, paren=False):
         true = pretty(tree.children[1], subst)
         false = pretty(tree.children[2], subst)
         return par('{} ? {} : {}'.format(cond, true, false))
+    elif op == 'forplus':
+        name = tree.children[0]
+        var = str(subst.get(name, name))
+        incr = pretty(tree.children[1], subst)
+        niter = pretty(tree.children[2], subst)
+        return par('forplus {} += {} inrange {}'.format(var, incr, niter))
+    elif op == 'forminus':
+        name = tree.children[0]
+        var = str(subst.get(name, name))
+        incr = pretty(tree.children[1], subst)
+        niter = pretty(tree.children[2], subst)
+        return par('forminus {} -= {} inrange {}'.format(var, incr, niter))
+    elif op == 'fortimes':
+        name = tree.children[0]
+        var = str(subst.get(name, name))
+        incr = pretty(tree.children[1], subst)
+        niter = pretty(tree.children[2], subst)
+        return par('fortimes {} *= {} inrange {}'.format(var, incr, niter))
 
 
 def run(tree, env):

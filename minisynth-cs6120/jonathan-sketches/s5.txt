@@ -1,0 +1,2 @@
+x + 3
+forplus x += (h1 ? h2 : x) inrange h3

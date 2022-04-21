@@ -1,0 +1,2 @@
+x * x * x
+fortimes x *= (h1 ? h2 : x) inrange h3
