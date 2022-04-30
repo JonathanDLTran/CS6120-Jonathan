@@ -7,6 +7,18 @@ being partly unrolled??
 
 The sketch would have to be built around the Bril language though, or you 
 would have to build your own sketcher.
+
+The idea is given a natural loop N, you can sometimes unroll N in to a fixed degree
+or completely.
+
+Loop Header H 
+Loop Bodies B 
+---> 
+H B B B B (N TIMES)... H B B B B (N TIMES)...
+
+Where N is chosen appropriately large. A syntehsizer can figure out what N is
+and prove that the new unrolled loop is equivalent to (H B) using an SMT equivalence
+checker.
 """
 
 import json
