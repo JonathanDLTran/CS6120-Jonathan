@@ -3,7 +3,8 @@
 The majority of compilers utilize optimization to improve code, in terms of runtime performance, code size, and other factors. However, optimization does not necessarily generate the most optimal program; the optimization process merely generates a better candidate program. In the Superoptimization paper, a different paradigm is introduced: optimization is performed to generate the most minimal sized program, producing programs that are smaller compared to traditionally compiler-optimizer programs, as well as human hand-optimized programs.
 
 As an illustration of Superoptimizer’s capabilities, consider an example centered on compiling the signum function, which is defined as 
-```int signum(x) {
+```
+int signum(x) {
 	If (x > 0) return 1;
 	Else if (x <  0) return -1;
 	Else return 0;
