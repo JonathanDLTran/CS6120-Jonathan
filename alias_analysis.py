@@ -43,19 +43,20 @@ def merge(variables_lst):
 def transfer(variables, block):
     new_variables = deepcopy(variables)
     for instr in block:
-        if is_const(instr):
-            new_variables[instr[DEST]] = set()
-        elif is_id(instr):
-            new_variables[instr[DEST]] = variables[instr[ARGS][0]]
-        elif is_alloc(instr):
-            new_variables[instr[DEST]] = gen_heap_loc()
+        if is_ptr_type(instr):
+            if is_const(instr):
+                new_variables[instr[DEST]] = set()
+            elif is_id(instr):
+                new_variables[instr[DEST]] = variables[instr[ARGS][0]]
+            elif is_alloc(instr):
+                new_variables[instr[DEST]] = gen_heap_loc()
     return new_variables
 
 
 def init_all_vars(func):
     variables = OrderedDict()
     for instr in func[INSTRS]:
-        if DEST in instr:
+        if is_mem(instr) and DEST in instr:
             variables[instr[DEST]] = set()
     return variables
 
@@ -69,7 +70,8 @@ def func_alias_analysis(func):
     if ARGS in func:
         args = func[ARGS]
         for a in args:
-            init[a[NAME]] = set()
+            if is_ptr_type(a):
+                init[a[NAME]] = set()
     worklist = Worklist(entry, cfg, blocks, init, merge, transfer)
     return worklist.solve()
 
@@ -93,17 +95,15 @@ def alias_analysis(prog):
         print(f"In:")
         for (k, v) in final_in_dict.items():
             if v == []:
-                print(f"\t{k}: No Reaching Definitions.")
+                print(f"\t{k}: No Aliasing at the start of Basic Block {k}.")
             else:
-                for var in v:
-                    print(f"\t{k}: {var}.")
+                print(f"\t{k}: {{{', '.join(v)}}}.")
         print(f"Out:")
         for (k, v) in final_out_dict.items():
             if v == []:
-                print(f"\t{k}: No Reaching Definitions.")
+                print(f"\t{k}: No Aliasing at the end of Basic Block {k}.")
             else:
-                for var in v:
-                    print(f"\t{k}: {var}.")
+                print(f"\t{k}: {{{', '.join(v)}}}.")
     return
 
 

@@ -25,3 +25,7 @@ def is_load(instr):
 def is_mem(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] in MEM_OPS
+
+
+def is_ptr_type(instr):
+    return TYPE in instr and PTR in instr[TYPE]

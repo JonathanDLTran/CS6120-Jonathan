@@ -1,0 +1,10 @@
+@main() {
+    n: int = const 10;
+    x: ptr<int> = alloc n;
+    call @f x;
+    free x;
+}
+
+@f(x: ptr<int>) {
+    return x;
+}
