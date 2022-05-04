@@ -19,6 +19,27 @@ H B B B B (N TIMES)... H B B B B (N TIMES)...
 Where N is chosen appropriately large. A syntehsizer can figure out what N is
 and prove that the new unrolled loop is equivalent to (H B) using an SMT equivalence
 checker.
+
+
+-------------
+
+In basic unrolling, a natural loop is taken. We only consider loops that enter
+and exit through the header of the natural loop, e.g. only single entry and exit
+loops.
+
+The branch MUST be in the header. The branch condition must be some affine combination
+of integer based varaibles, e.g. ai + b 
+
+The body of the loop must have an update on i in ONE place.
+
+We also forbid side effects in the loop like print statements or function calls.
+
+For this type of loop, we can immediately solve out how many iterations the loop should 
+execute. We can then fully unroll the loop, and add the remainder at the end.
+
+We can do a "cheaper" unroll for something like a while loop as well. Wikipedia
+documents an unroll that keeps in branches. It would be nice to eliminate these branches
+but sometimes there is no easy way. Perhaps that is where synthesis can be used.
 """
 
 import json
