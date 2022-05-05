@@ -75,19 +75,42 @@ def is_label(instr):
     return LABEL in instr
 
 
+def build_label(name: str):
+    return {OP: LABEL, LABEL: name}
+
+
 def is_ret(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] == RET
+
+
+def build_void_ret():
+    return {OP: RET, ARGS:[]}
+
+
+def build_int_ret(int_var: str): 
+    return {OP: RET, ARGS:[int_var], TYPE: INT}
+
+
+def build_bool_ret(bool_var: str): 
+    return {OP: RET, ARGS:[bool_var], TYPE: BOOL}
 
 
 def is_jmp(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] == JMP
 
+def build_jmp(label):
+    return {OP: JMP, LABELS:[label]}
+
 
 def is_br(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] == BR
+
+
+def build_br(arg, label1, label2):
+    return {OP: BR, ARGS:[arg], LABELS: [label1, label2]}
 
 
 def is_terminator(instr):

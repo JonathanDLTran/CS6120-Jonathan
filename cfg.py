@@ -259,6 +259,19 @@ def form_cfg_w_blocks(func):
     return get_cfg_w_blocks(form_block_dict(form_blocks(func['instrs'])))
 
 
+def insert_into_cfg_w_blocks(block_name, block_instrs, preds, succs, cfg):
+    """
+    Inserts into a CFG w Pred/Succ/Blocks at the end, with the given block name and block instrs 
+    block_name must not be in CFG, e.g. it must be unique
+    No safety returns added
+    """
+    cfg[block_name] = {}
+    cfg[block_name][INSTRS] = block_instrs
+    cfg[block_name][PREDS] = preds
+    cfg[block_name][SUCCS] = succs
+    return cfg
+
+
 def form_cfg(func):
     """
     Takes a Function Body and turns it into a CFG, labeled with successors only 
