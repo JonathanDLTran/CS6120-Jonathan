@@ -1,0 +1,21 @@
+@main() {
+    size: int = const 10;
+    a: ptr<int> = alloc size;
+    b: ptr<int> = id a;
+    one: int = const 1;
+    n: int = const 0;
+    data: int = const 20;
+.header:   
+    cond: bool = eq n size;
+    br cond .end .loop;
+.loop:
+    store b data;
+    result: int = load b;
+    print result;
+    n: int = add n one;
+    b: ptr<int> = ptradd a one;
+    data: int = add data one;
+    jmp .header;
+.end:
+    free a;
+}

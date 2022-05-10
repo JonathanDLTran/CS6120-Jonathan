@@ -1,0 +1,62 @@
+@main() {
+    size: int = const 10;
+    v1: ptr<int> = alloc size;
+    v2: ptr<int> = alloc size;
+    v3: ptr<int> = alloc size;
+
+    n: int = const 0;
+    one: int = const 1;
+    data1: int = const 0;
+    data2: int = const 100;
+    a: ptr<int> = id v1;
+    b: ptr<int> = id v2;
+.header:
+    cond: bool = eq n size;
+    br cond .end .loop;
+.loop:
+    store a data1;
+    store b data2;
+    a: ptr<int> = ptradd a one;
+    b: ptr<int> = ptradd b one;
+    data1: int = add one data1;
+    data2: int = add one data2;
+    n: int = add one n;
+    jmp .header;
+.end:
+
+    n: int = const 0;
+    a: ptr<int> = id v1;
+    b: ptr<int> = id v2;
+    c: ptr<int> = id v3;
+.sum_header:
+    cond: bool = eq n size;
+    br cond .sum_end .sum_loop;
+.sum_loop:
+    res1: int = load a;
+    res2: int = load b;
+    sum: int = add res1 res2;
+    store c sum;
+    a: ptr<int> = ptradd a one;
+    b: ptr<int> = ptradd b one;
+    c: ptr<int> = ptradd c one;
+    n: int = add one n;
+    jmp .sum_header;
+.sum_end:
+
+    n: int = const 0;
+    c: ptr<int> = id v3;
+.print_header:
+    cond: bool = eq n size;
+    br cond .print_end .print_loop;
+.print_loop:
+    sum: int = load c;
+    print sum;
+    c: ptr<int> = ptradd c one;
+    n: int = add one n;
+    jmp .print_header;
+.print_end:
+
+    free v1;
+    free v2;
+    free v3;
+}

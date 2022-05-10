@@ -1,0 +1,19 @@
+@main() {
+    size: int = const 10;
+    offset: int = const 1;
+    a: ptr<int> = alloc size;
+    count: int = id size;
+    n: int = const 0;
+.header:
+    cond: bool = eq n count;
+    br cond .end .loop;
+.loop:
+    b: ptr<int> = ptradd a offset;
+    c: ptr<int> = alloc size;
+    free c;
+    one: int = const 1;
+    n: int = add one n;
+    jmp .header;
+.end:
+    free a;
+}

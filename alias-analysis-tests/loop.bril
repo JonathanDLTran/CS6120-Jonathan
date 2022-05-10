@@ -1,0 +1,20 @@
+@main() {   
+    outer_size: int = const 20;
+    a: ptr<int> = alloc outer_size;
+    cond: bool = const true;
+.header:
+    br cond .loop .end;
+.loop:
+    size: int = const 10;
+    x: ptr<int> = alloc size;
+    y: ptr<int> = alloc size;
+    z: ptr<int> = alloc size;
+    w: ptr<int> = id z;
+    free x;
+    free y;
+    free z;
+    cond: bool = const false;
+    jmp .header;
+.end:
+    free a;
+}

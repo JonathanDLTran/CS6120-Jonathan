@@ -1,0 +1,23 @@
+@main() {
+    size: int = const 10;
+.first:
+    a: ptr<int> = alloc size;
+    b: ptr<int> = alloc size;
+.second:
+    c: ptr<int> = id a;
+    d: ptr<int> = id c;
+    jmp .fourth;
+.third:
+    e: ptr<int> = id d;
+.fourth:
+    f: ptr<int> = alloc size;
+    g: ptr<int> = id b;
+.fifth:
+    h: ptr<int> = alloc size;
+    i: ptr<int> = id g;
+    j: ptr<int> = id h;
+    free a;
+    free b;
+    free h;
+    free f;
+}

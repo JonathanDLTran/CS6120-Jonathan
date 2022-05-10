@@ -1,0 +1,39 @@
+@main() {
+.first:
+    size: int = const 10;
+    a: ptr<int> = alloc size;
+    b: ptr<int> = alloc size;
+    c: ptr<int> = id b;
+    cond: bool = const false;
+    br cond .left .right;
+.left:
+    d: ptr<int> = id a;
+    one: int = const 1;
+    d: ptr<int> = ptradd d one;
+    data: int = const 10;
+    store d data;
+    jmp .end;
+.right:
+    e: ptr<int> = id c;
+    two: int = const 2;
+    e: ptr<int> = ptradd e two;
+    data: int = const 20;
+    store e data;
+    f: ptr<int> = id b;
+    f: ptr<int> = ptradd f two;
+    data: int = const 101;
+    store f data;
+    result: int = load f;
+    print result;
+    result: int = load e;
+    print result;
+    jmp .end;
+.end:
+    g: ptr<int> = id c;
+    two: int = const 2;
+    g: ptr<int> = ptradd g two;
+    result: int = load g;
+    print result;
+    free a;
+    free b;
+}

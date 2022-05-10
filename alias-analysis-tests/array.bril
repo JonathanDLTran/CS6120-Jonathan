@@ -1,0 +1,30 @@
+@main() {
+    size: int = const 10;
+    a: ptr<int> = alloc size;
+    b: ptr<int> = alloc size;
+    c: ptr<int> = id a;
+    d: ptr<int> = id b;
+    one: int = const 1;
+    n: int = const 0;
+    data: int = const 10;
+.header:
+    cond: bool = eq n size;
+    br cond .end .loop;
+.loop:
+    e: ptr<int> = id c;
+    f: ptr<int> = id d;
+    store e data;
+    store f data;
+    result1: int = load e;
+    result2: int = load f;
+    print result1;
+    print result2;
+    c: ptr<int> = ptradd c one;
+    d: ptr<int> = ptradd d one;
+    n: int = add one n;
+    data: int = add data one;
+    jmp .header;
+.end:
+    free a;
+    free b;
+}

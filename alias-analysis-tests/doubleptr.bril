@@ -1,0 +1,18 @@
+@main() {
+    size: int = const 10;
+    a: ptr<int> = alloc size;
+    b: ptr<ptr<int>> = alloc size;
+    c: ptr<ptr<ptr<int>>> = alloc size;
+    store b a;
+    store c b;
+    data: int = const 100;
+    store a data;
+    f: ptr<ptr<ptr<int>>> = id c;
+    e: ptr<ptr<int>> = load f;
+    d: ptr<int> = load e;
+    g: int = load d;
+    print g;
+    free a;
+    free b;
+    free c;
+}

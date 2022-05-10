@@ -1,0 +1,9 @@
+@main() {
+    size: int = const 10;
+    x: ptr<int> = alloc size;
+    y: ptr<int> = id x;
+    z: ptr<int> = id x;
+    z: ptr<int> = alloc size;
+    free x;
+    free z;
+}
