@@ -2,6 +2,7 @@
 Basic Alias Analysis
 
 TODO: Figuring out how alias analysis works and debugging
+TODO: rewrite the transfer functions
 """
 
 import json
