@@ -1,0 +1,26 @@
+@main {
+    i: int = const 10;
+    one: int = const 1;
+    zero: int = const 0;
+.header:
+    two: int = const 2;
+    three: int = const 3;
+    four: int = mul two two;
+    five: int = add two three;
+    six: int = mul three two;
+    seven: int = add seven one;
+    cond: bool = eq i zero;
+    br cond .end .loop;
+.loop:
+    print i;
+    i: int = sub i one;
+    print seven;
+    print six;
+    print five;
+    print four;
+    print three;
+    print two;
+    print one;
+    jmp .header;
+.end:
+}
