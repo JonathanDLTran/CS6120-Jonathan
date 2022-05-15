@@ -1,0 +1,11 @@
+@main {
+    size: int = const 10;
+    x: ptr<int> = alloc size;
+    offset: int = const 1;
+    y: ptr<int> = ptradd x offset;
+    data: int = const 1;
+    store data y;
+    z: int = load y;
+    print z;
+    free x;
+}

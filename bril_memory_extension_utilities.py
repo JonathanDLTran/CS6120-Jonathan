@@ -22,6 +22,10 @@ def is_load(instr):
     return OP in instr and instr[OP] == LOAD
 
 
+def is_ptradd(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == PTRADD
+
 def is_mem(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] in MEM_OPS
