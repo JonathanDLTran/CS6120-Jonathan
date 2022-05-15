@@ -11,6 +11,8 @@ import click
 from collections import OrderedDict
 from copy import deepcopy
 
+from numpy import block
+
 from worklist_solver import Worklist
 
 from cfg import form_cfg, form_block_dict, form_blocks
@@ -51,15 +53,11 @@ def merge(variables_lst):
     return final_variables
 
 
-def transfer(variables, block):
-    """
-    Transfer function
-
-    Assumes Worklist Solver does not copy or mutate blocks
-    as this routine uses the id(block)!
-    """
+def transfer_helper(variables, block, index):
     new_variables = deepcopy(variables)
     for i, instr in enumerate(block):
+        if i > index:
+            break
         if is_ptr_type(instr):
             typ = regularize_type(instr[TYPE])
             if is_ptradd(instr):
@@ -86,6 +84,16 @@ def transfer(variables, block):
                         locations = locations.union(new_variables[var_name, var_typ])
                 new_variables[(instr[DEST], typ)] = new_variables[(instr[DEST], typ)].union(locations)
     return new_variables
+
+
+def transfer(variables, block):
+    """
+    Transfer function
+
+    Assumes Worklist Solver does not copy or mutate blocks
+    as this routine uses the id(block)!
+    """
+    return transfer_helper(variables, block, len(block))
 
 
 def init_all_vars(func):
@@ -125,6 +133,18 @@ def alias_analysis(prog):
         (in_dict, out_dict) = func_alias_analysis(func)
         output[func[NAME]] = (in_dict, out_dict)
     return output
+
+
+def intra_block_alias_analysis(global_aa, func, cfg, block_name, index):
+    """
+    Perform Alias Analysis in an INTRA block setting
+    Goes up until index, and includes index's execution
+
+    Index must be a valid index corresponding to an instruction in block_name
+    """
+    variables_map = global_aa[func][0][block_name]
+    block_instrs = cfg[block_name][INSTRS]
+    return transfer_helper(variables_map, block_instrs, index)
 
 
 def pretty_print_alias_analysis(prog):
