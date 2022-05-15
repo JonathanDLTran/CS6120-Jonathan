@@ -1,0 +1,106 @@
+@main {
+    size: int = const 2;
+    offset: int = const 1;
+    data: int = const 1;
+    two: int = const 2;
+    arr1out: ptr<ptr<int>> = alloc size;
+    n: int = const 0;
+    cpyarr1out: ptr<ptr<int>> = id arr1out;
+.init.header1:
+    cond: bool = eq n size;
+    br cond .end.header1 .loop.header1;
+.loop.header1:
+
+    arr1in: ptr<int> = alloc size;
+    cpyarr1in: ptr<int> = id arr1in;
+    m: int = const 0;
+    .init.inner1:
+        condm: bool = eq m size;
+        br condm .end.inner1 .loop.inner1;
+    .loop.inner1:
+        store cpyarr1in data;
+        cpyarr1in: ptr<int> = ptradd cpyarr1in offset;
+        m: int = add m offset;
+        jmp .init.inner1;
+    .end.inner1:
+
+    store cpyarr1out arr1in;
+    cpyarr1out: ptr<int> = ptradd cpyarr1out offset;
+    n: int = add n offset;
+    jmp .init.header1;
+.end.header1:
+
+
+    n: int = const 0;
+    cpyarr1out: ptr<ptr<int>> = id arr1out;
+.init.add1:
+    cond: bool = eq n size;
+    br cond .end.add1 .loop.add1;
+.loop.add1:
+
+    arr1in: ptr<int> = load cpyarr1out;
+    cpyarr1in: ptr<int> = id arr1in;
+    m: int = const 0;
+    .init.add2:
+        condm: bool = eq m size;
+        br condm .end.add2 .loop.add2;
+    .loop.add2:
+        num: int = load cpyarr1in;
+        doubled: int = mul two num;
+        store cpyarr1in doubled;
+
+        cpyarr1in: ptr<int> = ptradd cpyarr1in offset;
+        m: int = add m offset;
+        jmp .init.add2;
+    .end.add2:
+
+    cpyarr1out: ptr<int> = ptradd cpyarr1out offset;
+    n: int = add n offset;
+    jmp .init.add1;
+.end.add1:
+
+
+    n: int = const 0;
+    cpyarr1out: ptr<ptr<int>> = id arr1out;
+.init.print1:
+    cond: bool = eq n size;
+    br cond .end.print1 .loop.print1;
+.loop.print1:
+
+    arr1in: ptr<int> = load cpyarr1out;
+    cpyarr1in: ptr<int> = id arr1in;
+    m: int = const 0;
+    .init.print2:
+        condm: bool = eq m size;
+        br condm .end.print2 .loop.print2;
+    .loop.print2:
+        num: int = load cpyarr1in;
+        print num;
+
+        cpyarr1in: ptr<int> = ptradd cpyarr1in offset;
+        m: int = add m offset;
+        jmp .init.print2;
+    .end.print2:
+
+    cpyarr1out: ptr<int> = ptradd cpyarr1out offset;
+    n: int = add n offset;
+    jmp .init.print1;
+.end.print1:
+
+
+    n: int = const 0;
+    cpyarr1out: ptr<ptr<int>> = id arr1out;
+.init.end1:
+    cond: bool = eq n size;
+    br cond .end.end1 .loop.end1;
+.loop.end1:
+    
+    arr: ptr<int> = load cpyarr1out;
+    free arr;
+    n: int = add n offset;
+    cpyarr1out: ptr<ptr<int>> = ptradd cpyarr1out offset;
+    jmp .init.end1;
+    
+.end.end1:
+    free arr1out;
+}
