@@ -147,6 +147,20 @@ def intra_block_alias_analysis(global_aa, func, cfg, block_name, index):
     return transfer_helper(variables_map, block_instrs, index)
 
 
+def may_alias(var_map, var1, t1, var2, t2):
+    """
+    To be used with intra_block_alias_analysis
+    """
+    return len(var_map[(var1, t1)].intersection(var_map[(var2, t2)])) != 0
+
+
+def may_not_alias(var_map, var1, t1, var2, t2):
+    """
+    To be used with intra_block_alias_analysis
+    """
+    return not may_alias(var_map, var1, t1, var2, t2)
+
+
 def pretty_print_alias_analysis(prog):
     for func in prog[FUNCTIONS]:
         (in_dict, out_dict) = func_alias_analysis(func)
