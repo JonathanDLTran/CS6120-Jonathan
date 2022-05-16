@@ -54,7 +54,30 @@ from cfg import form_cfg_w_blocks, SUCCS, PREDS, INSTRS, insert_into_cfg_w_block
 from dominator_utilities import get_natural_loops
 
 
-UNROLL_FACTOR = 8
+class FullyUnrollableLoop():
+    def __init__(self, n_iter, body, header):
+        self.n_iter = n_iter 
+        self.body = body 
+        self.header = header
+
+def is_fully_unrollable(loop, function):
+    """
+    A loop is fully unrollable if the loop has:
+    - Exactly 1 exit, via the header
+    - Exactly 1 loop variable, an indexed variable in integers
+        - Which has a maximum number of iterations (set outside the loop)
+        - A start value
+        - Exactly one increment in the loop
+        - Exactly 1 jump back to the header
+    """
+    pass
+
+def fully_unroll(loop):
+    pass
+
+
+UNROLL_FACTOR = 2
+assert UNROLL_FACTOR >= 2
 
 HEADER_LABEL = "new.loop.header.label"
 UNROLLING_EMERGENCY_RET_LABEL = "emergency.ret"
@@ -161,35 +184,25 @@ def unroll_func(func):
     for loop in natural_loops:
         if not loop_has_single_exit(loop):
             continue
-
+        
         (natural_loop, _, header, exits) = loop
 
+        # insert UNROLL_FACTOR copies of headers and loop bodies into the cfg
         header_labels = []
         for i in range(UNROLL_FACTOR):
+            new_header_name = gen_header_label(i)
+            header_labels.append(new_header_name)
             for block in natural_loop:
-                new_header_name = gen_header_label(i)
-                header_labels.append(new_header_name)
                 if block == header:
                     header_instrs = cfg[header][INSTRS]
                     if is_label(header_instrs[0]):
                         header_instrs = header_instrs[1:]
                     new_header_label = build_label(new_header_name)
-                    insert_into_cfg_w_blocks(new_header_name, [new_header_label] + header_instrs, [], [], cfg)
+                    insert_into_cfg_w_blocks(new_header_name, [new_header_label] + deepcopy(header_instrs), [], [], cfg)
                 else:
                     block_instrs = cfg[block][INSTRS]
                     new_block_instrs = renumber_loop_body_labels(deepcopy(block_instrs), i, [header])
-                    insert_into_cfg_w_blocks(f"{new_header_name}.{i}", new_block_instrs, [], [], cfg)
-                
-
-        # Change preds and succs, modify the blocks as necessary
-        # start with original header
-        assert len(header_labels) != 0
-        br_arg_index, loop_entry_label = get_br_index(cfg[header][INSTRS], header, exits)
-        modify_header_branch(header, cfg, header_labels[0], br_arg_index)
-        original_header_succs = cfg[header][SUCCS] 
-        assert len(original_header_succs) == 2
-        original_header_succs = list(set(original_header_succs).difference({header}))[0]
-        cfg[header][SUCCS] = [header_labels[0]]
+                    insert_into_cfg_w_blocks(f"{block}.{i}", new_block_instrs, [], [], cfg)
 
         # enter unrolled loop headers and bodies, preds and succs
         loop_labels = []
@@ -197,29 +210,55 @@ def unroll_func(func):
             if block != header:
                 loop_labels.append(block)
 
+        # Change preds and succs, modify the blocks as necessary
+        # start with original header
+        assert len(header_labels) != 0
+        br_arg_index, loop_entry_label = get_br_index(cfg[header][INSTRS], header, exits)
+        modify_header_branch(header, cfg, header_labels[0], br_arg_index)
+        next_header = header_labels[0]
+        modify_loop_jumps(loop_labels, cfg, header, next_header)
+
+        original_header_succs = deepcopy(cfg[header][SUCCS])
+        assert len(original_header_succs) == 2
+        for loop_block_name in natural_loop:
+            original_header_succs = set(original_header_succs).difference({loop_block_name})
+        assert len(original_header_succs) == 1
+        original_header_succs = list(original_header_succs)[0]
+        cfg[header][SUCCS] = [header_labels[0]]
+
         prev_header = header
         for i in range(UNROLL_FACTOR - 1):
             current_header = header_labels[i]
             next_header = header_labels[i + 1]
             modify_header_branch(current_header, cfg, next_header, br_arg_index)
             modify_header_branch(current_header, cfg, f"{loop_entry_label}.{i}", 1 if br_arg_index == 0 else 0)
-            modify_loop_jumps(loop_labels, cfg, header, current_header)
+            modified_loop_labels = []
+            for label in loop_labels:
+                new_label = f"{label}.{i}"
+                modified_loop_labels.append(new_label)
+            modify_loop_jumps(modified_loop_labels, cfg, header, next_header)
             # preds
             cfg[current_header][PREDS] = [prev_header]
             prev_header = current_header
             # succs
             cfg[current_header][SUCCS] = [next_header]
 
+        i += 1
         # handle final unrolled loop header and body
         final_header = header_labels[i]
         modify_header_branch(final_header, cfg, original_header_succs, br_arg_index)
-        modify_loop_jumps(loop_labels, cfg, header, final_header)
+        modify_header_branch(final_header, cfg, f"{loop_entry_label}.{i}", 1 if br_arg_index == 0 else 0)
+        modified_loop_labels = []
+        for label in loop_labels:
+            new_label = f"{label}.{i}"
+            modified_loop_labels.append(new_label)
+        modify_loop_jumps(modified_loop_labels, cfg, header, original_header_succs)
         # preds
-        cfg[current_header][PREDS] = [prev_header]
+        cfg[final_header][PREDS] = [prev_header]
         # succs
-        cfg[current_header][SUCCS] = [original_header_succs]
+        cfg[final_header][SUCCS] = [original_header_succs]
 
-        # fix up out of original loop preds
+        # # fix up out of original loop preds
         cfg[original_header_succs][SUCCS] = [final_header]
 
 
