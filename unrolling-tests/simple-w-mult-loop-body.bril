@@ -22,7 +22,7 @@
     x: int = mul x five;
     print x;
     jmp .loop4;
-.loop4;
+.loop4:
     jmp .header;
 .end:
 }

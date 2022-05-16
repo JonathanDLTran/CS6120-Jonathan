@@ -8,7 +8,7 @@
     four: int = mul two two;
     five: int = add two three;
     six: int = mul three two;
-    seven: int = add seven one;
+    seven: int = add six one;
     cond: bool = eq i zero;
     br cond .end .loop;
 .loop:
