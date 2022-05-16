@@ -47,8 +47,8 @@ import json
 import sys
 import click
 
-from bril_core_constants import ARGS, FUNCTIONS, LABEL, LABELS
-from bril_core_utilities import build_br, build_jmp, build_label, build_void_ret, is_br, is_jmp, is_label
+from bril_core_constants import ARGS, FUNCTIONS, LABEL, LABELS, OP, VALUE
+from bril_core_utilities import build_br, build_jmp, build_label, build_void_ret, get_args, has_args, has_dest, get_dest, is_add, is_br, is_cmp, is_const, is_jmp, is_label, is_sub
 
 from cfg import form_cfg_w_blocks, SUCCS, PREDS, INSTRS, insert_into_cfg_w_blocks, join_cfg
 from dominator_utilities import get_natural_loops
@@ -67,14 +67,25 @@ def gen_header_label(i: int):
 ########################### FULLY UNROLL #######################################
 
 
-class FullyUnrollableLoop():
-    def __init__(self, n_iter, body, header):
-        self.n_iter = n_iter
-        self.body = body
+class FullyUnrollableLoop(object):
+    """
+    Represents a Fully Unrollable Loop
+    """
+    def __init__(self, header, body, n_iter, start_val, change_val, is_incr, comp_op):
         self.header = header
+        self.body = body
+        self.n_iter = n_iter
+        self.start_val = start_val
+        self.change_val = change_val
+        self.is_incr = is_incr
+        self.comp_op = comp_op
+
+    def compute_num_unrolls(self):
+        pass
 
 
-def is_fully_unrollable(natural_loop, natural_loops, function):
+
+def is_fully_unrollable(natural_loop, natural_loops, cfg):
     """
     A loop is fully unrollable if the loop has:
     - Exactly 1 exit, via the header
@@ -89,6 +100,9 @@ def is_fully_unrollable(natural_loop, natural_loops, function):
         return False
     if loop_is_nested(natural_loop, natural_loops):
         return False
+    if not loop_has_single_jmp_to_header(natural_loop, cfg):
+        return False
+    loop_has_one_iteration_var(natural_loop, cfg)
 
 
 def fully_unroll_func(func):
@@ -101,7 +115,8 @@ def fully_unroll_func(func):
 
     # start unrolling
     for natural_loop in natural_loops:
-        is_fully_unrollable(natural_loop, natural_loops, func)
+        is_fully_unrollable(natural_loop, natural_loops, cfg)
+
 
 
 def fully_unroll_prog(prog):
@@ -123,18 +138,128 @@ def loop_is_nested(natural_loop, natural_loops):
     return False
 
 
+def loop_has_single_jmp_to_header(natural_loop, cfg):
+    (loop_blocks, _, header, _) = natural_loop
+    non_header_blocks = set(loop_blocks).difference({header})
+    jmps_to_header = 0
+    for block in non_header_blocks:
+        for instr in cfg[block][INSTRS]:
+            if is_jmp(instr) and instr[LABELS][0] == header:
+                jmps_to_header += 1
+    return jmps_to_header == 1
+
+
+def arg_is_constant(arg, cfg):
+    """
+    Returns the value of the arg is defined if the arg is defined as a integer
+    constant exactly once in the cfg, otherwise returns false
+    """
+    num_defs = 0
+    vals = []
+    for basic_block in cfg:
+        for instr in cfg[basic_block][INSTRS]:
+            if is_const(instr) and get_dest(instr) == arg:
+                num_defs += 1
+                val = instr[VALUE]
+                vals.append(val)
+    if num_defs == 0 or num_defs >= 2:
+        return False
+    return vals[0]
+
+
 def loop_has_one_iteration_var(natural_loop, cfg):
     (loop_blocks, _, header, _) = natural_loop
 
     # find the (assumed) loop var, which is assumed to be in the branch condition of the header
-    header_instrs = cfg[header]
-    for header_instr in header_instrs:
+    header_instrs = cfg[header][INSTRS]
+    for i, header_instr in enumerate(header_instrs):
         if is_br(header_instr):
-            # backtrack to the cond variable, which should be a comparison
-            # of an integer bound and the iteration variable
-            # the iteration variable will not be defined inside the loop header
-            # further, it will change somewhere in the loop
             cond_var = header_instr[ARGS][0]
+            # backtrack to the definition of the cond variable, which should be a comparison defined in the header,
+            # between an integer bound and the iteration variable
+            # the iteration variable will not be defined inside the loop header
+            # further, it will change somewhere in the loop body.
+            # Thus, we have to consider both arguments in the comparison
+            args = None
+            comp_op = None
+            for j, other_instr in enumerate(header_instrs):
+                if j >= i:
+                    break
+                if not has_dest(other_instr):
+                    continue 
+                dest = get_dest(other_instr)
+                if dest != cond_var:
+                    continue 
+                if not is_cmp(other_instr):
+                    continue 
+                comp_op = other_instr[OP]
+                args = get_args(other_instr)
+
+            if args == None:
+                return False
+
+            assert len(args) == 2
+            assert comp_op != None
+
+            # have to figure out which of the args is the iteration variable!
+            # To do so, we iterate over all Non-header blocks of the loop
+            # We limit the iteration variable to only change once in the loop
+            # via an increment/decrement operation, in which it is a singular argument
+            # where the argument must be a static number, defined in the cfg (e.g. never changed in the cfg, defined as a constant once)
+            # The Other argument, the non iteration variable, must be defined as a constant once in the cfg
+            # Should both args satisfy this, we cannot disambiguate, and bail by returning false
+            final_args = []
+            increments = []
+            is_incr = []
+            cmp = []
+            start_val = []
+            for arg in args:
+                for loop_block in loop_blocks:
+                    if loop_block == header:
+                        continue
+
+                    for loop_instr in cfg[loop_block][INSTRS]:
+                        if not has_dest(loop_instr):
+                            continue 
+                        dst = get_dest(loop_instr) 
+                        if dst != arg:
+                            continue 
+                        if not has_args(loop_instr):
+                            continue
+                        instr_args = get_args(loop_instr)
+                        if arg not in instr_args:
+                            continue
+                        if set(instr_args) == set(arg):
+                            continue  
+                        if not is_add(loop_instr) and not is_sub(loop_instr):
+                            continue
+                        remaining_arg = list(set(instr_args).difference({arg}))[0]
+                        remaining_arg_is_const = arg_is_constant(remaining_arg, cfg)
+                        if remaining_arg_is_const == False:
+                            continue
+
+                        other_arg = list(set(args).difference({arg}))[0]
+                        other_arg_is_const = arg_is_constant(other_arg, cfg)
+                        if type(other_arg_is_const) == bool and other_arg_is_const == False:
+                            continue
+
+                        final_args.append(arg)
+                        increments.append(remaining_arg_is_const)
+                        is_incr.append(True if is_add(loop_instr) else False)
+                        cmp.append(comp_op)
+                        start_val.append(other_arg_is_const)
+
+
+            if len(final_args) == 0 or len(final_args) >= 2:
+                return False
+
+            print("HI")
+            # TODO: Return an Unrollable Loop Object 
+            return (True, final_args[0])
+
+    # no branch found. Bail by returning False
+    return False
+
 
 
 def loop_has_single_exit(natural_loop):

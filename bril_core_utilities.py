@@ -1,6 +1,26 @@
 from bril_core_constants import *
 
 
+def has_dest(instr):
+    assert type(instr) == dict
+    return DEST in instr
+
+
+def get_dest(instr):
+    assert type(instr) == dict
+    return instr[DEST]
+
+
+def has_args(instr):
+    assert type(instr) == dict
+    return ARGS in instr
+
+
+def get_args(instr):
+    assert type(instr) == dict
+    return instr[ARGS]
+
+
 def is_int(instr):
     assert type(instr) == dict
     return TYPE in instr and instr[TYPE] == INT
@@ -13,7 +33,7 @@ def is_bool(instr):
 
 def is_cmp(instr):
     assert type(instr) == dict
-    return TYPE in instr and instr[TYPE] in COMP_OPS
+    return OP in instr and instr[OP] in COMP_OPS
 
 
 def is_phi(instr):
@@ -29,6 +49,16 @@ def is_unop(instr):
 def is_binop(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] in BRIL_BINOPS
+
+
+def is_add(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == ADD
+
+
+def is_sub(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == SUB
 
 
 def is_const(instr):
