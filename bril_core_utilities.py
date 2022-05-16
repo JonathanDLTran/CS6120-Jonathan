@@ -11,6 +11,11 @@ def is_bool(instr):
     return TYPE in instr and instr[TYPE] == BOOL
 
 
+def is_cmp(instr):
+    assert type(instr) == dict
+    return TYPE in instr and instr[TYPE] in COMP_OPS
+
+
 def is_phi(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] == PHI

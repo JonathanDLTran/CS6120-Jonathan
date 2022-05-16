@@ -54,6 +54,7 @@ BRIL_BINOPS = [
     AND, OR,
 ]
 
+COMP_OPS = [LT, GT, LE, GE, EQ]
 BOOL_OPS = [NOT, AND, OR, LT, GT, LE, GE, EQ]
 INT_OPS = [ADD, SUB, MUL, DIV]
 

@@ -53,37 +53,64 @@ from bril_core_utilities import build_br, build_jmp, build_label, build_void_ret
 from cfg import form_cfg_w_blocks, SUCCS, PREDS, INSTRS, insert_into_cfg_w_blocks, join_cfg
 from dominator_utilities import get_natural_loops
 
-
-class FullyUnrollableLoop():
-    def __init__(self, n_iter, body, header):
-        self.n_iter = n_iter 
-        self.body = body 
-        self.header = header
-
-def is_fully_unrollable(loop, function):
-    """
-    A loop is fully unrollable if the loop has:
-    - Exactly 1 exit, via the header
-    - Exactly 1 loop variable, an indexed variable in integers
-        - Which has a maximum number of iterations (set outside the loop)
-        - A start value
-        - Exactly one increment in the loop
-        - Exactly 1 jump back to the header
-    """
-    pass
-
-def fully_unroll(loop):
-    pass
-
-
 UNROLL_FACTOR = 2
 assert UNROLL_FACTOR >= 2
 
 HEADER_LABEL = "new.loop.header.label"
 UNROLLING_EMERGENCY_RET_LABEL = "emergency.ret"
 
+
 def gen_header_label(i: int):
     return f"{HEADER_LABEL}.{i}"
+
+
+########################### FULLY UNROLL #######################################
+
+
+class FullyUnrollableLoop():
+    def __init__(self, n_iter, body, header):
+        self.n_iter = n_iter
+        self.body = body
+        self.header = header
+
+
+def is_fully_unrollable(natural_loop, natural_loops, function):
+    """
+    A loop is fully unrollable if the loop has:
+    - Exactly 1 exit, via the header
+    - Loop is not nested (unfortunately, not handled now, even though that would be a LOT more performant)
+    - Exactly 1 loop variable, an indexed variable in integers
+        - Which has a maximum number of iterations (set outside the loop)
+        - A start value
+        - Exactly one increment in the loop
+        - Exactly 1 jump back to the header
+    """
+    if not loop_has_single_exit(natural_loop):
+        return False
+    if loop_is_nested(natural_loop, natural_loops):
+        return False
+
+
+def fully_unroll_func(func):
+    cfg = form_cfg_w_blocks(func)
+    natural_loops = get_natural_loops(func)
+
+    # add emergency exit to the program, and append stuff to the cfg afterwaerdss
+    insert_into_cfg_w_blocks(UNROLLING_EMERGENCY_RET_LABEL, [
+                             build_void_ret()], [], [], cfg)
+
+    # start unrolling
+    for natural_loop in natural_loops:
+        is_fully_unrollable(natural_loop, natural_loops, func)
+
+
+def fully_unroll_prog(prog):
+    for func in prog[FUNCTIONS]:
+        fully_unroll_func(func)
+    return prog
+
+
+########################### BASIC UNROLL #######################################
 
 
 def loop_is_nested(natural_loop, natural_loops):
@@ -92,8 +119,22 @@ def loop_is_nested(natural_loop, natural_loops):
         if nl != natural_loop:
             (other_blocks, _, _, _) = nl
             if set(blocks).issubset(set(other_blocks)):
-                return True 
+                return True
     return False
+
+
+def loop_has_one_iteration_var(natural_loop, cfg):
+    (loop_blocks, _, header, _) = natural_loop
+
+    # find the (assumed) loop var, which is assumed to be in the branch condition of the header
+    header_instrs = cfg[header]
+    for header_instr in header_instrs:
+        if is_br(header_instr):
+            # backtrack to the cond variable, which should be a comparison
+            # of an integer bound and the iteration variable
+            # the iteration variable will not be defined inside the loop header
+            # further, it will change somewhere in the loop
+            cond_var = header_instr[ARGS][0]
 
 
 def loop_has_single_exit(natural_loop):
@@ -117,10 +158,12 @@ def modify_header_branch(header_label, cfg, new_branch_label, br_arg_idx):
         if is_br(instr):
             num_branches += 1
             if br_arg_idx == 0:
-                new_branch_instr = build_br(instr[ARGS][0], new_branch_label, instr[LABELS][1])
+                new_branch_instr = build_br(
+                    instr[ARGS][0], new_branch_label, instr[LABELS][1])
             else:
-                new_branch_instr = build_br(instr[ARGS][0], instr[LABELS][0], new_branch_label)
-    assert num_branches == 1 
+                new_branch_instr = build_br(
+                    instr[ARGS][0], instr[LABELS][0], new_branch_label)
+    assert num_branches == 1
     assert new_branch_instr != None
     new_header_instrs = []
     for instr in header_instrs:
@@ -159,7 +202,8 @@ def renumber_loop_body_labels(loop_instrs, i, excluded_labels):
             else:
                 new_loop_instrs.append(instr)
         elif is_br(instr):
-            new_br = build_br(instr[ARGS][0], instr[LABELS][0], instr[LABELS][1]) 
+            new_br = build_br(
+                instr[ARGS][0], instr[LABELS][0], instr[LABELS][1])
             new_loop_instrs.append(new_br)
         elif is_label(instr):
             new_label = build_label(f"{instr[LABEL]}.{i}")
@@ -188,7 +232,8 @@ def unroll_func(func):
     natural_loops = get_natural_loops(func)
 
     # add emergency exit to the program, and append stuff to the cfg afterwaerdss
-    insert_into_cfg_w_blocks(UNROLLING_EMERGENCY_RET_LABEL, [build_void_ret()], [], [], cfg)
+    insert_into_cfg_w_blocks(UNROLLING_EMERGENCY_RET_LABEL, [
+                             build_void_ret()], [], [], cfg)
 
     # start unrolling
     for loop in natural_loops:
@@ -196,7 +241,7 @@ def unroll_func(func):
             continue
         if loop_is_nested(loop, natural_loops):
             continue
-        
+
         (natural_loop, _, header, exits) = loop
 
         # insert UNROLL_FACTOR copies of headers and loop bodies into the cfg
@@ -210,11 +255,14 @@ def unroll_func(func):
                     if is_label(header_instrs[0]):
                         header_instrs = header_instrs[1:]
                     new_header_label = build_label(new_header_name)
-                    insert_into_cfg_w_blocks(new_header_name, [new_header_label] + deepcopy(header_instrs), [], [], cfg)
+                    insert_into_cfg_w_blocks(
+                        new_header_name, [new_header_label] + deepcopy(header_instrs), [], [], cfg)
                 else:
                     block_instrs = cfg[block][INSTRS]
-                    new_block_instrs = renumber_loop_body_labels(deepcopy(block_instrs), i, [header])
-                    insert_into_cfg_w_blocks(f"{block}.{i}", new_block_instrs, [], [], cfg)
+                    new_block_instrs = renumber_loop_body_labels(
+                        deepcopy(block_instrs), i, [header])
+                    insert_into_cfg_w_blocks(
+                        f"{block}.{i}", new_block_instrs, [], [], cfg)
 
         # enter unrolled loop headers and bodies, preds and succs
         loop_labels = []
@@ -225,7 +273,8 @@ def unroll_func(func):
         # Change preds and succs, modify the blocks as necessary
         # start with original header
         assert len(header_labels) != 0
-        br_arg_index, loop_entry_label = get_br_index(cfg[header][INSTRS], header, exits)
+        br_arg_index, loop_entry_label = get_br_index(
+            cfg[header][INSTRS], header, exits)
         # modify_header_branch(header, cfg, header_labels[0], br_arg_index)
         next_header = header_labels[0]
         modify_loop_jumps(loop_labels, cfg, header, next_header)
@@ -233,7 +282,8 @@ def unroll_func(func):
         original_header_succs = deepcopy(cfg[header][SUCCS])
         assert len(original_header_succs) == 2
         for loop_block_name in natural_loop:
-            original_header_succs = set(original_header_succs).difference({loop_block_name})
+            original_header_succs = set(
+                original_header_succs).difference({loop_block_name})
         assert len(original_header_succs) == 1
         original_header_succs = list(original_header_succs)[0]
         cfg[header][SUCCS] = [header_labels[0]]
@@ -242,7 +292,8 @@ def unroll_func(func):
         for i in range(UNROLL_FACTOR - 1):
             current_header = header_labels[i]
             next_header = header_labels[i + 1]
-            modify_header_branch(current_header, cfg, f"{loop_entry_label}.{i}", 1 if br_arg_index == 0 else 0)
+            modify_header_branch(
+                current_header, cfg, f"{loop_entry_label}.{i}", 1 if br_arg_index == 0 else 0)
             modified_loop_labels = []
             for label in loop_labels:
                 new_label = f"{label}.{i}"
@@ -257,7 +308,8 @@ def unroll_func(func):
         i += 1
         # handle final unrolled loop header and body
         final_header = header_labels[i]
-        modify_header_branch(final_header, cfg, f"{loop_entry_label}.{i}", 1 if br_arg_index == 0 else 0)
+        modify_header_branch(
+            final_header, cfg, f"{loop_entry_label}.{i}", 1 if br_arg_index == 0 else 0)
         modified_loop_labels = []
         for label in loop_labels:
             new_label = f"{label}.{i}"
@@ -271,17 +323,16 @@ def unroll_func(func):
         # fix up out of original loop preds
         cfg[original_header_succs][SUCCS] = [final_header]
 
-
     # DO JOINING ON CFG
     new_instrs = join_cfg(cfg)
     func[INSTRS] = new_instrs
     return func
 
-def basic_unroll_prog(prog):
+
+def unroll_prog(prog):
     for func in prog[FUNCTIONS]:
         unroll_func(func)
     return prog
-
 
 
 @click.command()
@@ -290,7 +341,7 @@ def main(pretty_print):
     prog = json.load(sys.stdin)
     if pretty_print:
         print(json.dumps(prog, indent=4, sort_keys=True))
-    final_prog = basic_unroll_prog(prog)
+    final_prog = fully_unroll_prog(prog)
     if pretty_print:
         print(json.dumps(prog, indent=4, sort_keys=True))
     print(json.dumps(final_prog))
