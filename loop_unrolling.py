@@ -86,6 +86,16 @@ def gen_header_label(i: int):
     return f"{HEADER_LABEL}.{i}"
 
 
+def loop_is_nested(natural_loop, natural_loops):
+    (blocks, _, _, _) = natural_loop
+    for nl in natural_loops:
+        if nl != natural_loop:
+            (other_blocks, _, _, _) = nl
+            if set(blocks).issubset(set(other_blocks)):
+                return True 
+    return False
+
+
 def loop_has_single_exit(natural_loop):
     assert type(natural_loop) == tuple
     assert len(natural_loop) == 4
@@ -183,6 +193,8 @@ def unroll_func(func):
     # start unrolling
     for loop in natural_loops:
         if not loop_has_single_exit(loop):
+            continue
+        if loop_is_nested(loop, natural_loops):
             continue
         
         (natural_loop, _, header, exits) = loop
