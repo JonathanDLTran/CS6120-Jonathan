@@ -71,16 +71,21 @@ class FullyUnrollableLoop(object):
     """
     Represents a Fully Unrollable Loop
     """
-    def __init__(self, header, body, n_iter, start_val, change_val, is_incr, comp_op):
+    def __init__(self, header, body, start_val, change_val, is_incr, comp_op):
         self.header = header
         self.body = body
-        self.n_iter = n_iter
         self.start_val = start_val
         self.change_val = change_val
         self.is_incr = is_incr
         self.comp_op = comp_op
 
-    def compute_num_unrolls(self):
+    def get_niters(self):
+        pass
+
+    def __repr__(self) -> str:
+        pass
+
+    def __str__(self) -> str:
         pass
 
 
@@ -169,6 +174,7 @@ def arg_is_constant(arg, cfg):
 
 def loop_has_one_iteration_var(natural_loop, cfg):
     (loop_blocks, _, header, _) = natural_loop
+    body_blocks = set(loop_blocks).difference({header})
 
     # find the (assumed) loop var, which is assumed to be in the branch condition of the header
     header_instrs = cfg[header][INSTRS]
@@ -206,6 +212,7 @@ def loop_has_one_iteration_var(natural_loop, cfg):
             # We limit the iteration variable to only change once in the loop
             # via an increment/decrement operation, in which it is a singular argument
             # where the argument must be a static number, defined in the cfg (e.g. never changed in the cfg, defined as a constant once)
+            # for now, we REQUIRE the incr/decr to be by 1!!!
             # The Other argument, the non iteration variable, must be defined as a constant once in the cfg
             # Should both args satisfy this, we cannot disambiguate, and bail by returning false
             final_args = []
@@ -243,6 +250,9 @@ def loop_has_one_iteration_var(natural_loop, cfg):
                         if type(other_arg_is_const) == bool and other_arg_is_const == False:
                             continue
 
+                        if remaining_arg_is_const != 1:
+                            continue
+
                         final_args.append(arg)
                         increments.append(remaining_arg_is_const)
                         is_incr.append(True if is_add(loop_instr) else False)
@@ -253,9 +263,10 @@ def loop_has_one_iteration_var(natural_loop, cfg):
             if len(final_args) == 0 or len(final_args) >= 2:
                 return False
 
-            print("HI")
-            # TODO: Return an Unrollable Loop Object 
-            return (True, final_args[0])
+            # TODO: Return an Unrollable Loop Object
+            assert 1 == len(final_args) == len(increments) == len(is_incr) == len(cmp) == len(start_val)
+            # return FullyUnrollableLoop(header, body_blocks, start_val[0], increments[0], is_incr[0], cmp[0])
+            return False
 
     # no branch found. Bail by returning False
     return False
