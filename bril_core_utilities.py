@@ -76,7 +76,7 @@ def is_label(instr):
 
 
 def build_label(name: str):
-    return {OP: LABEL, LABEL: name}
+    return {LABEL: name}
 
 
 def is_ret(instr):

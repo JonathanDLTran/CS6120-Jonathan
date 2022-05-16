@@ -214,7 +214,7 @@ def unroll_func(func):
         # start with original header
         assert len(header_labels) != 0
         br_arg_index, loop_entry_label = get_br_index(cfg[header][INSTRS], header, exits)
-        modify_header_branch(header, cfg, header_labels[0], br_arg_index)
+        # modify_header_branch(header, cfg, header_labels[0], br_arg_index)
         next_header = header_labels[0]
         modify_loop_jumps(loop_labels, cfg, header, next_header)
 
@@ -230,7 +230,6 @@ def unroll_func(func):
         for i in range(UNROLL_FACTOR - 1):
             current_header = header_labels[i]
             next_header = header_labels[i + 1]
-            modify_header_branch(current_header, cfg, next_header, br_arg_index)
             modify_header_branch(current_header, cfg, f"{loop_entry_label}.{i}", 1 if br_arg_index == 0 else 0)
             modified_loop_labels = []
             for label in loop_labels:
@@ -246,19 +245,18 @@ def unroll_func(func):
         i += 1
         # handle final unrolled loop header and body
         final_header = header_labels[i]
-        modify_header_branch(final_header, cfg, original_header_succs, br_arg_index)
         modify_header_branch(final_header, cfg, f"{loop_entry_label}.{i}", 1 if br_arg_index == 0 else 0)
         modified_loop_labels = []
         for label in loop_labels:
             new_label = f"{label}.{i}"
             modified_loop_labels.append(new_label)
-        modify_loop_jumps(modified_loop_labels, cfg, header, original_header_succs)
+
         # preds
         cfg[final_header][PREDS] = [prev_header]
         # succs
         cfg[final_header][SUCCS] = [original_header_succs]
 
-        # # fix up out of original loop preds
+        # fix up out of original loop preds
         cfg[original_header_succs][SUCCS] = [final_header]
 
 
