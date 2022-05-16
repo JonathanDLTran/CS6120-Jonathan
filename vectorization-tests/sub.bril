@@ -1,0 +1,16 @@
+@main {
+    a: int = const 4;
+    b: int = const 5;
+    c: int = const 6;
+    d: int = const 7;
+
+    e: int = sub a b;
+    f: int = sub c d;
+    g: int = sub a c;
+    h: int = sub b d;
+    
+    print e;
+    print f;
+    print g;
+    print h;
+}

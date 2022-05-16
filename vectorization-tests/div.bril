@@ -1,0 +1,16 @@
+@main {
+    a: int = const 4;
+    b: int = const 5;
+    c: int = const 6;
+    d: int = const 7;
+
+    e: int = div a b;
+    f: int = div c d;
+    g: int = div a c;
+    h: int = div b d;
+    
+    print e;
+    print f;
+    print g;
+    print h;
+}
