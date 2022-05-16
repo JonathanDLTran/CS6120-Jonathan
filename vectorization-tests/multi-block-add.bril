@@ -1,0 +1,56 @@
+@main {
+    a: int = const 4;
+    b: int = const 5;
+    c: int = const 6;
+    d: int = const 7;
+
+    e: int = add a b;
+    f: int = add c d;
+    g: int = add a c;
+    h: int = add b d;
+    
+    print e;
+    print f;
+    print g;
+    print h;
+
+    jmp .second;
+second:
+    w: int = add a b;
+    x: int = add c d;
+    y: int = add a d;
+    z: int = add b c;
+
+    print w;
+    print x;
+    print y;
+    print z;
+
+    cond: bool = const false;
+    br cond .left .right;
+
+.left:
+    w1: int = add a b;
+    x1: int = add c d;
+    y1: int = add a d;
+    z1: int = add b c;
+
+    print w1;
+    print x1;
+    print y1;
+    print z1;
+
+    jmp .end;
+.right:
+    w2: int = add a b;
+    x2: int = add c d;
+    y2: int = add a d;
+    z2: int = add b c;
+
+    print w2;
+    print x2;
+    print y2;
+    print z2;
+
+.end:
+}

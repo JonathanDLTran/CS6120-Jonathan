@@ -1,0 +1,55 @@
+@main {
+    @main {
+    size: int = const 4;
+    data: int = const 1;
+    offset: int = const 1;
+    one: int = const 1;
+    arr: ptr<int> = alloc size;
+    cpyarr: ptr<int> = id arr;
+
+    i: int = const 0;
+.header:
+    cond: bool = eq i size;
+    br cond .end .loop;
+.loop:
+    store cpyarr data;
+    cpyarr: ptr<int> = ptradd cpyarr offset;
+    i: int = add one i;
+    jmp .header;
+.end:
+
+    cpyarr: ptr<int> = id arr;
+    i: int = const 0;
+.header1:
+    cond: bool = eq i size;
+    br cond .end1 .loop1;
+.loop1:
+    res: int = load cpyarr;
+    two: int = const 2;
+    three: int = const 3;
+    final: int = mul res two;
+    final2: int = add final three;
+    store cpyarr final2;
+
+    cpyarr: ptr<int> = ptradd cpyarr offset;
+    i: int = add one i;
+    jmp .header1;
+.end1:
+
+    cpyarr: ptr<int> = id arr;
+    i: int = const 0;
+.header2:
+    cond: bool = eq i size;
+    br cond .end2 .loop2;
+.loop2:
+    res: int = load cpyarr;
+    print res;
+
+    cpyarr: ptr<int> = ptradd cpyarr offset;
+    i: int = add one i;
+    jmp .header2;
+.end2:
+
+    free arr;
+}
+}
