@@ -206,9 +206,11 @@ def delete_from_cfg(basic_block_name, cfg):
         cfg[succ][PREDS] = pred_of_succ
 
 
-def coalesce_cfg(cfg):
+def coalesce_function(function):
     """
     Perform Coalescing of CFG Blocks
+
+    Consecutive Blocks of a CFG, separated only by a jump, will be joined together
     """
     pass
 

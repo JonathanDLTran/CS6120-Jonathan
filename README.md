@@ -18,6 +18,7 @@ The common workflow to run transformation passes and analyses on bril is
 - Available Expressions
 - Dominator Analysis
 - Dataflow Framework and Worklist Iterative Solver
+- Alias Analysis
 
 # Utilities
 - CFG construction / dot display
@@ -25,12 +26,16 @@ The common workflow to run transformation passes and analyses on bril is
 
 # Transformations
 - To SSA and out of SSA
+- Loop Unrolling
 
 # Infrastructure
 - Sample LLVM Pass as part of Lesson 7
 
 # Garbage Collection
 - A garbage collector in the reference collector style is implemented in brili-gc. This is in the bril fork. Recursive update of reference counters is in progress.
+
+# Synthesis
+- Playing around with the idea of synthesis as covered in class and discussions
 
 # Tests
 
