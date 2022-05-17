@@ -1,0 +1,24 @@
+@main {
+    i: int = const 100;
+    one: int = const 1;
+    zero: int = const 0;
+.header:
+    cond: bool = eq i zero;
+    br cond .end .loop;
+.loop:
+    print i;
+
+        j: int = const 100;
+    .header.inner:
+        cond: bool = eq j zero;
+        br cond .end.inner .loop.inner;
+    .loop.inner:
+        print j;
+        j: int = sub j one;
+        jmp .header.inner;
+    .end.inner:
+
+    i: int = sub i one;
+    jmp .header;
+.end:
+}

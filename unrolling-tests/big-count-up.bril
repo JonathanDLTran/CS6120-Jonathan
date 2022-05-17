@@ -1,0 +1,14 @@
+@main {
+    i: int = const 0;
+    one: int = const 1;
+    n: int = const 1000;
+.header:
+    cond: bool = eq i n;
+    br cond .end .loop;
+.loop:
+    print i;
+    i: int = add i one;
+    jmp .header;
+.end:
+    print i;
+}
