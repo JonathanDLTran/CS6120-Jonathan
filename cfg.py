@@ -4,6 +4,7 @@ from collections import OrderedDict
 from copy import deepcopy
 
 from bril_core_constants import *
+from bril_core_utilities import is_br, is_jmp, is_label
 
 TERMINATORS = ["jmp", "br", "ret"]
 
@@ -211,8 +212,39 @@ def coalesce_function(function):
     Perform Coalescing of CFG Blocks
 
     Consecutive Blocks of a CFG, separated only by a jump, will be joined together
+    In particular, remove instructions such as:
+    jmp <.next>;
+    <.next>:
+
+    into no jump no label
     """
-    pass
+    final_instrs = []
+    prev_instr = None 
+    for instr in function[INSTRS]:
+        if is_label(instr) and prev_instr != None and is_jmp(prev_instr) and instr[LABEL] == prev_instr[LABELS][0]:
+            assert len(final_instrs) >= 1
+            assert final_instrs[-1] == prev_instr
+            final_instrs.pop()
+
+            # check label is used or not
+            label_used = False
+            for other_instr in function[INSTRS]:
+                if other_instr != prev_instr and is_jmp(other_instr):
+                    if instr[LABEL] in other_instr[LABELS]:
+                        label_used = True
+                elif is_br(other_instr):
+                    if instr[LABEL] in other_instr[LABELS]:
+                        label_used = True
+                        
+            # only add label if the label is used
+            if label_used:
+                final_instrs.append(instr)
+        else:
+            final_instrs.append(instr)
+        prev_instr = instr
+
+    function[INSTRS] = final_instrs
+    return final_instrs
 
 
 def insert_into_cfg(new_header, backnodes, succ, cfg):
