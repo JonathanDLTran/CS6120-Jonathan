@@ -1,0 +1,19 @@
+@main {
+    i: int = const 10;
+    one: int = const 1;
+    zero: int = const 0;
+    j: int = const 0;
+.header:
+    j: int = add j one;
+    print j;
+    two: int = const 2;
+    k: int = mul two j;
+    print k;
+    cond: bool = eq i zero;
+    br cond .end .loop;
+.loop:
+    print i;
+    i: int = sub i one;
+    jmp .header;
+.end:
+}
