@@ -33,3 +33,11 @@ def is_mem(instr):
 
 def is_ptr_type(instr):
     return TYPE in instr and PTR in instr[TYPE]
+
+
+def has_mem_ops(prog):
+    for func in prog[FUNCTIONS]:
+        for instr in func[INSTRS]:
+            if is_mem(instr):
+                return True
+    return False
