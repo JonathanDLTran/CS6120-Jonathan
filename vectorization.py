@@ -29,6 +29,7 @@ from cfg import coalesce_prog
 from alias_analysis import alias_analysis
 from loop_unrolling import fully_unroll_prog
 
+from slp import slp_prog
 
 def preprocess_prog(prog):
     """
@@ -58,13 +59,13 @@ def vectorize_prog(prog):
 
 @click.command()
 @click.option('--pretty-print', default=False, help='Pretty Print Before and After Vectorization.')
-@click.option('--vectorize', default=False, help='Vectorize.')
-def main(pretty_print, vectorize):
+@click.option('--slp', default=False, help='SLP Vectorization.')
+def main(pretty_print, slp):
     prog = json.load(sys.stdin)
     if pretty_print:
         print(json.dumps(prog, indent=4, sort_keys=True))
     final_prog = prog
-    if bool(vectorize) == True:
+    if bool(slp) == True:
         final_prog = vectorize_prog(prog)
     if pretty_print:
         print(json.dumps(final_prog, indent=4, sort_keys=True))
