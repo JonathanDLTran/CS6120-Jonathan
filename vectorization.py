@@ -25,6 +25,7 @@ from bril_memory_extension_utilities import *
 from dce import dce
 from lvn import lvn
 from licm import licm_main
+from cfg import coalesce_prog
 from alias_analysis import alias_analysis
 from loop_unrolling import fully_unroll_prog
 
@@ -33,7 +34,7 @@ def preprocess_prog(prog):
     """
     Preprocess Program, if possible
 
-    Ignore programs with Memory Ops, but do unrolling to all programs
+    Ignore programs with Memory Ops, but do unrolling and coalescing to all programs
     """
     # do preprocessing, if possible, with no memory ops
     preprocessed_prog = prog 
@@ -43,7 +44,8 @@ def preprocess_prog(prog):
         licm_prog = licm_main(lvn_prog)
         preprocessed_prog = licm_prog
     unrolled_prog = fully_unroll_prog(preprocessed_prog)
-    return unrolled_prog
+    coalesced_prog = coalesce_prog(unrolled_prog)
+    return coalesced_prog
 
 
 def vectorize_prog(prog):

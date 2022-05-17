@@ -219,7 +219,7 @@ def coalesce_function(function):
     into no jump no label
     """
     final_instrs = []
-    prev_instr = None 
+    prev_instr = None
     for instr in function[INSTRS]:
         if is_label(instr) and prev_instr != None and is_jmp(prev_instr) and instr[LABEL] == prev_instr[LABELS][0]:
             assert len(final_instrs) >= 1
@@ -235,7 +235,7 @@ def coalesce_function(function):
                 elif is_br(other_instr):
                     if instr[LABEL] in other_instr[LABELS]:
                         label_used = True
-                        
+
             # only add label if the label is used
             if label_used:
                 final_instrs.append(instr)
@@ -245,6 +245,12 @@ def coalesce_function(function):
 
     function[INSTRS] = final_instrs
     return final_instrs
+
+
+def coalesce_prog(prog):
+    for func in prog[FUNCTIONS]:
+        coalesce_function(func)
+    return prog
 
 
 def insert_into_cfg(new_header, backnodes, succ, cfg):
