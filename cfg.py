@@ -206,6 +206,13 @@ def delete_from_cfg(basic_block_name, cfg):
         cfg[succ][PREDS] = pred_of_succ
 
 
+def coalesce_cfg(cfg):
+    """
+    Perform Coalescing of CFG Blocks
+    """
+    pass
+
+
 def insert_into_cfg(new_header, backnodes, succ, cfg):
     assert type(new_header) == str
     assert type(succ) == str
