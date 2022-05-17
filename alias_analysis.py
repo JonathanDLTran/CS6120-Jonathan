@@ -11,8 +11,6 @@ import click
 from collections import OrderedDict
 from copy import deepcopy
 
-from numpy import block
-
 from worklist_solver import Worklist
 
 from cfg import form_cfg, form_block_dict, form_blocks

@@ -48,9 +48,9 @@ import sys
 import click
 
 from bril_core_constants import ARGS, COMP_OPS, EQ, FUNCTIONS, GE, GT, LABEL, LABELS, LE, LT, OP, VALUE
-from bril_core_utilities import build_br, build_jmp, build_label, build_void_ret, get_args, get_br_labels, get_jmp_label, has_args, has_dest, get_dest, is_add, is_br, is_cmp, is_const, is_jmp, is_label, is_sub
+from bril_core_utilities import build_br, build_jmp, build_label, build_void_ret, get_args, get_br_labels, has_args, has_dest, get_dest, is_add, is_br, is_cmp, is_const, is_jmp, is_label, is_sub
 
-from cfg import delete_from_cfg, form_cfg_w_blocks, SUCCS, PREDS, INSTRS, insert_into_cfg_w_blocks, join_cfg
+from cfg import form_cfg_w_blocks, SUCCS, PREDS, INSTRS, insert_into_cfg_w_blocks, join_cfg
 from dominator_utilities import get_dominators, get_natural_loops, get_strict_dominators
 
 UNROLL_FACTOR = 2
