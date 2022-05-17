@@ -261,21 +261,46 @@ def fully_unroll_loop(unrollable_object, natural_loop, cfg):
                     deepcopy(block_instrs), i, [header])
                 insert_into_cfg_w_blocks(
                     f"{block}.{i}", new_block_instrs, [], [], cfg)
+            else:
+                block_instrs = cfg[block][INSTRS]
+                new_block_instrs = renumber_loop_body_labels(
+                    deepcopy(block_instrs), i, [header])
+                # replace the branch with a jump to the appropriate loop body
+                final_block_instrs = []
+                for header_instr in new_block_instrs:
+                    if is_br(header_instr):
+                        new_jmp_instr = build_jmp(f"{loop_entry_name}.{i}")
+                        final_block_instrs.append(new_jmp_instr)
+                    else:
+                        final_block_instrs.append(header_instr)
+                insert_into_cfg_w_blocks(
+                    f"{header}.{i}", final_block_instrs, [], [], cfg)
 
-        # change any jump labels to header to next jmp_label
+        # change any jump labels to header to next header label
         ith_iter_labels = []
         for label in loop_labels:
             ith_iter_labels.append(f"{label}.{i}")
-        # final iteration of unroll is special; change jumps to header to be to exit labels
-        if i == unroll_niter - 2:
-            modify_loop_jumps(ith_iter_labels, cfg, header, loop_exit_name)
-        else:
-            modify_loop_jumps(ith_iter_labels, cfg, header, f"{loop_entry_name}.{i + 1}")
+        modify_loop_jumps(ith_iter_labels, cfg, header, f"{header}.{i + 1}")
 
 
-    # modify original [aka FIRST] loop iteration to jump to START_UNROLL_LABEL rather than header
-    first_unroll_header = f"{loop_entry_name}.{0}"
+    # modify original [aka FIRST] loop iteration to jump to first unroll header rather than header
+    first_unroll_header = f"{header}.{0}"
     modify_loop_jumps(loop_labels, cfg, header, first_unroll_header)
+
+    # add final extra header at end, because headers are always checked once more
+    header_instrs = cfg[header][INSTRS]
+    new_header_instrs = renumber_loop_body_labels(
+        deepcopy(header_instrs), i + 1, [header])
+    # replace the branch with a jump to the appropriate loop body
+    final_header_instrs = []
+    for header_instr in new_header_instrs:
+        if is_br(header_instr):
+            new_jmp_instr = build_jmp(loop_exit_name)
+            final_header_instrs.append(new_jmp_instr)
+        else:
+            final_header_instrs.append(header_instr)
+    insert_into_cfg_w_blocks(
+        f"{header}.{i + 1}", final_header_instrs, [], [], cfg)
 
 
 def fully_unroll_func(func):
