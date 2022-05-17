@@ -48,9 +48,9 @@ import sys
 import click
 
 from bril_core_constants import ARGS, COMP_OPS, EQ, FUNCTIONS, GE, GT, LABEL, LABELS, LE, LT, OP, VALUE
-from bril_core_utilities import build_br, build_jmp, build_label, build_void_ret, get_args, has_args, has_dest, get_dest, is_add, is_br, is_cmp, is_const, is_jmp, is_label, is_sub
+from bril_core_utilities import build_br, build_jmp, build_label, build_void_ret, get_args, get_br_labels, get_jmp_label, has_args, has_dest, get_dest, is_add, is_br, is_cmp, is_const, is_jmp, is_label, is_sub
 
-from cfg import form_cfg_w_blocks, SUCCS, PREDS, INSTRS, insert_into_cfg_w_blocks, join_cfg
+from cfg import delete_from_cfg, form_cfg_w_blocks, SUCCS, PREDS, INSTRS, insert_into_cfg_w_blocks, join_cfg
 from dominator_utilities import get_dominators, get_natural_loops, get_strict_dominators
 
 UNROLL_FACTOR = 2
@@ -58,6 +58,8 @@ assert UNROLL_FACTOR >= 2
 
 HEADER_LABEL = "new.loop.header.label"
 UNROLLING_EMERGENCY_RET_LABEL = "emergency.ret"
+START_UNROLL_LABEL = "start.unroll.label"
+UNROLL_LABEL = "unroll.label"
 
 
 def gen_header_label(i: int):
@@ -115,13 +117,13 @@ class FullyUnrollableLoop(object):
                 RuntimeError(f"Unmatched comparison operation {self.comp_op}.")
         else:
             if self.comp_op == EQ:
-                return self.end_val - self.start_val
+                return self.start_val - self.end_val
             elif self.comp_op == LE:
-                return self.end_val - self.start_val
+                return self.start_val - self.end_val
             elif self.comp_op == GE:
                 return 0
             elif self.comp_op == LT:
-                return self.end_val - self.start_val + 1
+                return self.start_val - self.end_val + 1
             elif self.comp_op == GT:
                 return 0
             else: 
@@ -190,12 +192,90 @@ def is_fully_unrollable(natural_loop, natural_loops, cfg, domby):
         return False
     if not loop_has_single_jmp_to_header(natural_loop, cfg):
         return False
+    if not loop_has_no_br_to_header(natural_loop, cfg):
+        return False
     has_one_iter_var = loop_has_one_iteration_var(natural_loop, cfg, domby)
     if type(has_one_iter_var) == bool and has_one_iter_var == False:
         return False
     if not has_one_iter_var.will_terminate():
         return False
     return has_one_iter_var
+
+
+def fully_unroll_loop(unrollable_object, natural_loop, cfg):
+    """
+    Fully Unrolls Natural Loop in CFG
+    
+    DOES NOT ATTEMPT TO CHANGE SUCCS AND PREDS
+    """
+    (natural_loop, _, header, exits) = natural_loop
+
+    assert unrollable_object.will_terminate()
+    unroll_niter = unrollable_object.get_niters()
+
+    # if the loop never executes, or executes once, just bail
+    if 0 <= unroll_niter <= 1:
+        return
+
+    # Begin Unrolling Process
+
+    assert unroll_niter >= 2
+
+    # grab non-header loop labels
+    loop_labels = []
+    for block in natural_loop:
+        if block != header:
+            loop_labels.append(block)
+
+    # grab loop exit label 
+    assert len(exits) == 1
+    loop_exit_name = None
+    for (a, b) in exits:
+        if a not in natural_loop:
+            loop_exit_name = a
+        elif b not in natural_loop:
+            loop_exit_name = b
+        break 
+    assert loop_exit_name != None
+
+    # insert new label to start unrolling from
+    new_label = build_label(START_UNROLL_LABEL)
+    insert_into_cfg_w_blocks(
+                    f"{START_UNROLL_LABEL}", [new_label], [], [], cfg)
+
+    # insert  __unroll_niter - 1__ copies of solely loop bodies into the cfg [exclude loop headers]
+    for i in range(unroll_niter - 1):
+        # TODO: Header must be added as it might change state; but remove branch from header
+
+        # unique label at end of unroll 
+        unroll_label_name = f"{UNROLL_LABEL}.{i}"
+
+        # now add in the loop body blocks themselves
+        for block in natural_loop:
+            if block != header:
+                block_instrs = cfg[block][INSTRS]
+                # relabel labels to be unique in each iteration of unrolled loop
+                new_block_instrs = renumber_loop_body_labels(
+                    deepcopy(block_instrs), i, [header])
+                insert_into_cfg_w_blocks(
+                    f"{block}.{i}", new_block_instrs, [], [], cfg)
+
+        # change any jump labels to header to next jmp_label
+        ith_iter_labels = []
+        for label in loop_labels:
+            ith_iter_labels.append(f"{label}.{i}")
+        # final iteration of unroll is special; change jumps to header to be to exit labels
+        if i == unroll_niter - 2:
+            modify_loop_jumps(ith_iter_labels, cfg, header, loop_exit_name)
+        else:
+            modify_loop_jumps(ith_iter_labels, cfg, header, unroll_label_name)
+
+        # insert labels after each unroll, to jump to if necessary
+        unroll_jmp_label = build_label(unroll_label_name)
+        insert_into_cfg_w_blocks(unroll_label_name, [unroll_jmp_label], [], [], cfg)
+
+    # modify original [aka FIRST] loop iteration to jump to START_UNROLL_LABEL rather than header
+    modify_loop_jumps(loop_labels, cfg, header, START_UNROLL_LABEL)
 
 
 def fully_unroll_func(func):
@@ -209,9 +289,15 @@ def fully_unroll_func(func):
 
     # start unrolling
     for natural_loop in natural_loops:
-        result = is_fully_unrollable(natural_loop, natural_loops, cfg, domby)
-        print(result)
+        is_unrollable = is_fully_unrollable(natural_loop, natural_loops, cfg, domby)
+        if type(is_unrollable) == bool and is_unrollable == False:
+            continue 
+        fully_unroll_loop(is_unrollable, natural_loop, cfg)
 
+    # DO JOINING ON CFG
+    new_instrs = join_cfg(cfg)
+    func[INSTRS] = new_instrs
+    return func
 
 
 def fully_unroll_prog(prog):
@@ -242,6 +328,17 @@ def loop_has_single_jmp_to_header(natural_loop, cfg):
             if is_jmp(instr) and instr[LABELS][0] == header:
                 jmps_to_header += 1
     return jmps_to_header == 1
+
+
+def loop_has_no_br_to_header(natural_loop, cfg):
+    (loop_blocks, _, header, _) = natural_loop
+    non_header_blocks = set(loop_blocks).difference({header})
+    brs_to_header = 0
+    for block in non_header_blocks:
+        for instr in cfg[block][INSTRS]:
+            if is_br(instr) and header in get_br_labels(instr):
+                brs_to_header += 1
+    return brs_to_header == 0
 
 
 def arg_is_constant(arg, cfg):
@@ -515,7 +612,6 @@ def unroll_func(func):
         assert len(header_labels) != 0
         br_arg_index, loop_entry_label = get_br_index(
             cfg[header][INSTRS], header, exits)
-        # modify_header_branch(header, cfg, header_labels[0], br_arg_index)
         next_header = header_labels[0]
         modify_loop_jumps(loop_labels, cfg, header, next_header)
 

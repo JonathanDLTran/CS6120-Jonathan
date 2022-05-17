@@ -182,6 +182,30 @@ def get_cfg_w_blocks(name2block):
     return out
 
 
+def delete_from_cfg(basic_block_name, cfg):
+    """
+    Deletes all metadata of basic_block_name from the cfg
+    """
+    predecessors = cfg[basic_block_name][PREDS]
+    successors = cfg[basic_block_name][SUCCS]
+
+    del cfg[basic_block_name]
+
+    for pred in predecessors:
+        succ_of_pred = deepcopy(cfg[pred][SUCCS])
+        succ_of_pred = list(set(succ_of_pred).difference({basic_block_name}))
+        for succ in successors:
+            succ_of_pred.append(succ)
+        cfg[pred][SUCCS] = succ_of_pred
+
+    for succ in successors:
+        pred_of_succ = deepcopy(cfg[succ][PREDS])
+        pred_of_succ = list(set(pred_of_succ).difference({basic_block_name}))
+        for pred in predecessors:
+            pred_of_succ.append(pred)
+        cfg[succ][PREDS] = pred_of_succ
+
+
 def insert_into_cfg(new_header, backnodes, succ, cfg):
     assert type(new_header) == str
     assert type(succ) == str

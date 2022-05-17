@@ -120,23 +120,30 @@ def is_ret(instr):
 
 
 def build_void_ret():
-    return {OP: RET, ARGS:[]}
+    return {OP: RET, ARGS: []}
 
 
-def build_int_ret(int_var: str): 
-    return {OP: RET, ARGS:[int_var], TYPE: INT}
+def build_int_ret(int_var: str):
+    return {OP: RET, ARGS: [int_var], TYPE: INT}
 
 
-def build_bool_ret(bool_var: str): 
-    return {OP: RET, ARGS:[bool_var], TYPE: BOOL}
+def build_bool_ret(bool_var: str):
+    return {OP: RET, ARGS: [bool_var], TYPE: BOOL}
 
 
 def is_jmp(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] == JMP
 
+
 def build_jmp(label):
-    return {OP: JMP, LABELS:[label]}
+    return {OP: JMP, LABELS: [label]}
+
+
+def get_jmp_label(instr):
+    assert is_jmp(instr)
+    assert len(instr[LABELS]) == 1
+    return instr[LABELS][0]
 
 
 def is_br(instr):
@@ -145,7 +152,13 @@ def is_br(instr):
 
 
 def build_br(arg, label1, label2):
-    return {OP: BR, ARGS:[arg], LABELS: [label1, label2]}
+    return {OP: BR, ARGS: [arg], LABELS: [label1, label2]}
+
+
+def get_br_labels(instr):
+    assert is_br(instr)
+    assert len(instr[LABELS]) == 2
+    return instr[LABELS]
 
 
 def is_terminator(instr):
