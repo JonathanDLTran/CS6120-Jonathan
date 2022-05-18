@@ -19,6 +19,7 @@ import json
 
 from bril_core_constants import *
 from bril_core_utilities import is_add, is_div, is_mul, is_sub
+from bril_memory_extension_utilities import is_store
 from bril_vector_constants import *
 from bril_vector_utilities import *
 
@@ -50,9 +51,66 @@ def instr_is_vectorizable(instr):
     return is_add(instr) or is_sub(instr) or is_mul(instr) or is_div(instr)
 
 
+def instr_used(vector_run, instr):
+    """
+    True if instr uses as any of its arguments any variable defined for an instruction in vector run
+    """
+    if ARGS not in instr:
+        return False
+    for past_instr in vector_run:
+        assert DEST in past_instr
+        if past_instr[DEST] in instr[ARGS]:
+            return True
+    return False
+
+
 def naive_vectorization_basic_block(basic_block_instrs, func):
+    """
+    Iterate over instructions in basic block
+
+    When you hit an instruction that is vectorizable:
+    - add it to a list of instructions to vectorize
+
+    - Terminate this list when you see a
+    --- The beginning another type of vectorizable instruction
+    --- use of any vectoriable instruction
+        -- An update of any variable in the lit
+    -- ANY STORE: because this could overwrite data needed for an early vectorized load 
+    -- vector run hits vector lane width
+    -- end of basic block 
+    """
+    runs = []
+    vector_run = []
     for instr in basic_block_instrs:
-        print(instr)
+        # not yet begun vectorizing a run
+        if vector_run == []:
+            if instr_is_vectorizable(instr):
+                vector_run.append(instr)
+        # vectorizing a run
+        else:
+            last_instr = vector_run[-1]
+            last_instr_op = last_instr[OP]
+            if instr_is_vectorizable(instr) and last_instr_op != instr[OP]:
+                runs.append(vector_run)
+                vector_run = []
+            elif instr_used(vector_run, instr):
+                runs.append(vector_run)
+                vector_run = []
+            elif is_store(instr):
+                runs.append(vector_run)
+                vector_run = []
+            elif len(vector_run) == VECTOR_LANE_WIDTH:
+                runs.append(vector_run)
+                vector_run = []
+
+            # otherwise check if still vectorizable and add
+            if instr_is_vectorizable(instr):
+                vector_run.append(instr)
+
+    if vector_run != []:
+        runs.append(vector_run)
+
+    # Now Change Each Run to use Vector Instructions and Stitch Back into Basic Block
 
 
 def naive_vectorization_func(func):
