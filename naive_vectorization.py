@@ -82,13 +82,12 @@ def is_independent(instrs):
     True if all instructions independent from each other
     """
     assert len(instrs) > 0
-    prev_instr = instrs[0]
-    for instr in instrs[1:]:
-        assert ARGS in instr
-        assert DEST in prev_instr
-        if prev_instr[DEST] in instr[ARGS]:
-            return False
-        prev_instr = instr
+    for i, instr in enumerate(instrs[1:]):
+        for prev_instr in instrs[:i]:
+            assert ARGS in instr
+            assert DEST in prev_instr
+            if prev_instr[DEST] in instr[ARGS]:
+                return False
     return True
 
 
