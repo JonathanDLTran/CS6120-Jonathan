@@ -1,6 +1,20 @@
 from bril_core_constants import *
 
 
+def uses(instr1, instr2):
+    """
+    True iff instr1 directly uses instr2
+    """
+    assert type(instr1) == dict
+    assert type(instr2) == dict
+    if ARGS in instr1:
+        args = instr1[ARGS]
+        if DEST in instr2:
+            dst = instr2[ARGS]
+            return dst in args
+    return False
+
+
 def has_dest(instr):
     assert type(instr) == dict
     return DEST in instr

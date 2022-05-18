@@ -28,7 +28,7 @@ def gen_heap_loc(basic_block, idx):
 
 def regularize_type(typ):
     if type(typ) == dict:
-        assert PTR in typ 
+        assert PTR in typ
         return (PTR, regularize_type(typ[PTR]))
     return typ
 
@@ -40,6 +40,7 @@ def deregularize_type(typ):
         assert typ[0] == PTR
         return f"ptr<{deregularize_type(typ[1:])}>"
     return typ
+
 
 def merge(variables_lst):
     if len(variables_lst) < 1:
@@ -61,15 +62,18 @@ def transfer_helper(variables, block, index):
             if is_ptradd(instr):
                 # union to move up lattice
                 ptr_arg = instr[ARGS][0]
-                new_variables[(instr[DEST], typ)] = new_variables[(instr[DEST], typ)].union(new_variables[(ptr_arg, typ)])
+                new_variables[(instr[DEST], typ)] = new_variables[(
+                    instr[DEST], typ)].union(new_variables[(ptr_arg, typ)])
             elif is_id(instr):
                 # to move up the lattice, we have to union
                 ptr_arg = instr[ARGS][0]
-                new_variables[(instr[DEST], typ)] = new_variables[(instr[DEST], typ)].union(new_variables[(ptr_arg, typ)])
+                new_variables[(instr[DEST], typ)] = new_variables[(
+                    instr[DEST], typ)].union(new_variables[(ptr_arg, typ)])
             elif is_alloc(instr):
                 # note that union will not duplicate heap locs
                 # only 1 heap loc created at each syntactic location
-                new_variables[(instr[DEST], typ)] = new_variables[(instr[DEST], typ)].union({gen_heap_loc(str(id(block)), i)})
+                new_variables[(instr[DEST], typ)] = new_variables[(
+                    instr[DEST], typ)].union({gen_heap_loc(str(id(block)), i)})
             elif is_load(instr):
                 # because we don't use any context in this analysis, a load will
                 # allov a variable to point to ANY locations of any variable of the same type
@@ -79,8 +83,10 @@ def transfer_helper(variables, block, index):
                 for var_name, unregularized_var_typ in new_variables:
                     var_typ = regularize_type(unregularized_var_typ)
                     if var_typ == typ:
-                        locations = locations.union(new_variables[var_name, var_typ])
-                new_variables[(instr[DEST], typ)] = new_variables[(instr[DEST], typ)].union(locations)
+                        locations = locations.union(
+                            new_variables[var_name, var_typ])
+                new_variables[(instr[DEST], typ)] = new_variables[(
+                    instr[DEST], typ)].union(locations)
     return new_variables
 
 
@@ -145,18 +151,39 @@ def intra_block_alias_analysis(global_aa, func, cfg, block_name, index):
     return transfer_helper(variables_map, block_instrs, index)
 
 
-def may_alias(var_map, var1, t1, var2, t2):
+def may_alias(var_map, var1, var2):
     """
     To be used with intra_block_alias_analysis
     """
+    # grab associated type of var1 in var_map (in bril each variable may only have 1 type at runtime)
+    t1 = None
+    for (v, typ) in var_map:
+        if v == var1:
+            t1 = typ
+            break
+    # var1 not in varmap; hence, var1 is not a pointer variable
+    if t1 == None:
+        return False
+
+    # grab associated type of var2 in var_map (in bril each variable may only have 1 type at runtime)
+    t2 = None
+    for (v, typ) in var_map:
+        if v == var2:
+            t2 = typ
+            break
+    # var2 not in varmap; hence, var2 is not a pointer variable
+    if t2 == None:
+        return False
+
+    # both variables point at memory addresses; we now do alias analysis
     return len(var_map[(var1, t1)].intersection(var_map[(var2, t2)])) != 0
 
 
-def may_not_alias(var_map, var1, t1, var2, t2):
+def may_not_alias(var_map, var1, var2):
     """
     To be used with intra_block_alias_analysis
     """
-    return not may_alias(var_map, var1, t1, var2, t2)
+    return not may_alias(var_map, var1, var2)
 
 
 def pretty_print_alias_analysis(prog):
@@ -178,17 +205,20 @@ def pretty_print_alias_analysis(prog):
         print(f"In:")
         for (k, v) in final_in_dict.items():
             if v == []:
-                print(f"\tBB {k}: No Aliasing at the start of Basic Block {k}.")
+                print(
+                    f"\tBB {k}: No Aliasing at the start of Basic Block {k}.")
             else:
                 for ((var, var_typ), locs) in v:
-                    print(f"\tBB {k}, Var {var}, Typ {deregularize_type(var_typ)}: {{{', '.join(locs)}}}.")
+                    print(
+                        f"\tBB {k}, Var {var}, Typ {deregularize_type(var_typ)}: {{{', '.join(locs)}}}.")
         print(f"Out:")
         for (k, v) in final_out_dict.items():
             if v == []:
                 print(f"\t{k}: No Aliasing at the end of Basic Block {k}.")
             else:
                 for ((var, var_typ), locs) in v:
-                    print(f"\tBB {k}, Var {var}, Typ {deregularize_type(var_typ)}: {{{', '.join(locs)}}}.")
+                    print(
+                        f"\tBB {k}, Var {var}, Typ {deregularize_type(var_typ)}: {{{', '.join(locs)}}}.")
     return
 
 
