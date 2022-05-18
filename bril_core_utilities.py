@@ -113,6 +113,89 @@ def build_div(dest, arg1, arg2):
     return {DEST: dest, TYPE: INT, OP: DIV, ARGS: [arg1, arg2]}
 
 
+def is_not(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == NOT
+
+
+def build_not(dest, arg):
+    assert type(dest) == str
+    assert type(arg) == str
+    return {DEST: dest, TYPE: BOOL, OP: NOT, ARGS: [arg]}
+
+
+def is_and(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == AND
+
+
+def build_and(dest, arg1, arg2):
+    assert type(dest) == str
+    assert type(arg1) == str
+    assert type(arg2) == str
+    return {DEST: dest, TYPE: BOOL, OP: AND, ARGS: [arg1, arg2]}
+
+
+def is_or(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == OR
+
+
+def build_or(dest, arg1, arg2):
+    assert type(dest) == str
+    assert type(arg1) == str
+    assert type(arg2) == str
+    return {DEST: dest, TYPE: BOOL, OP: OR, ARGS: [arg1, arg2]}
+
+
+def is_lt(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == LT
+
+
+def build_lt(dest, arg1, arg2):
+    assert type(dest) == str
+    assert type(arg1) == str
+    assert type(arg2) == str
+    return {DEST: dest, TYPE: BOOL, OP: LT, ARGS: [arg1, arg2]}
+
+
+def is_gt(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == GT
+
+
+def build_gt(dest, arg1, arg2):
+    assert type(dest) == str
+    assert type(arg1) == str
+    assert type(arg2) == str
+    return {DEST: dest, TYPE: BOOL, OP: GT, ARGS: [arg1, arg2]}
+
+
+def is_le(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == LE
+
+
+def build_le(dest, arg1, arg2):
+    assert type(dest) == str
+    assert type(arg1) == str
+    assert type(arg2) == str
+    return {DEST: dest, TYPE: BOOL, OP: LE, ARGS: [arg1, arg2]}
+
+
+def is_ge(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == GE
+
+
+def build_ge(dest, arg1, arg2):
+    assert type(dest) == str
+    assert type(arg1) == str
+    assert type(arg2) == str
+    return {DEST: dest, TYPE: BOOL, OP: GE, ARGS: [arg1, arg2]}
+
+
 def is_const(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] == CONST
@@ -129,9 +212,21 @@ def is_id(instr):
     return OP in instr and instr[OP] == ID
 
 
+def build_id(dest, typ, arg):
+    assert type(dest) == str
+    assert type(arg) == str
+    assert typ in BRIL_CORE_TYPES  # Later might want to allow for any types
+    return {DEST: dest, TYPE: typ, OP: ID, ARGS: [arg]}
+
+
 def is_print(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] == PRINT
+
+
+def build_print(arg):
+    assert type(arg) == str
+    return {OP: PRINT, ARGS: [arg]}
 
 
 def is_io(instr):
@@ -141,6 +236,22 @@ def is_io(instr):
 def is_call(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] == CALL
+
+
+def build_call(dest, args, func, typ):
+    assert type(dest) == str
+    assert type(args) == list
+    for a in args:
+        assert type(a) == str
+    assert type(func) == str
+    assert typ in BRIL_CORE_TYPES
+    return {
+        ARGS: args,
+        DEST: dest,
+        FUNCS: [func],
+        OP: CALL,
+        TYPE: typ
+    }
 
 
 def is_label(instr):
@@ -167,6 +278,15 @@ def build_int_ret(int_var: str):
 
 def build_bool_ret(bool_var: str):
     return {OP: RET, ARGS: [bool_var], TYPE: BOOL}
+
+
+def is_nop(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == NOP
+
+
+def build_nop(label):
+    return {OP: NOP}
 
 
 def is_jmp(instr):
