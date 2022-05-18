@@ -139,9 +139,14 @@ def instr_run_to_vector(instrs):
             left_vec_name, index_name, left_args[i])
         right_vecload_instr = build_vecload(
             right_vec_name, index_name, right_args[i])
-        incr_index_instr = build_add(index_name, index_name, one_name)
-        vector_instrs += [left_vecload_instr,
-                          right_vecload_instr, incr_index_instr]
+        # no need to incr index on last iteration
+        if i != len(instrs) - 1:
+            incr_index_instr = build_add(index_name, index_name, one_name)
+            vector_instrs += [left_vecload_instr,
+                              right_vecload_instr, incr_index_instr]
+        else:
+            vector_instrs += [left_vecload_instr,
+                              right_vecload_instr]
 
     # do the operation
     vecop_result_name = gen_result_vector_var()
@@ -157,8 +162,12 @@ def instr_run_to_vector(instrs):
         extract_instr = build_vecstore(
             prior_dests[i], vecop_result_name, index_name)
         incr_index_instr = build_add(index_name, index_name, one_name)
-        vector_instrs += [extract_instr,
-                          incr_index_instr]
+        # no need to incr index on last iteration
+        if i != len(instrs) - 1:
+            vector_instrs += [extract_instr,
+                              incr_index_instr]
+        else:
+            vector_instrs += [extract_instr]
 
     return vector_instrs
 
@@ -240,9 +249,24 @@ def naive_vectorization_basic_block(basic_block_instrs, func):
         basic_block_instrs = basic_block_instrs[:final_idx] + \
             vectorized_instrs + basic_block_instrs[final_idx:]
 
-    # Delete old instructions, except those that are used outside the run (e.g. in some other block, later in the block, or earlier in the block (for phi nodes)
+    # Delete old instructions. We don't have to worry about instructions that are
+    # used outside the run (e.g. in some other block, later in the block, or
+    # earlier in the block (for phi nodes) because we extract every element from the
+    # naive vector generated. Further, we don't transform any operations, so every
+    # original opcode is represented by exactly one vector lane and vice versa
 
-    return basic_block_instrs
+    final_basic_block_instrs = []
+
+    run_instrs_set = set()
+    for run_instrs in runs:
+        for instr in run_instrs:
+            run_instrs_set.add(id(instr))
+
+    for instr in basic_block_instrs:
+        if id(instr) not in run_instrs_set:
+            final_basic_block_instrs.append(instr)
+
+    return final_basic_block_instrs
 
 
 def naive_vectorization_func(func):
