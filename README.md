@@ -10,6 +10,7 @@ The common workflow to run transformation passes and analyses on bril is
 - Local Value Numbering / Global Value Numbering with Dominator Tree
 - Loop Invariant Code Motion 
 - Induction Variable Elimination 
+- Vectorization (Exceptionally Naive Version)
 
 # Analyses
 - Live Variables 
@@ -22,11 +23,12 @@ The common workflow to run transformation passes and analyses on bril is
 
 # Utilities
 - CFG construction / dot display
-- Bril Language Utilities / Basic Interpretation
+- Bril Language Utilities / Basic Interpretation / Builders / isa
 
 # Transformations
 - To SSA and out of SSA
 - Loop Unrolling
+- Store Movement
 
 # Infrastructure
 - Sample LLVM Pass as part of Lesson 7
@@ -36,6 +38,10 @@ The common workflow to run transformation passes and analyses on bril is
 
 # Synthesis
 - Playing around with the idea of synthesis as covered in class and discussions
+- TODO: Unrolling using synthesis?
+
+# Extensions
+- Bril Vector Extension with interpreter extension: use `brili-vc` for vector interpreter.
 
 # Tests
 
