@@ -75,9 +75,53 @@ def is_sub(instr):
     return OP in instr and instr[OP] == SUB
 
 
+def is_mul(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == MUL
+
+
+def is_div(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == DIV
+
+
+def build_add(dest, arg1, arg2):
+    assert type(dest) == str
+    assert type(arg1) == str
+    assert type(arg2) == str
+    return {DEST: dest, TYPE: INT, OP: ADD, ARGS: [arg1, arg2]}
+
+
+def build_sub(dest, arg1, arg2):
+    assert type(dest) == str
+    assert type(arg1) == str
+    assert type(arg2) == str
+    return {DEST: dest, TYPE: INT, OP: SUB, ARGS: [arg1, arg2]}
+
+
+def build_mul(dest, arg1, arg2):
+    assert type(dest) == str
+    assert type(arg1) == str
+    assert type(arg2) == str
+    return {DEST: dest, TYPE: INT, OP: MUL, ARGS: [arg1, arg2]}
+
+
+def build_div(dest, arg1, arg2):
+    assert type(dest) == str
+    assert type(arg1) == str
+    assert type(arg2) == str
+    return {DEST: dest, TYPE: INT, OP: DIV, ARGS: [arg1, arg2]}
+
+
 def is_const(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] == CONST
+
+
+def build_const(dest, typ, value):
+    assert typ in BRIL_CORE_TYPES
+    assert type(dest) == str
+    return {DEST: dest, OP: CONST, TYPE: typ, VALUE: value}
 
 
 def is_id(instr):
@@ -88,26 +132,6 @@ def is_id(instr):
 def is_print(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] == PRINT
-
-
-def is_add(instr):
-    assert type(instr) == dict
-    return OP in instr and instr[OP] == ADD
-
-
-def is_sub(instr):
-    assert type(instr) == dict
-    return OP in instr and instr[OP] == SUB
-
-
-def is_mul(instr):
-    assert type(instr) == dict
-    return OP in instr and instr[OP] == MUL
-
-
-def is_div(instr):
-    assert type(instr) == dict
-    return OP in instr and instr[OP] == DIV
 
 
 def is_io(instr):

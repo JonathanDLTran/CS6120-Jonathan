@@ -18,7 +18,7 @@ import sys
 import json
 
 from bril_core_constants import *
-from bril_core_utilities import is_add, is_div, is_mul, is_sub
+from bril_core_utilities import build_add, build_const, is_add, is_div, is_mul, is_sub
 from bril_memory_extension_utilities import is_store
 from bril_vector_constants import *
 from bril_vector_utilities import *
@@ -26,7 +26,48 @@ from bril_vector_utilities import *
 from cfg import form_cfg_w_blocks, join_cfg
 
 
+OP_TO_VECOP = {
+    ADD: VECADD, SUB: VECSUB, MUL: VECMUL, DIV: VECDIV,
+}
+
+NEW_VECTOR_VAR = "new_vector_var"
+NEW_VECTOR_VAR_IDX = 0
+NEW_VECTOR_IDX = "new_vector_idx"
+NEW_VECTOR_IDX_IDX = 0
+NEW_VECTOR_ONE = "one"
+NEW_VECTOR_ONE_IDX = 0
+RESULT_VECTOR_VAR = "result_vector_var"
+RESULT_VECTOR_VAR_IDX = 0
+
+
+def gen_new_vector_var():
+    global NEW_VECTOR_VAR_IDX
+    NEW_VECTOR_VAR_IDX += 1
+    return f"{NEW_VECTOR_VAR}_{NEW_VECTOR_VAR_IDX}"
+
+
+def gen_new_vector_idx():
+    global NEW_VECTOR_IDX_IDX
+    NEW_VECTOR_IDX_IDX += 1
+    return f"{NEW_VECTOR_IDX}_{NEW_VECTOR_IDX_IDX}"
+
+
+def gen_new_vector_one():
+    global NEW_VECTOR_ONE_IDX
+    NEW_VECTOR_ONE_IDX += 1
+    return f"{NEW_VECTOR_ONE}_{NEW_VECTOR_ONE_IDX}"
+
+
+def gen_result_vector_var():
+    global RESULT_VECTOR_VAR_IDX
+    RESULT_VECTOR_VAR_IDX += 1
+    return f"{RESULT_VECTOR_VAR}_{RESULT_VECTOR_VAR_IDX}"
+
+
 def is_homogenous(instrs):
+    """
+    True of all instructions are of the same OPeration, e.g. all multiplications
+    """
     assert len(instrs) > 0
     assert OP in instrs[0]
     first_op = instrs[0][OP]
@@ -37,14 +78,89 @@ def is_homogenous(instrs):
 
 
 def is_independent(instrs):
-    # TODO
-    return False
+    """
+    True if all instructions independent from each other
+    """
+    assert len(instrs) > 0
+    prev_instr = instrs[0]
+    for instr in instrs[1:]:
+        assert ARGS in instr
+        assert DEST in prev_instr
+        if prev_instr[DEST] in instr[ARGS]:
+            return False
+        prev_instr = instr
+    return True
 
 
 def instr_run_to_vector(instrs):
-    assert len(instrs) == VECTOR_LANE_WIDTH
+    assert len(instrs) > 0
     assert is_homogenous(instrs)
     assert is_independent(instrs)
+
+    first_instr = instrs[0]
+    op_type = first_instr[OP]
+    assert op_type not in VEC_OPS
+    vec_op_type = OP_TO_VECOP[op_type]
+    assert vec_op_type in VEC_BINOPS
+
+    left_args = []
+    right_args = []
+    prior_dests = []
+    for instr in instrs:
+        assert ARGS in instr
+        args = instr[ARGS]
+        assert len(args) == 2
+        left_args.append(args[0])
+        right_args.append(args[1])
+        assert DEST in instr
+        prior_dests.append(instr[DEST])
+
+    # set up needed expressons for vectorization
+    left_vec_name = gen_new_vector_var()
+    empty_left_vec_instr = build_veczero(left_vec_name)
+
+    right_vec_name = gen_new_vector_var()
+    empty_right_vec_instr = build_veczero(right_vec_name)
+
+    one_name = gen_new_vector_one()
+    one_instr = build_const(one_name, INT, 1)
+
+    index_name = gen_new_vector_idx()
+    index_instr = build_const(index_name, INT, 0)
+
+    vector_instrs = [one_instr,
+                     index_instr,
+                     empty_left_vec_instr,
+                     empty_right_vec_instr]
+
+    # load into vector
+    for i in range(len(instrs)):
+        left_vecload_instr = build_vecload(
+            left_vec_name, index_name, left_args[i])
+        right_vecload_instr = build_vecload(
+            right_vec_name, index_name, right_args[i])
+        incr_index_instr = build_add(index_name, index_name, one_name)
+        vector_instrs += [left_vecload_instr,
+                          right_vecload_instr, incr_index_instr]
+
+    # do the operation
+    vecop_result_name = gen_result_vector_var()
+    vecop_instr = build_vecbinop(
+        vecop_result_name, left_vec_name, right_vec_name, vec_op_type)
+    vector_instrs.append(vecop_instr)
+
+    # extract elements from the vector
+    reset_index_instr = build_const(index_name, INT, 0)
+    vector_instrs.append(reset_index_instr)
+
+    for i in range(len(instrs)):
+        extract_instr = build_vecstore(
+            prior_dests[i], vecop_result_name, index_name)
+        incr_index_instr = build_add(index_name, index_name, one_name)
+        vector_instrs += [extract_instr,
+                          incr_index_instr]
+
+    return vector_instrs
 
 
 def instr_is_vectorizable(instr):
@@ -111,6 +227,22 @@ def naive_vectorization_basic_block(basic_block_instrs, func):
         runs.append(vector_run)
 
     # Now Change Each Run to use Vector Instructions and Stitch Back into Basic Block
+    # insert these vector instructions right after the last instruction in the run
+    for run_instrs in runs:
+        assert len(run_instrs) > 0
+        vectorized_instrs = instr_run_to_vector(run_instrs)
+        # find the right location
+        final_run_instr = run_instrs[-1]
+        final_idx = 0
+        for i, instr in enumerate(basic_block_instrs):
+            if id(instr) == id(final_run_instr):
+                final_idx = i + 1  # do 1 more to insert after
+        basic_block_instrs = basic_block_instrs[:final_idx] + \
+            vectorized_instrs + basic_block_instrs[final_idx:]
+
+    # Delete old instructions, except those that are used outside the run (e.g. in some other block, later in the block, or earlier in the block (for phi nodes)
+
+    return basic_block_instrs
 
 
 def naive_vectorization_func(func):

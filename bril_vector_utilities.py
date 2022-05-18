@@ -48,3 +48,22 @@ def build_vecmac(dest, m1, m2, a):
     assert type(m2) == str
     assert type(a) == str
     return {DEST: dest, TYPE: VECTOR, OP: VECMAC, ARGS: [m1, m2, a]}
+
+
+def build_veczero(dest):
+    assert type(dest) == str
+    return {DEST: dest, TYPE: VECTOR, OP: VECZERO, ARGS: []}
+
+
+def build_vecload(vector, index, data):
+    assert type(vector) == str
+    assert type(index) == str
+    assert type(data) == str
+    return {OP: VECLOAD, ARGS: [vector, index, data]}
+
+
+def build_vecstore(dest, vector, index):
+    assert type(vector) == str
+    assert type(index) == str
+    assert type(dest) == str
+    return {DEST: dest, TYPE: VECTOR, OP: VECSTORE, ARGS: [vector, index]}
