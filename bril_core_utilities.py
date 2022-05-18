@@ -107,7 +107,7 @@ def is_mul(instr):
 
 def is_div(instr):
     assert type(instr) == dict
-    return OP in instr and instr[OP] == div
+    return OP in instr and instr[OP] == DIV
 
 
 def is_io(instr):

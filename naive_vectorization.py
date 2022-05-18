@@ -18,10 +18,11 @@ import sys
 import json
 
 from bril_core_constants import *
+from bril_core_utilities import is_add, is_div, is_mul, is_sub
 from bril_vector_constants import *
 from bril_vector_utilities import *
 
-from cfg import form_cfg_w_blocks
+from cfg import form_cfg_w_blocks, join_cfg
 
 
 def is_homogenous(instrs):
@@ -34,16 +35,22 @@ def is_homogenous(instrs):
     return True
 
 
-def is_independent():
-    pass
+def is_independent(instrs):
+    # TODO
+    return False
 
 
 def instr_run_to_vector(instrs):
     assert len(instrs) == VECTOR_LANE_WIDTH
     assert is_homogenous(instrs)
+    assert is_independent(instrs)
 
 
-def naive_vectorization_basic_block(basic_block_instrs):
+def instr_is_vectorizable(instr):
+    return is_add(instr) or is_sub(instr) or is_mul(instr) or is_div(instr)
+
+
+def naive_vectorization_basic_block(basic_block_instrs, func):
     for instr in basic_block_instrs:
         print(instr)
 
@@ -51,12 +58,19 @@ def naive_vectorization_basic_block(basic_block_instrs):
 def naive_vectorization_func(func):
     cfg = form_cfg_w_blocks(func)
     for basic_block in cfg:
-        naive_vectorization_basic_block(cfg[basic_block][INSTRS])
+        new_instrs = naive_vectorization_basic_block(
+            cfg[basic_block][INSTRS], func)
+        cfg[basic_block][INSTRS] = new_instrs
+
+    final_instrs = join_cfg(cfg)
+    func[INSTRS] = final_instrs
+    return func
 
 
 def naive_vectorization_prog(prog):
     for func in prog[FUNCTIONS]:
         naive_vectorization_func(func)
+    return prog
 
 
 @click.command()
