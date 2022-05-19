@@ -108,19 +108,6 @@ def instr_run_to_vector(instrs):
     return vector_instrs
 
 
-def instr_used(vector_run, instr):
-    """
-    True if instr uses as any of its arguments any variable defined for an instruction in vector run
-    """
-    if ARGS not in instr:
-        return False
-    for past_instr in vector_run:
-        assert DEST in past_instr
-        if past_instr[DEST] in instr[ARGS]:
-            return True
-    return False
-
-
 def naive_vectorization_basic_block(basic_block_instrs, func):
     """
     Iterate over instructions in basic block
@@ -136,36 +123,8 @@ def naive_vectorization_basic_block(basic_block_instrs, func):
     -- vector run hits vector lane width
     -- end of basic block 
     """
-    runs = []
-    vector_run = []
-    for instr in basic_block_instrs:
-        # not yet begun vectorizing a run
-        if vector_run == []:
-            if instr_is_vectorizable(instr):
-                vector_run.append(instr)
-        # vectorizing a run
-        else:
-            last_instr = vector_run[-1]
-            last_instr_op = last_instr[OP]
-            if instr_is_vectorizable(instr) and last_instr_op != instr[OP]:
-                runs.append(vector_run)
-                vector_run = []
-            elif instr_used(vector_run, instr):
-                runs.append(vector_run)
-                vector_run = []
-            elif is_store(instr):
-                runs.append(vector_run)
-                vector_run = []
-            elif len(vector_run) == VECTOR_LANE_WIDTH:
-                runs.append(vector_run)
-                vector_run = []
-
-            # otherwise check if still vectorizable and add
-            if instr_is_vectorizable(instr):
-                vector_run.append(instr)
-
-    if vector_run != []:
-        runs.append(vector_run)
+    # build runs of vectors
+    runs = build_runs(basic_block_instrs)
 
     # Now Change Each Run to use Vector Instructions and Stitch Back into Basic Block
     # insert these vector instructions right after the last instruction in the run

@@ -29,7 +29,7 @@ from vectorization_utilities import *
 
 
 def slp_basic_block(basic_block_instrs):
-    pass
+    runs = build_runs(basic_block_instrs)
 
 
 def slp_func(func):
