@@ -25,7 +25,7 @@ from bril_core_utilities import *
 
 from cfg import form_cfg_w_blocks, join_cfg
 
-from slp_utilities import *
+from vectorization_utilities import *
 
 
 def slp_basic_block(basic_block_instrs):
