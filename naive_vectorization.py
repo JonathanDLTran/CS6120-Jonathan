@@ -18,7 +18,7 @@ import sys
 import json
 
 from bril_core_constants import *
-from bril_core_utilities import build_add, build_const, is_add, is_div, is_mul, is_sub
+from bril_core_utilities import build_add, build_const
 from bril_memory_extension_utilities import is_store
 from bril_vector_constants import *
 from bril_vector_utilities import *
