@@ -20,13 +20,34 @@ import click
 import sys
 import json
 
+from bril_core_constants import *
+from bril_core_utilities import *
 
-def topological_sort():
+from cfg import form_cfg_w_blocks, join_cfg
+
+from slp_utilities import *
+
+
+def slp_basic_block(basic_block_instrs):
     pass
+
+
+def slp_func(func):
+    cfg = form_cfg_w_blocks(func)
+    for basic_block in cfg:
+        new_instrs = slp_basic_block(
+            cfg[basic_block][INSTRS])
+        cfg[basic_block][INSTRS] = new_instrs
+
+    final_instrs = join_cfg(cfg)
+    func[INSTRS] = final_instrs
+    return func
 
 
 def slp_prog(prog):
-    pass
+    for func in prog[FUNCTIONS]:
+        slp_func(func)
+    return prog
 
 
 @click.command()
