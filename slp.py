@@ -16,7 +16,6 @@ and unloading to and from vector packs. This is the main difference when compare
 to naive vectorization, which does not attempt to reuse packs at all.
 """
 
-from struct import pack_into
 import click
 from itertools import combinations
 import json

@@ -15,6 +15,10 @@ def uses(instr1, instr2):
     return False
 
 
+def commutes(instr):
+    return is_add(instr) or is_mul(instr) or is_and(instr) or is_or(instr) or is_eq(instr)
+
+
 def has_dest(instr):
     assert type(instr) == dict
     return DEST in instr
@@ -116,6 +120,17 @@ def build_div(dest, arg1, arg2):
 def is_not(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] == NOT
+
+
+def build_eq(dest, arg):
+    assert type(dest) == str
+    assert type(arg) == str
+    return {DEST: dest, TYPE: BOOL, OP: EQ, ARGS: [arg]}
+
+
+def is_eq(instr):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == EQ
 
 
 def build_not(dest, arg):

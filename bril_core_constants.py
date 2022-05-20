@@ -84,6 +84,10 @@ SIDE_EFFECT_OPS = [
 ]
 
 
+NUM_BINARY_ARGS = 2
+NUM_UNARY_ARGS = 1
+
+
 ARGUMENT = "argument"
 
 INSTRS = "instrs"
