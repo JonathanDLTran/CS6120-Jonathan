@@ -1,0 +1,36 @@
+@main {
+    a: int = const 1;
+    b: int = const 2;
+    c: int = const 3;
+    d: int = const 4;
+
+    w: int = add a c;
+    x: int = add a b;
+    y: int = add b d;
+    z: int = add c b;
+
+    print w;
+    print x;
+    print y;
+    print z;
+
+    m: int = add w w;
+    n: int = add x x;
+    o: int = add x y;
+    p: int = add w y;
+
+    print m;
+    print n;
+    print o;
+    print p;
+
+    q: int = add m o;
+    r: int = add m x;
+    s: int = add n y;
+    t: int = add x y;
+
+    print q;
+    print r;
+    print s;
+    print t;
+}
