@@ -16,6 +16,7 @@ and unloading to and from vector packs. This is the main difference when compare
 to naive vectorization, which does not attempt to reuse packs at all.
 """
 
+from struct import pack_into
 import click
 from itertools import combinations
 import json
@@ -79,20 +80,6 @@ def generate_cartesian_product_of_combinations(vector_perms):
             new_perm = [perm] + remainder_vector_perm
             final_perms.append(new_perm)
 
-    # # calculate minimum number of repeats
-    # maximum_repeats = 1000
-    # for perm in final_perms:
-    #     new_len = len(set(perm))
-    #     if new_len < maximum_repeats:
-    #         maximum_repeats = new_len
-
-    # # do some filtering on minimum number of repeats
-    # max_perms = []
-    # for perm in final_perms:
-    #     new_len = len(set(perm))
-    #     if new_len == maximum_repeats:
-    #         max_perms.append(perm)
-
     return final_perms
 
 
@@ -141,8 +128,21 @@ def brute_force_alignment_vec_size(runs):
     # filter out all packs that are clearly all undefined!
     no_undefined_packs = filter_undefined_packs(packed_pair_combinations)
 
-    # generate final pack candidates
-    final = generate_cartesian_product_of_combinations(no_undefined_packs)
+    # generate product pack candidates
+    product_pack_candidates = generate_cartesian_product_of_combinations(
+        no_undefined_packs)
+
+    # filter candidates for those with most pack reuse
+    pack_reused_candidates = []
+    for pack_candidate in product_pack_candidates:
+        reused = len(pack_candidate) - len(set(pack_candidate))
+        if reused > 0:
+            pack_reused_candidates.append(pack_candidate)
+
+    if pack_reused_candidates == []:
+        return product_pack_candidates[0]
+
+    return pack_reused_candidates[0]
 
 
 def slp_basic_block(basic_block_instrs):
@@ -153,7 +153,8 @@ def slp_basic_block(basic_block_instrs):
     runs = build_runs(basic_block_instrs)
 
     # brute force enumerate every possible alignment and vector size, given the runs
-    brute_force_alignment_vec_size(runs)
+    pack_candidate = brute_force_alignment_vec_size(runs)
+    print(pack_candidate)
 
 
 def slp_func(func):
