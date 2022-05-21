@@ -67,3 +67,9 @@ def build_vecstore(dest, vector, index):
     assert type(index) == str
     assert type(dest) == str
     return {DEST: dest, TYPE: VECTOR, OP: VECSTORE, ARGS: [vector, index]}
+
+
+def build_vecmove(dest, vector):
+    assert type(vector) == str
+    assert type(dest) == str
+    return {DEST: dest, TYPE: VECTOR, OP: VECSTORE, ARGS: [vector]}
