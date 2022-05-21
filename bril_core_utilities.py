@@ -230,7 +230,7 @@ def is_id(instr):
 def build_id(dest, typ, arg):
     assert type(dest) == str
     assert type(arg) == str
-    assert typ in BRIL_CORE_TYPES  # Later might want to allow for any types
+    assert type(typ) == str
     return {DEST: dest, TYPE: typ, OP: ID, ARGS: [arg]}
 
 
@@ -259,7 +259,7 @@ def build_call(dest, args, func, typ):
     for a in args:
         assert type(a) == str
     assert type(func) == str
-    assert typ in BRIL_CORE_TYPES
+    assert type(typ) == str
     return {
         ARGS: args,
         DEST: dest,

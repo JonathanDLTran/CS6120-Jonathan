@@ -203,6 +203,9 @@ def canonicalize_basic_block(basic_block_instrs):
     # grab last instruction of every run
     last_instrs_map = last_instrs_of_runs(independent_sequences)
 
+    # grab all instrucitons in runs
+    all_instrs_of_runs = all_instrs_in_runs(independent_sequences)
+
     # build the new basic block
     sorted_basic_block_instrs = []
     # insert the new packed instructions for every run
@@ -211,20 +214,12 @@ def canonicalize_basic_block(basic_block_instrs):
         if instr_id in last_instrs_map:
             run_idx = last_instrs_map[instr_id]
             sorted_basic_block_instrs += sorted_independent_sequences[run_idx]
+        elif instr_id in all_instrs_of_runs:
+            pass
         else:
             sorted_basic_block_instrs.append(instr)
 
-    # grab all instrucitons in runs
-    all_instrs = all_instrs_in_runs(independent_sequences)
-
-    # delete original run instructions
-    final_basic_block_instrs = []
-    for instr in sorted_basic_block_instrs:
-        instr_id = id(instr)
-        if instr_id not in all_instrs:
-            final_basic_block_instrs.append(instr)
-
-    return final_basic_block_instrs
+    return sorted_basic_block_instrs
 
 
 def canonicalize_func(func):
