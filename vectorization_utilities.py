@@ -75,6 +75,11 @@ def is_independent(instrs):
 
 
 def instr_is_vectorizable(instr):
+    # Division is not necesarily vectorizable, because partially packing and then dividing will cause division by 0
+    return is_add(instr) or is_sub(instr) or is_mul(instr)
+
+
+def instr_is_vectorizable_w_div(instr):
     return is_add(instr) or is_sub(instr) or is_mul(instr) or is_div(instr)
 
 
@@ -119,6 +124,10 @@ def build_runs(basic_block_instrs):
             # otherwise check if still vectorizable and add
             if instr_is_vectorizable(instr):
                 vector_run.append(instr)
+            else:
+                if vector_run != []:
+                    runs.append(vector_run)
+                vector_run = []
 
     if vector_run != []:
         runs.append(vector_run)
@@ -136,28 +145,24 @@ def build_independent_sequences(basic_block_instrs):
     for instr in basic_block_instrs:
         # not yet begun vectorizing a run
         if vector_run == []:
-            if instr_is_vectorizable(instr):
+            if instr_is_vectorizable_w_div(instr):
                 vector_run.append(instr)
         # vectorizing a run
         else:
-            last_instr = vector_run[-1]
-            last_instr_op = last_instr[OP]
-            if instr_is_vectorizable(instr):
-                runs.append(vector_run)
-                vector_run = []
-            elif instr_used(vector_run, instr):
+            if instr_used(vector_run, instr):
                 runs.append(vector_run)
                 vector_run = []
             elif is_store(instr):
                 runs.append(vector_run)
                 vector_run = []
-            elif len(vector_run) == VECTOR_LANE_WIDTH:
-                runs.append(vector_run)
-                vector_run = []
 
             # otherwise check if still vectorizable and add
-            if instr_is_vectorizable(instr):
+            if instr_is_vectorizable_w_div(instr):
                 vector_run.append(instr)
+            else:
+                if vector_run != []:
+                    runs.append(vector_run)
+                vector_run = []
 
     if vector_run != []:
         runs.append(vector_run)
@@ -190,13 +195,21 @@ def canonicalize_basic_block(basic_block_instrs):
     into adds, subs, muls and divs, separated, so that we can take advantage
     of these runs.
     """
+    ALPHABETICALLY_FIRST = "AAAAAAA"
+
+    def division_sorting(instr):
+        op = instr[OP]
+        if op == DIV:
+            return ALPHABETICALLY_FIRST
+        return op
+
     independent_sequences = build_independent_sequences(basic_block_instrs)
     sorted_independent_sequences = []
     for independent_seq in independent_sequences:
         # sort instructions in an indenpdent sequence  by the opp code
         # This produces adds | divs | muls | subs
         new_independent_seq = sorted(
-            independent_seq, key=lambda instr: instr[OP])
+            independent_seq, key=division_sorting)
         sorted_independent_sequences.append(new_independent_seq)
 
     # begin stitching together the basic block with new sorted instructions

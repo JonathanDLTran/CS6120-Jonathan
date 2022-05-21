@@ -29,7 +29,7 @@
     print a1;
     print a2;
     print a3;
-    print ma;
+    print a4;
 
     print s1;
     print s2;

@@ -28,7 +28,7 @@
     br cond .end1 .loop1;
 .loop1:
     res: int = load cpyarr;
-    print res
+    print res;
 
     cpyarr: ptr<int> = ptradd cpyarr offset;
     i: int = add one i;
