@@ -175,7 +175,7 @@ def walk_and_build_packs(runs, previously_computed_packs, previously_computed_co
                                          previously_computed_constants, left_args)
 
     # add left vector to previously computed vector
-    previously_computed_constants[left_args] = left_vec_name
+    previously_computed_packs[left_args] = left_vec_name
 
     assert left_vec_name != None
 
@@ -189,7 +189,7 @@ def walk_and_build_packs(runs, previously_computed_packs, previously_computed_co
                                           previously_computed_constants, right_args)
 
     # add right vector to previously computed vector
-    previously_computed_constants[right_args] = right_vec_name
+    previously_computed_packs[right_args] = right_vec_name
 
     assert right_vec_name != None
 
@@ -201,7 +201,7 @@ def walk_and_build_packs(runs, previously_computed_packs, previously_computed_co
 
     # add dests vector to previously computed vector
     dests = triples_to_dests(triples)
-    previously_computed_constants[dests] = vec_result_name
+    previously_computed_packs[dests] = vec_result_name
 
     # extract elements from the result vector
     # this is necessary because after DCE was run, every vector element should be used somewhere!
@@ -219,11 +219,19 @@ def last_instrs_of_runs(runs):
     """
     Grab the last instructions of every run
     """
-    last_instrs = []
-    for run in runs:
+    last_instrs = dict()
+    for i, run in enumerate(runs):
         assert len(run) > 0
-        last_instrs.append(run[-1])
+        last_instrs[id(run[-1])] = i
     return last_instrs
+
+
+def all_instrs_in_runs(runs):
+    all_instrs = set()
+    for run in runs:
+        for instr in run:
+            all_instrs.add(id(instr))
+    return all_instrs
 
 
 def lvn_slp_basic_block(basic_block_instrs):
@@ -241,10 +249,31 @@ def lvn_slp_basic_block(basic_block_instrs):
 
     # begin stitching together the basic block with vector instructions
     # grab last instruction of every run
+    last_instrs_map = last_instrs_of_runs(runs)
 
+    # build the new basic block
+    packed_basic_block_instrs = []
     # insert the new packed instructions for every run
+    for instr in basic_block_instrs:
+        instr_id = id(instr)
+        if instr_id in last_instrs_map:
+            run_idx = last_instrs_map[instr_id]
+            assert run_idx in run_to_packs
+            packed_basic_block_instrs += run_to_packs[run_idx]
+        else:
+            packed_basic_block_instrs.append(instr)
+
+    # grab all instrucitons in runs
+    all_instrs = all_instrs_in_runs(runs)
 
     # delete original run instructions
+    final_basic_block_instrs = []
+    for instr in packed_basic_block_instrs:
+        instr_id = id(instr)
+        if instr_id not in all_instrs:
+            final_basic_block_instrs.append(instr)
+
+    return final_basic_block_instrs
 
 
 def lvn_slp_func(func):
