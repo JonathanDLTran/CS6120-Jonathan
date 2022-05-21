@@ -215,25 +215,6 @@ def walk_and_build_packs(runs, previously_computed_packs, previously_computed_co
     return walk_and_build_packs(runs[1:], previously_computed_packs, previously_computed_constants, run_idx + 1, run_to_packs)
 
 
-def last_instrs_of_runs(runs):
-    """
-    Grab the last instructions of every run
-    """
-    last_instrs = dict()
-    for i, run in enumerate(runs):
-        assert len(run) > 0
-        last_instrs[id(run[-1])] = i
-    return last_instrs
-
-
-def all_instrs_in_runs(runs):
-    all_instrs = set()
-    for run in runs:
-        for instr in run:
-            all_instrs.add(id(instr))
-    return all_instrs
-
-
 def lvn_slp_basic_block(basic_block_instrs):
     """
     Perform SLP on a basic block
@@ -289,7 +270,8 @@ def lvn_slp_func(func):
 
 
 def lvn_slp_prog(prog):
-    ssa_prog = bril_to_ssa(prog)
+    canonical_prog = canonicalize_prog(prog)
+    ssa_prog = bril_to_ssa(canonical_prog)
     for func in ssa_prog[FUNCTIONS]:
         lvn_slp_func(func)
     bril_prog = ssa_to_bril(ssa_prog)
