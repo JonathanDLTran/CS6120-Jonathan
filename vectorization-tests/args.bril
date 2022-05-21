@@ -1,0 +1,12 @@
+# ARGS: 1 2 3 4
+@main(a: int, b: int, c: int, d: int) {
+    w: int = add a b;
+    x: int = add c d;
+    y: int = add c a;
+    z: int = add d b;
+
+    print w;
+    print x;
+    print y;
+    print z;
+}

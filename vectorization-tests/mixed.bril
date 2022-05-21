@@ -1,0 +1,43 @@
+@main {
+    a: int = const 4;
+    b: int = const 5;
+    c: int = const 6;
+    d: int = const 7;
+
+    m1: int = mul a b;
+    d1: int = div b c;
+    m2: int = mul b a;
+    a1: int = add c d;
+    d2: int = div c a;
+    m3: int = add b d;
+    a2: int = add d c;
+    s1: int = sub b d;
+    s2: int = sub d b;
+    a3: int = add d a;
+    m4: int = mul b d;
+    d3: int = div a c;
+    s3: int = sub a b;
+    s4: int = sub b a;
+    a4: int = add d b;
+    d4: int = div c b;
+
+    print m1;
+    print m2;
+    print m3;
+    print m4;
+
+    print a1;
+    print a2;
+    print a3;
+    print ma;
+
+    print s1;
+    print s2;
+    print s3;
+    print s4;
+
+    print d1;
+    print d2;
+    print d3;
+    print d4;
+}
