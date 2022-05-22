@@ -356,8 +356,7 @@ def lvn_slp_func(func):
 
 
 def lvn_slp_prog(prog):
-    canonical_prog = canonicalize_prog(prog)
-    ssa_prog = bril_to_ssa(canonical_prog)
+    ssa_prog = bril_to_ssa(prog)
     for func in ssa_prog[FUNCTIONS]:
         lvn_slp_func(func)
     bril_prog = ssa_to_bril(ssa_prog)

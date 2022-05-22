@@ -793,10 +793,10 @@ function evalInstr(instr: bril.Instruction, state: State): Action {
             let zero = BigInt(0);
             let sum = [zero, zero, zero, zero];
             for (let [i, e1] of vec1.values.entries()) {
-                sum[i] += e1;
+                sum[i] = BigInt.asIntN(64, e1 + sum[i]);
             }
             for (let [i, e2] of vec2.values.entries()) {
-                sum[i] += e2;
+                sum[i] = BigInt.asIntN(64, e2 + sum[i]);
             }
             let newVec: Vector = { "size": bril.vectorSize, "type": "int", "values": sum };
             let dest = instr.dest;
@@ -817,10 +817,10 @@ function evalInstr(instr: bril.Instruction, state: State): Action {
             let zero = BigInt(0);
             let diff = [zero, zero, zero, zero];
             for (let [i, e1] of vec1.values.entries()) {
-                diff[i] += e1;
+                diff[i] = BigInt.asIntN(64, e1 + diff[i]);
             }
             for (let [i, e2] of vec2.values.entries()) {
-                diff[i] -= e2;
+                diff[i] = BigInt.asIntN(64, diff[i] - e2);
             }
             let newVec: Vector = { "size": bril.vectorSize, "type": "int", "values": diff };
             let dest = instr.dest;
@@ -841,10 +841,10 @@ function evalInstr(instr: bril.Instruction, state: State): Action {
             let zero = BigInt(0);
             let mul = [zero, zero, zero, zero];
             for (let [i, e1] of vec1.values.entries()) {
-                mul[i] += e1;
+                mul[i] = BigInt.asIntN(64, e1 + mul[i]);
             }
             for (let [i, e2] of vec2.values.entries()) {
-                mul[i] *= e2;
+                mul[i] = BigInt.asIntN(64, e2 * mul[i]);
             }
             let newVec: Vector = { "size": bril.vectorSize, "type": "int", "values": mul };
             let dest = instr.dest;
@@ -865,10 +865,10 @@ function evalInstr(instr: bril.Instruction, state: State): Action {
             let zero = BigInt(0);
             let div = [zero, zero, zero, zero];
             for (let [i, e1] of vec1.values.entries()) {
-                div[i] += e1;
+                div[i] = BigInt.asIntN(64, e1 + div[i]);
             }
             for (let [i, e2] of vec2.values.entries()) {
-                div[i] /= e2;
+                div[i] = BigInt.asIntN(64, div[i] / e2);
             }
             let newVec: Vector = { "size": bril.vectorSize, "type": "int", "values": div };
             let dest = instr.dest;
@@ -890,13 +890,13 @@ function evalInstr(instr: bril.Instruction, state: State): Action {
             let zero = BigInt(0);
             let mac = [zero, zero, zero, zero];
             for (let [i, e1] of vec1.values.entries()) {
-                mac[i] += e1;
+                mac[i] = BigInt.asIntN(64, mac[i] + e1);
             }
             for (let [i, e2] of vec2.values.entries()) {
-                mac[i] *= e2;
+                mac[i] = BigInt.asIntN(64, mac[i] * e2);
             }
             for (let [i, e3] of vec3.values.entries()) {
-                mac[i] += e3;
+                mac[i] = BigInt.asIntN(64, mac[i] + e3);
             }
             let newVec: Vector = { "size": bril.vectorSize, "type": "int", "values": mac };
             let dest = instr.dest;
@@ -916,7 +916,7 @@ function evalInstr(instr: bril.Instruction, state: State): Action {
             let zero = BigInt(0);
             let neg = [zero, zero, zero, zero];
             for (let [i, e1] of vec1.values.entries()) {
-                neg[i] -= e1;
+                neg[i] = BigInt.asIntN(64, neg[i] + e1);
             }
             let newVec: Vector = { "size": bril.vectorSize, "type": "int", "values": neg };
             let dest = instr.dest;

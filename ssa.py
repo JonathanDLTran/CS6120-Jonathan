@@ -134,10 +134,11 @@ def prog_has_ssa_var(prog):
                 dst = instr[DEST]
                 if is_ssa_var(dst):
                     return True
-        for arg in func[ARGS]:
-            arg_name = arg[NAME]
-            if is_ssa_var(arg_name):
-                return True
+        if ARGS in func:
+            for arg in func[ARGS]:
+                arg_name = arg[NAME]
+                if is_ssa_var(arg_name):
+                    return True
     return False
 
 

@@ -38,7 +38,7 @@ perfect,oplvn,976
 digital-root,baseline,247
 digital-root,oplvn,663
 adj2csr,baseline,56629
-adj2csr,oplvn,incorrect
+adj2csr,oplvn,167725
 up-arrow,baseline,252
 up-arrow,oplvn,668
 sum-divisors,baseline,159
@@ -52,7 +52,7 @@ euclid,oplvn,883
 binary-fmt,baseline,100
 binary-fmt,oplvn,228
 mat-mul,baseline,1990407
-mat-mul,oplvn,incorrect
+mat-mul,oplvn,9530815
 gcd,baseline,46
 gcd,oplvn,86
 pow,baseline,36

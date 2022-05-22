@@ -66,7 +66,7 @@
   curr: int = const 0;
   loc: ptr<int> = id arr;
   adler: int = const 65521;
-  two_raised_to_16: int = const 65536;
+  two_raised_to_sixteen: int = const 65536;
 .loop:
   val: int = load loc;
   a: int = add a val;
@@ -78,7 +78,7 @@
 .exit:
   a: int = call @mod a adler;
   b: int = call @mod b adler;
-  b: int = mul b two_raised_to_16;
+  b: int = mul b two_raised_to_sixteen;
   result: int = call @bitwise_or b a;
   ret result;
 }

@@ -45,9 +45,9 @@
 
 @swap_cond(array: ptr<int>, j: int) {
     one: int = const 1;
-    j_add_1: int = add j one;
+    j_add_a: int = add j one;
     loc: ptr<int> = ptradd array j;
-    loc_next: ptr<int> = ptradd array j_add_1;
+    loc_next: ptr<int> = ptradd array j_add_a;
     elem_a: int = load loc;
     elem_b: int = load loc_next;
     

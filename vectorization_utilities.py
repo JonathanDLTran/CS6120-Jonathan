@@ -4,7 +4,7 @@ Utilities for SLP Vectorization
 
 from bril_core_constants import *
 from bril_core_utilities import *
-from bril_memory_extension_utilities import is_store
+from bril_memory_extension_utilities import is_ptradd, is_store
 from bril_vector_constants import *
 from cfg import form_cfg_w_blocks, join_cfg
 
