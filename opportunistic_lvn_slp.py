@@ -11,7 +11,7 @@ import sys
 
 from bril_core_constants import *
 from bril_core_utilities import *
-from bril_vector_utilities import build_vecbinop, build_vecload, build_vecstore, build_veczero
+from bril_vector_utilities import build_vecbinop, build_vecload, build_vecmove, build_vecstore, build_veczero
 
 from cfg import form_cfg_w_blocks, join_cfg
 
@@ -74,7 +74,7 @@ def partially_matches_pack(args, previously_computed_pack):
     num_matched = 0
     unmatched_indices = []
     for i in range(min_len):
-        if args[i] == previously_computed_pack_len[i]:
+        if args[i] == previously_computed_pack[i]:
             num_matched += 1
         else:
             unmatched_indices.append(i)
@@ -82,18 +82,22 @@ def partially_matches_pack(args, previously_computed_pack):
 
 
 def partially_matches(args, previously_computed_packs):
-    for pack in enumerate(previously_computed_packs):
+    for pack in previously_computed_packs:
         (match, match_indices) = partially_matches_pack(args, pack)
         if match:
             return (match, previously_computed_packs[pack], match_indices)
     return (False, "", [])
 
 
-def build_arg_vector_partial_match(match_params, run_instrs, pack_length, previously_computed_constants, vec_args):
-    (_, pack_name, unmatched_indices) = match_params
+def build_arg_vector_partial_match(match_params, run_instrs, previously_computed_constants, vec_args):
+    (_, vec_name, unmatched_indices) = match_params
+    assert len(unmatched_indices) > 1
 
-    # get pack name and start iterating
-    vec_name = pack_name
+    # get pack name and copy it to a fresh vector register via a vecmove
+    new_vec_name = gen_new_vector_var()
+    vecmove_instr = build_vecmove(new_vec_name, vec_name)
+    run_instrs.append(vecmove_instr)
+
     prior_vector_idx_name = gen_new_vector_idx()
     prior_idx = 0
     new_idx_instr = build_const(prior_vector_idx_name, INT, prior_idx)
@@ -106,8 +110,31 @@ def build_arg_vector_partial_match(match_params, run_instrs, pack_length, previo
             assert idx > prior_idx
             diff = idx - prior_idx
             # build the diff offset constant
+            diff_name = None
             if diff not in previously_computed_constants:
-                pass
+                diff_name = gen_new_vector_const()
+                new_const_instr = build_const(diff_name, INT, diff)
+                run_instrs.append(new_const_instr)
+                # add the diff constant to the map of prior built constants
+                previously_computed_constants[diff] = diff_name
+            else:
+                diff_name = previously_computed_constants[diff]
+            assert diff_name != None
+
+            # build the bump incr instruction
+            ith_new_vector_idx_name = gen_new_vector_idx()
+            incr_instr = build_add(
+                ith_new_vector_idx_name, prior_vector_idx_name, diff_name)
+            run_instrs.append(incr_instr)
+            prior_vector_idx_name = ith_new_vector_idx_name
+
+        # build the vector load instruction
+        # build the vector load
+        vec_load_instr = build_vecload(
+            new_vec_name, prior_vector_idx_name, vec_args[idx])
+        run_instrs.append(vec_load_instr)
+
+    return new_vec_name
 
 
 def build_arg_vector(run_instrs, pack_length, previously_computed_constants, vec_args):
@@ -219,7 +246,7 @@ def walk_and_build_packs(runs, previously_computed_packs, previously_computed_co
     if left_args in previously_computed_packs:
         left_vec_name = previously_computed_packs[left_args]
     elif match_params[0]:
-        left_vec_name = build_arg_vector_partial_match(match_params, run_instrs, pack_length,
+        left_vec_name = build_arg_vector_partial_match(match_params, run_instrs,
                                                        previously_computed_constants, left_args)
     else:
         # left args fail to match a prior computed pack. Create a new vector pack
@@ -237,7 +264,7 @@ def walk_and_build_packs(runs, previously_computed_packs, previously_computed_co
     if right_args in previously_computed_packs:
         right_vec_name = previously_computed_packs[right_args]
     elif match_params[0]:
-        right_vec_name = build_arg_vector_partial_match(match_params, run_instrs, pack_length,
+        right_vec_name = build_arg_vector_partial_match(match_params, run_instrs,
                                                         previously_computed_constants, right_args)
     else:
         # right args fail to match a prior computed pack. Create a new vector pack

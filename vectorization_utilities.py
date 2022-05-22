@@ -21,6 +21,8 @@ NEW_VECTOR_ONE = "one"
 NEW_VECTOR_ONE_IDX = 0
 RESULT_VECTOR_VAR = "result_vector_var"
 RESULT_VECTOR_VAR_IDX = 0
+NEW_VECTOR_CONST = "vec_const"
+NEW_VECTOR_CONST_IDX = 0
 
 
 def gen_new_vector_var():
@@ -45,6 +47,12 @@ def gen_result_vector_var():
     global RESULT_VECTOR_VAR_IDX
     RESULT_VECTOR_VAR_IDX += 1
     return f"{RESULT_VECTOR_VAR}_{RESULT_VECTOR_VAR_IDX}"
+
+
+def gen_new_vector_const():
+    global NEW_VECTOR_CONST_IDX
+    NEW_VECTOR_CONST_IDX += 1
+    return f"{NEW_VECTOR_CONST}_{NEW_VECTOR_CONST_IDX}"
 
 
 def is_homogenous(instrs):
