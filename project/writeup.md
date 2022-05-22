@@ -16,13 +16,13 @@ The vector language is simulated in the Bril interpreter. I implemented the vect
 
 ## Vectorization
 
-Vectorization is broken into several stages. The first stage is to preprocess the code, which enables the vectorization algorithms to have greater opportunities to create vectors. The second stage is to run the vectorization algorithms on the preprocessed basic blocks in the code, and create vectors, which then replace code in the basic block. 
+Vectorization is broken into several stages. The first stage is to preprocess the code, which enables the vectorization algorithms to have greater opportunities to create vectors. The second stage is to create runs of vectorizable instructions. A run of instructions is::::: A vectorizable instruction is>>:The third stage is to run the vectorization algorithms on the runs of vectorizable instructions, and create vectors, which then replace code in the basic block. 
 
 ### Preprocessing
 
 Preprocessing is applied to the Bril code to allow for further optimization potential. Assuming no memory operations are present, the first preprocessing optimizations applied are simple dead code elimination (DCE), LVN, loop invariant code motion (LICM). Removing obviously dead instructions will and applying local value numbering will simplify the code, propagate constants, and eliminate common subexpressions, simplifying some of the vectorization later on. As a side note, the condition for non-present memory conditions is because my implementations do not handle memory operations for DCE, LVN or LICM.
 
-Next, loops in the code are fully unrolled, if possible. Unrolling only applies to loops that have one iteration variable that is increasing by 1 or decreasing by 1. Further, the loop header must have exactly one branch condition, dependign on the iteration variable. The loop also must have only one exit, from the branch condition in the header. By unrolling the code, loops get expanded into long sequences of straight-line code without branches or jumps. Having straight line code allows for long sequences of instructions that can be identified as vectorizable, and the possibility that a vector may be used several times.
+Next, loops in the code are fully unrolled, if possible. Unrolling only applies to loops that have one iteration variable that is increasing by 1 or decreasing by 1. Further, the loop header must have exactly one branch condition, depending on the iteration variable. The loop also must have only one exit, from the branch condition in the header. By unrolling the code, loops get expanded into long sequences of straight-line code without branches or jumps. Having straight line code allows for long sequences of instructions that can be identified as vectorizable, and the possibility that a vector may be used several times.
 
 After unrolling, stores are then moved as late in the basic block as possible. Store movement depends on alias analysis, because a store can only move past another store or another load, assuming no aliasing. Moving stores later in the basic block allows for a greater opportunity of finding vectors, because vectors have to end when a store is identified.
 
@@ -32,6 +32,26 @@ Finally, block coalescing is done to the control flow graph. When loop unrolling
 
 ### Naive Vectorization
 
+### Opportunistic LVN Vectorization
+
+### Maximal Use Vectorization
+
 ## Evaluation
+
+I evaluated the vectorization algorithms for correctness on my own tests, as well as the Bril Benchmarks. I restricted the benchmarks to only benchmarks use the Bril core language, as well as the Bril memory extension. The Bril speculative and Bril floating point extensions are not supported in my vectorization scheme.
+
+I also evaluated the vectorization algorithms to see how many vectors were created. To do so, I instrumented the `brili-vc` interpreter to count the number of `veczero` calls that were created. I also counted the number of times a vector were reused.
+
+The results are shown in a graph below:
+
+## Shortcomings in the Vectorization Schemews
+
+There were several major issues with the vectorization schemes that I proposed. First, the preprocessing passes are too weak. 
+
+Another problem is that the cost of each operation is not accounted for accurately. For instance, I form vectors from consecutive operations that can be vectorized. However, I never account for the cost of loading into or extracting from vectors. Many architectures allow for cheaper loads of consecutive memory locations into a vector, than compared to non-consecutive memory locations. The same holds for stores. However, I never check in consecutive memory locations are loaded into or stored from a vector. This could cause the vectorizable to be more expensive in terms of runtime, when compared to the original code.
+
+Additionally, the algorithms that I implemented in this project were very simple. There are more complex ways to allow for further vector reuse across basic blocks, and across entire functions. For instance, the goSLP project uses integer linear programming (ILP) to encode conditions that each vector pack must satisfy in a valid vectorization scheme. After using an ILP solver, an optimal solution can be found for creating vector packs across an entire function. While I never tried any ideas from the goSLP paper, I did try brute force techniques to enumerate every possible permutation of instructions in a vector pack, considering packs of size two, three and four. This attempt failed to scale to five vector packs, and even on four vector packs, produced too many possible vector packs that could be valid vectorizations. This made me realize that I had to be smarter with my brute force technique to create more tractable solutions. I also tried enumerating combinations, rather than permutations, as well, and the results were fairly poor. 
+
+Finally, I have no true way of evaluating the vectorization, because there is no Bril backend to target a real-life architecture. If I compiled Bril code down to x86 assembly, then I could evaluate the true optimization impact of the vectorization via measurements of the running time. However, the measurements I currently make are poor approximations for the actual optimization potential of vectorization, because there is no running time estimate for each Bril instruction executed, and because there are many other factors that could play a role in the success of vectorization, such as instruction cache performance.
 
 ## Conclusion
