@@ -10,7 +10,7 @@ The common workflow to run transformation passes and analyses on bril is
 - Local Value Numbering / Global Value Numbering with Dominator Tree
 - Loop Invariant Code Motion 
 - Induction Variable Elimination 
-- Vectorization (Exceptionally Naive Version)
+- Vectorization (Exceptionally Naive Version, Opportunistic LVN)
 
 # Analyses
 - Live Variables 
