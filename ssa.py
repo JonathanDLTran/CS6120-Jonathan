@@ -6,6 +6,8 @@ from collections import defaultdict
 
 from bril_core_constants import *
 from bril_core_utilities import *
+from bril_float_constants import *
+from bril_memory_extension_utilities import is_ptr_type
 from cfg import PREDS, SUCCS, TERMINATORS, form_cfg_succs_preds, form_blocks, form_block_dict, join_blocks_w_labels
 from dominator_utilities import build_dominance_tree, build_dominance_frontier
 
@@ -56,7 +58,7 @@ def func_from_ssa(func):
                     insert_at_end_of_bb(prev_block, new_instr)
             else:
                 new_instrs.append(instr)
-            block_dict[block_name] = new_instrs
+        block_dict[block_name] = new_instrs
     return join_blocks_w_labels(block_dict)
 
 
@@ -120,6 +122,25 @@ def is_ssa_var(var):
     return "_" in var and (var[var.rindex("_") + 1:]).isnumeric()
 
 
+def prog_has_ssa_var(prog):
+    for func in prog[FUNCTIONS]:
+        for instr in func[INSTRS]:
+            if ARGS in instr:
+                args = instr[ARGS]
+                for a in args:
+                    if is_ssa_var(a):
+                        return True
+            if DEST in instr:
+                dst = instr[DEST]
+                if is_ssa_var(dst):
+                    return True
+        for arg in func[ARGS]:
+            arg_name = arg[NAME]
+            if is_ssa_var(arg_name):
+                return True
+    return False
+
+
 def insert_into_new_branch(block_dict, succ_name, cfg, var_to_fresh_index, a, i, phi_node):
     pred_block_name = cfg[succ_name][PREDS][i]
     new_var = f"{a}_{var_to_fresh_index[a] + 1}"
@@ -131,6 +152,12 @@ def insert_into_new_branch(block_dict, succ_name, cfg, var_to_fresh_index, a, i,
     elif new_instr_type == INT:
         new_instr = {OP: CONST,
                      VALUE: 0, DEST: new_var, TYPE: INT}
+    elif new_instr_type == FLOAT:
+        new_instr = {OP: CONST,
+                     VALUE: 0, DEST: new_var, TYPE: FLOAT}
+    elif is_ptr_type(phi_node):
+        new_instr = {OP: CONST,
+                     VALUE: 0, DEST: new_var, TYPE: new_instr_type}
     else:
         raise RuntimeError(
             f"Unhandled type {new_instr_type}.")
@@ -348,6 +375,9 @@ def func_to_ssa(func):
 
 
 def bril_to_ssa(program):
+    if prog_has_ssa_var(program):
+        raise RuntimeError(
+            f"Program has SSA Variable Naming: Please rename any variables with names ending with _0, _1, ...")
     for func in program["functions"]:
         new_instrs = func_to_ssa(func)
         func["instrs"] = new_instrs
@@ -385,6 +415,9 @@ def is_not_ssa(program):
 @click.option('--pretty-print', default=False, help='Print transformed program.')
 def main(to_ssa, from_ssa, pretty_print):
     prog = json.load(sys.stdin)
+    if prog_has_ssa_var(prog):
+        raise RuntimeError(
+            f"Program has SSA Variable Naming: Please rename any variables with names ending with _0, _1, ...")
     if to_ssa:
         prog = bril_to_ssa(prog)
     if from_ssa:

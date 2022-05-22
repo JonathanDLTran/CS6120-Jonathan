@@ -32,11 +32,11 @@
     offset : float = fmul delta i; 
     x : float = fadd a offset; 
     f_x : float = call @square_function x;
-    sum = fadd sum f_x;
-    i = fsub i one;
+    sum : float = fadd sum f_x;
+    i : int = fsub i one;
     jmp .while.header;
     .while.end:
-    sum = fmul sum delta;
+    sum : float = fmul sum delta;
     ret sum;
 }
 
@@ -54,11 +54,11 @@
     offset : float = fmul delta i; 
     x : float = fadd a offset; 
     f_x : float = call @square_function x;
-    sum = fadd sum f_x;
-    i = fsub i one;
+    sum : float = fadd sum f_x;
+    i : int = fsub i one;
     jmp .while.header;
     .while.end:
-    sum = fmul sum delta;
+    sum : float = fmul sum delta;
     ret sum;
 }
 
@@ -77,13 +77,13 @@
     .while.body:
     offset : float = fmul delta i; 
     half_delta : float = fdiv delta two;
-    offset = fadd offset half_delta;
+    offset : float = fadd offset half_delta;
     x : float = fadd a offset; 
     f_x : float = call @square_function x;
-    sum = fadd sum f_x;
-    i = fsub i one;
+    sum : float = fadd sum f_x;
+    i : int = fsub i one;
     jmp .while.header;
     .while.end:
-    sum = fmul sum delta;
+    sum : float = fmul sum delta;
     ret sum;
 }

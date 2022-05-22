@@ -51,7 +51,7 @@
   det :float = fadd det to_add;
   det :float = fsub det to_sub;
   i :int = add i one;
-  i_lt_three = lt i three;
+  i_lt_three :bool = lt i three;
   br i_lt_three .loop .done;
 .done:
   ret det;

@@ -17,16 +17,16 @@
   icount: int = add icount one;
   ret icount;
 .for.cond:
-  for_cond_0: bool = le ite queens;
-  br for_cond_0 .for.body .next.ret.1;
+  for_cond_a: bool = le ite queens;
+  br for_cond_a .for.body .next.ret.1;
 .for.body:
   nptr: ptr<int> = ptradd site n;
   store nptr ite;
   is_valid: bool = call @valid n site;
   br is_valid .rec.func .next.loop;
 .rec.func:
-  n_1: int = add n one;
-  icount: int = call @queen n_1 queens icount site;
+  n_b: int = add n one;
+  icount: int = call @queen n_b queens icount site;
 .next.loop:
   ite: int = add ite one;
   jmp .for.cond;
@@ -45,21 +45,21 @@
 .for.body:
   iptr: ptr<int> = ptradd site ite;
   nptr: ptr<int> = ptradd site n;
-  help_0: int = const 500;
+  help_a: int = const 500;
   vali: int = load iptr;
   valn: int = load nptr;
-  eq_cond_0: bool = eq vali valn;
-  br eq_cond_0 .true.ret.0 .false.else;
+  eq_cond_a: bool = eq vali valn;
+  br eq_cond_a .true.ret.0 .false.else;
 .true.ret.0:
   ret false;
 .false.else:
-  sub_0: int = sub vali valn;
-  sub_1: int = sub valn vali;
-  sub_2: int = sub n ite;
-  eq_cond_1: bool = eq sub_0 sub_2;
-  eq_cond_2: bool = eq sub_1 sub_2;
-  eq_cond_12: bool = or eq_cond_1 eq_cond_2;
-  br eq_cond_12 .true.ret.1 .false.loop;
+  sub_a: int = sub vali valn;
+  sub_b: int = sub valn vali;
+  sub_c: int = sub n ite;
+  eq_cond_b: bool = eq sub_a sub_c;
+  eq_cond_c: bool = eq sub_b sub_c;
+  eq_cond_bc: bool = or eq_cond_b eq_cond_c;
+  br eq_cond_bc .true.ret.1 .false.loop;
 .true.ret.1:
   ret false;
 .false.loop:

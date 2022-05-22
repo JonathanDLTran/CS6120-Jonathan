@@ -44,7 +44,7 @@ I also evaluated the vectorization algorithms to see how many vectors were creat
 
 The results are shown in a graph below:
 
-## Shortcomings in the Vectorization Schemews
+## Shortcomings in the Vectorization Schemes
 
 There were several major issues with the vectorization schemes that I proposed. First, the preprocessing passes are not as strong as I intended them to be. For instance, the unrolling pass is very simple in how it detects whether a loop can be unrolled. I would need to improve the unrolling pass to make it detect a wider range of fully-unrollable loops. In addition, the alias analysis pass was basic in design. The alias analysis pass only assigns one address to an entire array, failing to disambiguate between different locations in an array. This means that some instances of store movements cannot occur successfully, because the alias analysis will report two addresses in an array can alias, when in fact the two addresses are at different memory locations. As a result, it would probably be a good idea to augment the alias analysis to model each cell in the array.
 
