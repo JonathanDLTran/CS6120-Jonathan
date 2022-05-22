@@ -15,7 +15,7 @@
     print h;
 
     jmp .second;
-second:
+.second:
     w: int = add a b;
     x: int = add c d;
     y: int = add a d;

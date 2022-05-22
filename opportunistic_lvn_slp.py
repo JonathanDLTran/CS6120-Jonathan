@@ -91,7 +91,7 @@ def partially_matches(args, previously_computed_packs):
 
 def build_arg_vector_partial_match(match_params, run_instrs, previously_computed_constants, vec_args):
     (_, vec_name, unmatched_indices) = match_params
-    assert len(unmatched_indices) > 1
+    assert len(unmatched_indices) >= 1
 
     # get pack name and copy it to a fresh vector register via a vecmove
     new_vec_name = gen_new_vector_var()

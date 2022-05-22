@@ -1,0 +1,23 @@
+extract = 'total_dyn_inst: (\d+)'
+benchmarks = '../vectorization-tests/*.bril'
+timeout = 60
+
+[runs.baseline]
+pipeline = [
+    "bril2json",
+    "brili-vc -p {args}",
+]
+
+[runs.op]
+pipeline = [
+    "bril2json",
+    "python3 ../vectorization.py --op=True",
+    "brili-vc -p {args}",
+]
+
+[runs.naive]
+pipeline = [
+    "bril2json",
+    "python3 ../vectorization.py --naive=True",
+    "brili-vc -p {args}",
+]
