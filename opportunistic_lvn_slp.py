@@ -307,8 +307,6 @@ def lvn_slp_basic_block(basic_block_instrs):
 
     Assumes code is in SSA form
     Assumes LVN and DCE have been run already
-
-    TODO: Add in vecmoves for partial matches of 2 or more elements on past computed vectors!
     """
     # build run of vectorizable instruction
     runs = build_runs(basic_block_instrs)
