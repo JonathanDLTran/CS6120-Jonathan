@@ -121,6 +121,9 @@ def build_arg_vector_partial_match(match_params, run_instrs, previously_computed
                 diff_name = previously_computed_constants[diff]
             assert diff_name != None
 
+            # update prior_idx
+            prior_idx = idx
+
             # build the bump incr instruction
             ith_new_vector_idx_name = gen_new_vector_idx()
             incr_instr = build_add(
