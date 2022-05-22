@@ -229,7 +229,8 @@ def coalesce_function(function):
             # check label is used or not
             label_used = False
             for other_instr in function[INSTRS]:
-                if other_instr != prev_instr and is_jmp(other_instr):
+                # compare id's as comparing directly on instruction only compares fields of instruction, as instructions are implemented as dictionaries
+                if id(other_instr) != id(prev_instr) and is_jmp(other_instr):
                     if instr[LABEL] in other_instr[LABELS]:
                         label_used = True
                 elif is_br(other_instr):

@@ -33,7 +33,7 @@ from loop_unrolling import fully_unroll_prog
 from store_movement import move_stores_prog
 
 from naive_vectorization import naive_vectorization_prog
-from slp import slp_prog
+from opportunistic_lvn_slp import lvn_slp_prog
 from vectorization_utilities import canonicalize_prog
 
 
@@ -46,26 +46,25 @@ def preprocess_prog(prog):
     # do preprocessing, if possible, with no memory ops
     preprocessed_prog = prog
     if not has_mem_ops(prog):
-        dce_prog = dce(prog, "True", "True", "False", "False")
-        lvn_prog = lvn(dce_prog)
-        licm_prog = licm_main(lvn_prog)
+        # dce_prog = dce(prog, None, None, "False", "False")
+        licm_prog = licm_main(prog)
         preprocessed_prog = licm_prog
     canonical_prog = canonicalize_prog(preprocessed_prog)
     unrolled_prog = fully_unroll_prog(canonical_prog)
-    moved_stores_prog = move_stores_prog(unrolled_prog)
-    coalesced_prog = coalesce_prog(moved_stores_prog)
+    # moved_stores_prog = move_stores_prog(unrolled_prog)
+    coalesced_prog = coalesce_prog(unrolled_prog)
     return coalesced_prog
 
 
-def vectorize_prog(prog, naive, slp):
+def vectorize_prog(prog, naive, op):
     """
     Vectorizes prog
     TODO
     """
     preprocessed_prog = preprocess_prog(prog)
     final_prog = prog
-    if bool(slp) == True:
-        final_prog = slp_prog(preprocessed_prog)
+    if bool(op) == True:
+        final_prog = lvn_slp_prog(preprocessed_prog)
     elif bool(naive) == True:
         final_prog = naive_vectorization_prog(preprocessed_prog)
     # No Vectorization Flags Enabled
@@ -75,12 +74,12 @@ def vectorize_prog(prog, naive, slp):
 @click.command()
 @click.option('--pretty-print', default=False, help='Pretty Print Before and After Vectorization.')
 @click.option('--naive', default=False, help='Naive Vectorization.')
-@click.option('--slp', default=False, help='SLP Vectorization.')
-def main(pretty_print, naive, slp):
+@click.option('--op', default=False, help='Opportunistic Vectorization.')
+def main(pretty_print, naive, op):
     prog = json.load(sys.stdin)
     if pretty_print:
         print(json.dumps(prog, indent=4, sort_keys=True))
-    final_prog = vectorize_prog(prog, naive, slp)
+    final_prog = vectorize_prog(prog, naive, op)
     if pretty_print:
         print(json.dumps(final_prog, indent=4, sort_keys=True))
     print(json.dumps(final_prog))
