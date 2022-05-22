@@ -22,6 +22,8 @@ from vectorization_utilities import *
 
 MAX_RUNS_HANDLED = 4
 
+MIN_MATCHES_FOR_PARTIAL = 2
+
 
 def run_to_triples(run):
     """
@@ -60,6 +62,52 @@ def triples_to_dests(triples):
     for triple in triples:
         dests.append(triple[0])
     return tuple(dests)
+
+
+def partially_matches_pack(args, previously_computed_pack):
+    """
+    True and match indices if args matches a computed pack on more than MIN_MATCHES
+    """
+    arg_len = len(args)
+    previously_computed_pack_len = len(previously_computed_pack)
+    min_len = min(arg_len, previously_computed_pack_len)
+    num_matched = 0
+    unmatched_indices = []
+    for i in range(min_len):
+        if args[i] == previously_computed_pack_len[i]:
+            num_matched += 1
+        else:
+            unmatched_indices.append(i)
+    return (num_matched >= MIN_MATCHES_FOR_PARTIAL, unmatched_indices)
+
+
+def partially_matches(args, previously_computed_packs):
+    for pack in enumerate(previously_computed_packs):
+        (match, match_indices) = partially_matches_pack(args, pack)
+        if match:
+            return (match, previously_computed_packs[pack], match_indices)
+    return (False, "", [])
+
+
+def build_arg_vector_partial_match(match_params, run_instrs, pack_length, previously_computed_constants, vec_args):
+    (_, pack_name, unmatched_indices) = match_params
+
+    # get pack name and start iterating
+    vec_name = pack_name
+    prior_vector_idx_name = gen_new_vector_idx()
+    prior_idx = 0
+    new_idx_instr = build_const(prior_vector_idx_name, INT, prior_idx)
+    run_instrs.append(new_idx_instr)
+
+    # fill in all differing indexes with vecloads
+    for idx in unmatched_indices:
+        # build a bump index instruction
+        if idx != prior_idx:
+            assert idx > prior_idx
+            diff = idx - prior_idx
+            # build the diff offset constant
+            if diff not in previously_computed_constants:
+                pass
 
 
 def build_arg_vector(run_instrs, pack_length, previously_computed_constants, vec_args):
@@ -167,8 +215,12 @@ def walk_and_build_packs(runs, previously_computed_packs, previously_computed_co
 
     # translate left args of run to vector
     left_vec_name = None
+    match_params = partially_matches(left_args, previously_computed_packs)
     if left_args in previously_computed_packs:
         left_vec_name = previously_computed_packs[left_args]
+    elif match_params[0]:
+        left_vec_name = build_arg_vector_partial_match(match_params, run_instrs, pack_length,
+                                                       previously_computed_constants, left_args)
     else:
         # left args fail to match a prior computed pack. Create a new vector pack
         left_vec_name = build_arg_vector(run_instrs, pack_length,
@@ -181,8 +233,12 @@ def walk_and_build_packs(runs, previously_computed_packs, previously_computed_co
 
     # translate right args of run to vector
     right_vec_name = None
+    match_params = partially_matches(right_args, previously_computed_packs)
     if right_args in previously_computed_packs:
         right_vec_name = previously_computed_packs[right_args]
+    elif match_params[0]:
+        right_vec_name = build_arg_vector_partial_match(match_params, run_instrs, pack_length,
+                                                        previously_computed_constants, right_args)
     else:
         # right args fail to match a prior computed pack. Create a new vector pack
         right_vec_name = build_arg_vector(run_instrs, pack_length,
