@@ -8,9 +8,16 @@ pipeline = [
     "brili-vc -p {args}",
 ]
 
-[runs.vector]
+[runs.op]
 pipeline = [
     "bril2json",
     "python3 ../vectorization.py --op=True",
+    "brili-vc -p {args}",
+]
+
+[runs.naive]
+pipeline = [
+    "bril2json",
+    "python3 ../vectorization.py --naive=True",
     "brili-vc -p {args}",
 ]
