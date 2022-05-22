@@ -28,7 +28,6 @@ from dce import dce
 from lvn import lvn
 from licm import licm_main
 from cfg import coalesce_prog
-from alias_analysis import alias_analysis
 from loop_unrolling import fully_unroll_prog
 from store_movement import move_stores_prog
 
@@ -46,8 +45,8 @@ def preprocess_prog(prog):
     # do preprocessing, if possible, with no memory ops
     preprocessed_prog = prog
     if not has_mem_ops(prog):
-        # dce_prog = dce(prog, None, None, "False", "False")
-        licm_prog = licm_main(prog)
+        dce_prog = dce(prog, 1, 1, False, False)
+        licm_prog = licm_main(dce_prog)
         preprocessed_prog = licm_prog
     canonical_prog = canonicalize_prog(preprocessed_prog)
     unrolled_prog = fully_unroll_prog(canonical_prog)
