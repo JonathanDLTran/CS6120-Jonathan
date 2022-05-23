@@ -1,0 +1,148 @@
+@main(input: int) {
+.b0:
+  n: int = id input;
+  zero: int = const 0;
+  icount: int = id zero;
+  site: ptr<int> = alloc n;
+  result: int = call @queen zero n icount site;
+  free site;
+  print result;
+.emergency.ret:
+  ret;
+}
+@queen(n: int, queens: int, icount: int, site: ptr<int>): int {
+.b0:
+  one: int = const 1;
+  ite: int = id one;
+  ret_cond: bool = eq n queens;
+  br ret_cond .next.ret .for.cond;
+.next.ret:
+  icount: int = add icount one;
+  ret icount;
+.for.cond:
+  for_cond_a: bool = le ite queens;
+  br for_cond_a .for.body .next.ret.1;
+.for.body:
+  site_1_inlined: ptr<int> = id site;
+  n_1_inlined: int = id n;
+  one_1_inlined: int = const 1;
+  zero_1_inlined: int = const 0;
+  ite_1_inlined: int = id zero_1_inlined;
+  nptr: ptr<int> = ptradd site n;
+  true_1_inlined: bool = eq one_1_inlined one_1_inlined;
+  false_1_inlined: bool = eq zero_1_inlined one_1_inlined;
+  store nptr ite;
+.for.cond.inlined.1:
+  for_cond_1_inlined: bool = lt ite_1_inlined n_1_inlined;
+  br for_cond_1_inlined .for.body.inlined.1 .ret.end.inlined.1;
+.for.body.inlined.1:
+  help_a_1_inlined: int = const 500;
+  iptr_1_inlined: ptr<int> = ptradd site_1_inlined ite_1_inlined;
+  nptr_1_inlined: ptr<int> = ptradd site_1_inlined n_1_inlined;
+  vali_1_inlined: int = load iptr_1_inlined;
+  valn_1_inlined: int = load nptr_1_inlined;
+  eq_cond_a_1_inlined: bool = eq vali_1_inlined valn_1_inlined;
+  br eq_cond_a_1_inlined .true.ret.0.inlined.1 .false.else.inlined.1;
+.true.ret.0.inlined.1:
+  return_var.1.UNIQUE: bool = id false_1_inlined;
+  jmp .return.loc.1;
+.false.else.inlined.1:
+  one_1: int = const 1;
+  new_vector_idx_1: int = const 0;
+  new_vector_var_1: vector = veczero;
+  new_vector_var_2: vector = veczero;
+  vecload new_vector_var_1 new_vector_idx_1 vali_1_inlined;
+  vecload new_vector_var_2 new_vector_idx_1 valn_1_inlined;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  vecload new_vector_var_1 new_vector_idx_1 valn_1_inlined;
+  vecload new_vector_var_2 new_vector_idx_1 vali_1_inlined;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  vecload new_vector_var_1 new_vector_idx_1 n_1_inlined;
+  vecload new_vector_var_2 new_vector_idx_1 ite_1_inlined;
+  result_vector_var_1: vector = vecsub new_vector_var_1 new_vector_var_2;
+  new_vector_idx_1: int = const 0;
+  sub_a_1_inlined: vector = vecstore result_vector_var_1 new_vector_idx_1;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  sub_b_1_inlined: vector = vecstore result_vector_var_1 new_vector_idx_1;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  sub_c_1_inlined: vector = vecstore result_vector_var_1 new_vector_idx_1;
+  eq_cond_b_1_inlined: bool = eq sub_a_1_inlined sub_c_1_inlined;
+  eq_cond_c_1_inlined: bool = eq sub_b_1_inlined sub_c_1_inlined;
+  eq_cond_bc_1_inlined: bool = or eq_cond_b_1_inlined eq_cond_c_1_inlined;
+  br eq_cond_bc_1_inlined .true.ret.1.inlined.1 .false.loop.inlined.1;
+.true.ret.1.inlined.1:
+  return_var.1.UNIQUE: bool = id false_1_inlined;
+  jmp .return.loc.1;
+.false.loop.inlined.1:
+  ite_1_inlined: int = add ite_1_inlined one_1_inlined;
+  jmp .for.cond.inlined.1;
+.ret.end.inlined.1:
+  return_var.1.UNIQUE: bool = id true_1_inlined;
+.return.loc.1:
+  is_valid: bool = id return_var.1.UNIQUE;
+  br is_valid .rec.func .next.loop;
+.rec.func:
+  n_b: int = add n one;
+  icount: int = call @queen n_b queens icount site;
+.next.loop:
+  ite: int = add ite one;
+  jmp .for.cond;
+.next.ret.1:
+  ret icount;
+.emergency.ret:
+  ret;
+}
+@valid(n: int, site: ptr<int>): bool {
+.b0:
+  one: int = const 1;
+  zero: int = const 0;
+  ite: int = id zero;
+  true: bool = eq one one;
+  false: bool = eq zero one;
+.for.cond:
+  for_cond: bool = lt ite n;
+  br for_cond .for.body .ret.end;
+.for.body:
+  help_a: int = const 500;
+  iptr: ptr<int> = ptradd site ite;
+  nptr: ptr<int> = ptradd site n;
+  vali: int = load iptr;
+  valn: int = load nptr;
+  eq_cond_a: bool = eq vali valn;
+  br eq_cond_a .true.ret.0 .false.else;
+.true.ret.0:
+  ret false;
+.false.else:
+  one_2: int = const 1;
+  new_vector_idx_2: int = const 0;
+  new_vector_var_3: vector = veczero;
+  new_vector_var_4: vector = veczero;
+  vecload new_vector_var_3 new_vector_idx_2 vali;
+  vecload new_vector_var_4 new_vector_idx_2 valn;
+  new_vector_idx_2: int = add new_vector_idx_2 one_2;
+  vecload new_vector_var_3 new_vector_idx_2 valn;
+  vecload new_vector_var_4 new_vector_idx_2 vali;
+  new_vector_idx_2: int = add new_vector_idx_2 one_2;
+  vecload new_vector_var_3 new_vector_idx_2 n;
+  vecload new_vector_var_4 new_vector_idx_2 ite;
+  result_vector_var_2: vector = vecsub new_vector_var_3 new_vector_var_4;
+  new_vector_idx_2: int = const 0;
+  sub_a: vector = vecstore result_vector_var_2 new_vector_idx_2;
+  new_vector_idx_2: int = add new_vector_idx_2 one_2;
+  sub_b: vector = vecstore result_vector_var_2 new_vector_idx_2;
+  new_vector_idx_2: int = add new_vector_idx_2 one_2;
+  sub_c: vector = vecstore result_vector_var_2 new_vector_idx_2;
+  eq_cond_b: bool = eq sub_a sub_c;
+  eq_cond_c: bool = eq sub_b sub_c;
+  eq_cond_bc: bool = or eq_cond_b eq_cond_c;
+  br eq_cond_bc .true.ret.1 .false.loop;
+.true.ret.1:
+  ret false;
+.false.loop:
+  ite: int = add ite one;
+  jmp .for.cond;
+.ret.end:
+  ret true;
+.emergency.ret:
+  ret;
+}

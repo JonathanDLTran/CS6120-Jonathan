@@ -1,0 +1,44 @@
+@ack(m: int, n: int): int {
+.b0:
+  one: int = const 1;
+  zero: int = const 0;
+  cond_m: bool = eq m zero;
+  br cond_m .m_zero .m_nonzero;
+.m_zero:
+  tmp: int = add n one;
+  ret tmp;
+.m_nonzero:
+  cond_n: bool = eq n zero;
+  br cond_n .n_zero .n_nonzero;
+.n_zero:
+  m1: int = sub m one;
+  tmp: int = call @ack m1 one;
+  ret tmp;
+.n_nonzero:
+  one_1: int = const 1;
+  new_vector_idx_1: int = const 0;
+  new_vector_var_1: vector = veczero;
+  new_vector_var_2: vector = veczero;
+  vecload new_vector_var_1 new_vector_idx_1 m;
+  vecload new_vector_var_2 new_vector_idx_1 one;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  vecload new_vector_var_1 new_vector_idx_1 n;
+  vecload new_vector_var_2 new_vector_idx_1 one;
+  result_vector_var_1: vector = vecsub new_vector_var_1 new_vector_var_2;
+  new_vector_idx_1: int = const 0;
+  m1: vector = vecstore result_vector_var_1 new_vector_idx_1;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  n1: vector = vecstore result_vector_var_1 new_vector_idx_1;
+  t1: int = call @ack m n1;
+  t2: int = call @ack m1 t1;
+  ret t2;
+.emergency.ret:
+  ret;
+}
+@main(m: int, n: int) {
+.b0:
+  tmp: int = call @ack m n;
+  print tmp;
+.emergency.ret:
+  ret;
+}

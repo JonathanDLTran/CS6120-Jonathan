@@ -1,0 +1,41 @@
+@main(n: int) {
+.b0:
+  one: int = const 1;
+  a: int = id one;
+  n_sq: int = mul n n;
+.new.loop.preheader.1:
+.outer_loop:
+  b: int = id one;
+.new.loop.preheader.2:
+.inner_loop:
+  one_1: int = const 1;
+  new_vector_idx_1: int = const 0;
+  new_vector_var_1: vector = veczero;
+  new_vector_var_2: vector = veczero;
+  vecload new_vector_var_1 new_vector_idx_1 a;
+  vecload new_vector_var_2 new_vector_idx_1 a;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  vecload new_vector_var_1 new_vector_idx_1 b;
+  vecload new_vector_var_2 new_vector_idx_1 b;
+  result_vector_var_1: vector = vecmul new_vector_var_1 new_vector_var_2;
+  new_vector_idx_1: int = const 0;
+  a_sq: vector = vecstore result_vector_var_1 new_vector_idx_1;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  b_sq: vector = vecstore result_vector_var_1 new_vector_idx_1;
+  sum: int = add a_sq b_sq;
+  found: bool = eq sum n_sq;
+  br found .found .inner_continue;
+.found:
+  print b a;
+.inner_continue:
+  b: int = add b one;
+  done: bool = ge b a;
+  br done .outer_continue .inner_loop;
+.outer_continue:
+  a: int = add a one;
+  done: bool = ge a n;
+  br done .finish .outer_loop;
+.finish:
+.emergency.ret:
+  ret;
+}

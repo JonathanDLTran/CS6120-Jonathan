@@ -1,0 +1,56 @@
+@main(input: int) {
+.b0:
+  i: int = const 2;
+  neg_one: int = const -1;
+  one: int = const 1;
+  zero: int = const 0;
+  vals: ptr<int> = alloc input;
+  store vals zero;
+  vals_i: ptr<int> = ptradd vals one;
+  i_minus_one: int = add i neg_one;
+  i_minus_two: int = add i_minus_one neg_one;
+  store vals_i one;
+.loop:
+  cond: bool = lt i input;
+  br cond .body .done;
+.body:
+  vals_i: ptr<int> = ptradd vals i;
+  vals_i_minus_one: ptr<int> = ptradd vals i_minus_one;
+  vals_i_minus_two: ptr<int> = ptradd vals i_minus_two;
+  tmp: int = load vals_i_minus_one;
+  tmp2: int = load vals_i_minus_two;
+  one_1: int = const 1;
+  new_vector_idx_1: int = const 0;
+  new_vector_var_1: vector = veczero;
+  new_vector_var_2: vector = veczero;
+  vecload new_vector_var_1 new_vector_idx_1 tmp;
+  vecload new_vector_var_2 new_vector_idx_1 tmp2;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  vecload new_vector_var_1 new_vector_idx_1 i;
+  vecload new_vector_var_2 new_vector_idx_1 one;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  vecload new_vector_var_1 new_vector_idx_1 i_minus_one;
+  vecload new_vector_var_2 new_vector_idx_1 one;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  vecload new_vector_var_1 new_vector_idx_1 i_minus_two;
+  vecload new_vector_var_2 new_vector_idx_1 one;
+  result_vector_var_1: vector = vecadd new_vector_var_1 new_vector_var_2;
+  new_vector_idx_1: int = const 0;
+  tmp: vector = vecstore result_vector_var_1 new_vector_idx_1;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  i: vector = vecstore result_vector_var_1 new_vector_idx_1;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  i_minus_one: vector = vecstore result_vector_var_1 new_vector_idx_1;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  i_minus_two: vector = vecstore result_vector_var_1 new_vector_idx_1;
+  store vals_i tmp;
+  jmp .loop;
+.done:
+  last: ptr<int> = ptradd vals i_minus_one;
+  tmp: int = load last;
+  free vals;
+  print tmp;
+  ret;
+.emergency.ret:
+  ret;
+}

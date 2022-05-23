@@ -1,0 +1,348 @@
+@main(input_1: int) {
+.UNIQUE.HEADER:
+.b0:
+  n_1: int = id input_1;
+  zero_1: int = const 0;
+  icount_1: int = id zero_1;
+  site_1: ptr<int> = alloc n_1;
+  result_1: int = call @queen zero_1 n_1 icount_1 site_1;
+  free site_1;
+  print result_1;
+.emergency.ret:
+  ret;
+}
+@queen(n_1: int, queens_1: int, icount_1: int, site_1: ptr<int>): int {
+.UNIQUE.HEADER:
+.b0:
+  one_1: int = const 1;
+  ite_1: int = id one_1;
+  ret_cond_1: bool = eq n_1 queens_1;
+  n_b_1: int = const 0;
+  is_valid_1: bool = const true;
+  eq_cond_bc_1_inlined_1: bool = const true;
+  eq_cond_c_1_inlined_1: bool = const true;
+  eq_cond_b_1_inlined_1: bool = const true;
+  sub_c_1_inlined_1: int = const 0;
+  sub_b_1_inlined_1: int = const 0;
+  sub_a_1_inlined_1: int = const 0;
+  return_var.1.UNIQUE_1: bool = const true;
+  eq_cond_a_1_inlined_1: bool = const true;
+  valn_1_inlined_1: int = const 0;
+  vali_1_inlined_1: int = const 0;
+  nptr_1_inlined_1: ptr<int> = const 0;
+  iptr_1_inlined_1: ptr<int> = const 0;
+  help_a_1_inlined_1: int = const 0;
+  for_cond_1_inlined_1: bool = const true;
+  false_1_inlined_1: bool = const true;
+  true_1_inlined_1: bool = const true;
+  nptr_1: ptr<int> = const 0;
+  ite_1_inlined_1: int = const 0;
+  zero_1_inlined_1: int = const 0;
+  one_1_inlined_1: int = const 0;
+  n_1_inlined_1: int = const 0;
+  site_1_inlined_1: ptr<int> = const 0;
+  for_cond_a_1: bool = const true;
+  n_b_2: int = id n_b_1;
+  is_valid_2: bool = id is_valid_1;
+  eq_cond_bc_1_inlined_2: bool = id eq_cond_bc_1_inlined_1;
+  eq_cond_c_1_inlined_2: bool = id eq_cond_c_1_inlined_1;
+  eq_cond_b_1_inlined_2: bool = id eq_cond_b_1_inlined_1;
+  sub_c_1_inlined_2: int = id sub_c_1_inlined_1;
+  sub_b_1_inlined_2: int = id sub_b_1_inlined_1;
+  sub_a_1_inlined_2: int = id sub_a_1_inlined_1;
+  return_var.1.UNIQUE_2: bool = id return_var.1.UNIQUE_1;
+  eq_cond_a_1_inlined_2: bool = id eq_cond_a_1_inlined_1;
+  valn_1_inlined_2: int = id valn_1_inlined_1;
+  vali_1_inlined_2: int = id vali_1_inlined_1;
+  nptr_1_inlined_2: ptr<int> = id nptr_1_inlined_1;
+  iptr_1_inlined_2: ptr<int> = id iptr_1_inlined_1;
+  help_a_1_inlined_2: int = id help_a_1_inlined_1;
+  for_cond_1_inlined_2: bool = id for_cond_1_inlined_1;
+  false_1_inlined_2: bool = id false_1_inlined_1;
+  true_1_inlined_2: bool = id true_1_inlined_1;
+  nptr_2: ptr<int> = id nptr_1;
+  ite_1_inlined_2: int = id ite_1_inlined_1;
+  zero_1_inlined_2: int = id zero_1_inlined_1;
+  one_1_inlined_2: int = id one_1_inlined_1;
+  n_1_inlined_2: int = id n_1_inlined_1;
+  site_1_inlined_2: ptr<int> = id site_1_inlined_1;
+  for_cond_a_2: bool = id for_cond_a_1;
+  ite_2: int = id ite_1;
+  icount_3: int = id icount_1;
+  br ret_cond_1 .next.ret .for.cond;
+.next.ret:
+  icount_2: int = add icount_1 one_1;
+  ret icount_2;
+.for.cond:
+  for_cond_a_3: bool = le ite_2 queens_1;
+  br for_cond_a_3 .for.body .next.ret.1;
+.for.body:
+  site_1_inlined_3: ptr<int> = id site_1;
+  n_1_inlined_3: int = id n_1;
+  one_1_inlined_3: int = const 1;
+  zero_1_inlined_3: int = const 0;
+  ite_1_inlined_3: int = id zero_1_inlined_3;
+  nptr_3: ptr<int> = ptradd site_1 n_1;
+  true_1_inlined_3: bool = eq one_1_inlined_3 one_1_inlined_3;
+  false_1_inlined_3: bool = eq zero_1_inlined_3 one_1_inlined_3;
+  store nptr_3 ite_2;
+  eq_cond_bc_1_inlined_3: bool = id eq_cond_bc_1_inlined_2;
+  eq_cond_c_1_inlined_3: bool = id eq_cond_c_1_inlined_2;
+  eq_cond_b_1_inlined_3: bool = id eq_cond_b_1_inlined_2;
+  sub_c_1_inlined_3: int = id sub_c_1_inlined_2;
+  sub_b_1_inlined_3: int = id sub_b_1_inlined_2;
+  sub_a_1_inlined_3: int = id sub_a_1_inlined_2;
+  eq_cond_a_1_inlined_3: bool = id eq_cond_a_1_inlined_2;
+  valn_1_inlined_3: int = id valn_1_inlined_2;
+  vali_1_inlined_3: int = id vali_1_inlined_2;
+  nptr_1_inlined_3: ptr<int> = id nptr_1_inlined_2;
+  iptr_1_inlined_3: ptr<int> = id iptr_1_inlined_2;
+  help_a_1_inlined_3: int = id help_a_1_inlined_2;
+  for_cond_1_inlined_3: bool = id for_cond_1_inlined_2;
+  ite_1_inlined_4: int = id ite_1_inlined_3;
+.for.cond.inlined.1:
+  for_cond_1_inlined_4: bool = lt ite_1_inlined_4 n_1_inlined_3;
+  br for_cond_1_inlined_4 .for.body.inlined.1 .ret.end.inlined.1;
+.for.body.inlined.1:
+  help_a_1_inlined_4: int = const 500;
+  iptr_1_inlined_4: ptr<int> = ptradd site_1_inlined_3 ite_1_inlined_4;
+  nptr_1_inlined_4: ptr<int> = ptradd site_1_inlined_3 n_1_inlined_3;
+  vali_1_inlined_4: int = load iptr_1_inlined_4;
+  valn_1_inlined_4: int = load nptr_1_inlined_4;
+  eq_cond_a_1_inlined_4: bool = eq vali_1_inlined_4 valn_1_inlined_4;
+  br eq_cond_a_1_inlined_4 .true.ret.0.inlined.1 .false.else.inlined.1;
+.true.ret.0.inlined.1:
+  return_var.1.UNIQUE_3: bool = id false_1_inlined_3;
+  eq_cond_bc_1_inlined_5: bool = id eq_cond_bc_1_inlined_3;
+  eq_cond_c_1_inlined_5: bool = id eq_cond_c_1_inlined_3;
+  eq_cond_b_1_inlined_5: bool = id eq_cond_b_1_inlined_3;
+  sub_c_1_inlined_5: int = id sub_c_1_inlined_3;
+  sub_b_1_inlined_5: int = id sub_b_1_inlined_3;
+  sub_a_1_inlined_5: int = id sub_a_1_inlined_3;
+  return_var.1.UNIQUE_6: bool = id return_var.1.UNIQUE_3;
+  eq_cond_a_1_inlined_5: bool = id eq_cond_a_1_inlined_4;
+  valn_1_inlined_5: int = id valn_1_inlined_4;
+  vali_1_inlined_5: int = id vali_1_inlined_4;
+  nptr_1_inlined_5: ptr<int> = id nptr_1_inlined_4;
+  iptr_1_inlined_5: ptr<int> = id iptr_1_inlined_4;
+  help_a_1_inlined_5: int = id help_a_1_inlined_4;
+  jmp .return.loc.1;
+.false.else.inlined.1:
+  new_vector_var_1: vector = veczero;
+  new_vector_idx_1: int = const 0;
+  one_1: int = const 1;
+  vecload new_vector_var_1 new_vector_idx_1 vali_1_inlined_4;
+  new_vector_idx_2: int = add new_vector_idx_1 one_1;
+  vecload new_vector_var_1 new_vector_idx_2 valn_1_inlined_4;
+  new_vector_idx_3: int = add new_vector_idx_2 one_1;
+  vecload new_vector_var_1 new_vector_idx_3 n_1_inlined_3;
+  new_vector_var_2: vector = veczero;
+  new_vector_idx_4: int = const 0;
+  vecload new_vector_var_2 new_vector_idx_4 valn_1_inlined_4;
+  new_vector_idx_5: int = add new_vector_idx_4 one_1;
+  vecload new_vector_var_2 new_vector_idx_5 vali_1_inlined_4;
+  new_vector_idx_6: int = add new_vector_idx_5 one_1;
+  vecload new_vector_var_2 new_vector_idx_6 ite_1_inlined_4;
+  result_vector_var_1: vector = vecsub new_vector_var_1 new_vector_var_2;
+  new_vector_idx_7: int = const 0;
+  sub_a_1_inlined_4: vector = vecstore result_vector_var_1 new_vector_idx_7;
+  new_vector_idx_8: int = add new_vector_idx_7 one_1;
+  sub_b_1_inlined_4: vector = vecstore result_vector_var_1 new_vector_idx_8;
+  new_vector_idx_9: int = add new_vector_idx_8 one_1;
+  sub_c_1_inlined_4: vector = vecstore result_vector_var_1 new_vector_idx_9;
+  eq_cond_b_1_inlined_4: bool = eq sub_a_1_inlined_4 sub_c_1_inlined_4;
+  eq_cond_c_1_inlined_4: bool = eq sub_b_1_inlined_4 sub_c_1_inlined_4;
+  eq_cond_bc_1_inlined_4: bool = or eq_cond_b_1_inlined_4 eq_cond_c_1_inlined_4;
+  br eq_cond_bc_1_inlined_4 .true.ret.1.inlined.1 .false.loop.inlined.1;
+.true.ret.1.inlined.1:
+  return_var.1.UNIQUE_4: bool = id false_1_inlined_3;
+  eq_cond_bc_1_inlined_5: bool = id eq_cond_bc_1_inlined_4;
+  eq_cond_c_1_inlined_5: bool = id eq_cond_c_1_inlined_4;
+  eq_cond_b_1_inlined_5: bool = id eq_cond_b_1_inlined_4;
+  sub_c_1_inlined_5: int = id sub_c_1_inlined_4;
+  sub_b_1_inlined_5: int = id sub_b_1_inlined_4;
+  sub_a_1_inlined_5: int = id sub_a_1_inlined_4;
+  return_var.1.UNIQUE_6: bool = id return_var.1.UNIQUE_4;
+  eq_cond_a_1_inlined_5: bool = id eq_cond_a_1_inlined_4;
+  valn_1_inlined_5: int = id valn_1_inlined_4;
+  vali_1_inlined_5: int = id vali_1_inlined_4;
+  nptr_1_inlined_5: ptr<int> = id nptr_1_inlined_4;
+  iptr_1_inlined_5: ptr<int> = id iptr_1_inlined_4;
+  help_a_1_inlined_5: int = id help_a_1_inlined_4;
+  jmp .return.loc.1;
+.false.loop.inlined.1:
+  ite_1_inlined_5: int = add ite_1_inlined_4 one_1_inlined_3;
+  eq_cond_bc_1_inlined_3: bool = id eq_cond_bc_1_inlined_4;
+  eq_cond_c_1_inlined_3: bool = id eq_cond_c_1_inlined_4;
+  eq_cond_b_1_inlined_3: bool = id eq_cond_b_1_inlined_4;
+  sub_c_1_inlined_3: int = id sub_c_1_inlined_4;
+  sub_b_1_inlined_3: int = id sub_b_1_inlined_4;
+  sub_a_1_inlined_3: int = id sub_a_1_inlined_4;
+  eq_cond_a_1_inlined_3: bool = id eq_cond_a_1_inlined_4;
+  valn_1_inlined_3: int = id valn_1_inlined_4;
+  vali_1_inlined_3: int = id vali_1_inlined_4;
+  nptr_1_inlined_3: ptr<int> = id nptr_1_inlined_4;
+  iptr_1_inlined_3: ptr<int> = id iptr_1_inlined_4;
+  help_a_1_inlined_3: int = id help_a_1_inlined_4;
+  for_cond_1_inlined_3: bool = id for_cond_1_inlined_4;
+  ite_1_inlined_4: int = id ite_1_inlined_5;
+  jmp .for.cond.inlined.1;
+.ret.end.inlined.1:
+  return_var.1.UNIQUE_5: bool = id true_1_inlined_3;
+  eq_cond_bc_1_inlined_5: bool = id eq_cond_bc_1_inlined_3;
+  eq_cond_c_1_inlined_5: bool = id eq_cond_c_1_inlined_3;
+  eq_cond_b_1_inlined_5: bool = id eq_cond_b_1_inlined_3;
+  sub_c_1_inlined_5: int = id sub_c_1_inlined_3;
+  sub_b_1_inlined_5: int = id sub_b_1_inlined_3;
+  sub_a_1_inlined_5: int = id sub_a_1_inlined_3;
+  return_var.1.UNIQUE_6: bool = id return_var.1.UNIQUE_5;
+  eq_cond_a_1_inlined_5: bool = id eq_cond_a_1_inlined_3;
+  valn_1_inlined_5: int = id valn_1_inlined_3;
+  vali_1_inlined_5: int = id vali_1_inlined_3;
+  nptr_1_inlined_5: ptr<int> = id nptr_1_inlined_3;
+  iptr_1_inlined_5: ptr<int> = id iptr_1_inlined_3;
+  help_a_1_inlined_5: int = id help_a_1_inlined_3;
+.return.loc.1:
+  is_valid_3: bool = id return_var.1.UNIQUE_6;
+  n_b_4: int = id n_b_2;
+  icount_5: int = id icount_3;
+  br is_valid_3 .rec.func .next.loop;
+.rec.func:
+  n_b_3: int = add n_1 one_1;
+  icount_4: int = call @queen n_b_3 queens_1 icount_3 site_1;
+  n_b_4: int = id n_b_3;
+  icount_5: int = id icount_4;
+.next.loop:
+  ite_3: int = add ite_2 one_1;
+  n_b_2: int = id n_b_4;
+  is_valid_2: bool = id is_valid_3;
+  eq_cond_bc_1_inlined_2: bool = id eq_cond_bc_1_inlined_5;
+  eq_cond_c_1_inlined_2: bool = id eq_cond_c_1_inlined_5;
+  eq_cond_b_1_inlined_2: bool = id eq_cond_b_1_inlined_5;
+  sub_c_1_inlined_2: int = id sub_c_1_inlined_5;
+  sub_b_1_inlined_2: int = id sub_b_1_inlined_5;
+  sub_a_1_inlined_2: int = id sub_a_1_inlined_5;
+  return_var.1.UNIQUE_2: bool = id return_var.1.UNIQUE_6;
+  eq_cond_a_1_inlined_2: bool = id eq_cond_a_1_inlined_5;
+  valn_1_inlined_2: int = id valn_1_inlined_5;
+  vali_1_inlined_2: int = id vali_1_inlined_5;
+  nptr_1_inlined_2: ptr<int> = id nptr_1_inlined_5;
+  iptr_1_inlined_2: ptr<int> = id iptr_1_inlined_5;
+  help_a_1_inlined_2: int = id help_a_1_inlined_5;
+  for_cond_1_inlined_2: bool = id for_cond_1_inlined_4;
+  false_1_inlined_2: bool = id false_1_inlined_3;
+  true_1_inlined_2: bool = id true_1_inlined_3;
+  nptr_2: ptr<int> = id nptr_3;
+  ite_1_inlined_2: int = id ite_1_inlined_4;
+  zero_1_inlined_2: int = id zero_1_inlined_3;
+  one_1_inlined_2: int = id one_1_inlined_3;
+  n_1_inlined_2: int = id n_1_inlined_3;
+  site_1_inlined_2: ptr<int> = id site_1_inlined_3;
+  for_cond_a_2: bool = id for_cond_a_3;
+  ite_2: int = id ite_3;
+  icount_3: int = id icount_5;
+  jmp .for.cond;
+.next.ret.1:
+  ret icount_3;
+.emergency.ret:
+  ret;
+}
+@valid(n_1: int, site_1: ptr<int>): bool {
+.UNIQUE.HEADER:
+.b0:
+  one_1: int = const 1;
+  zero_1: int = const 0;
+  ite_1: int = id zero_1;
+  true_1: bool = eq one_1 one_1;
+  false_1: bool = eq zero_1 one_1;
+  eq_cond_bc_1: bool = const true;
+  eq_cond_c_1: bool = const true;
+  eq_cond_b_1: bool = const true;
+  sub_c_1: int = const 0;
+  sub_b_1: int = const 0;
+  sub_a_1: int = const 0;
+  eq_cond_a_1: bool = const true;
+  valn_1: int = const 0;
+  vali_1: int = const 0;
+  nptr_1: ptr<int> = const 0;
+  iptr_1: ptr<int> = const 0;
+  help_a_1: int = const 0;
+  for_cond_1: bool = const true;
+  eq_cond_bc_2: bool = id eq_cond_bc_1;
+  eq_cond_c_2: bool = id eq_cond_c_1;
+  eq_cond_b_2: bool = id eq_cond_b_1;
+  sub_c_2: int = id sub_c_1;
+  sub_b_2: int = id sub_b_1;
+  sub_a_2: int = id sub_a_1;
+  eq_cond_a_2: bool = id eq_cond_a_1;
+  valn_2: int = id valn_1;
+  vali_2: int = id vali_1;
+  nptr_2: ptr<int> = id nptr_1;
+  iptr_2: ptr<int> = id iptr_1;
+  help_a_2: int = id help_a_1;
+  for_cond_2: bool = id for_cond_1;
+  ite_2: int = id ite_1;
+.for.cond:
+  for_cond_3: bool = lt ite_2 n_1;
+  br for_cond_3 .for.body .ret.end;
+.for.body:
+  help_a_3: int = const 500;
+  iptr_3: ptr<int> = ptradd site_1 ite_2;
+  nptr_3: ptr<int> = ptradd site_1 n_1;
+  vali_3: int = load iptr_3;
+  valn_3: int = load nptr_3;
+  eq_cond_a_3: bool = eq vali_3 valn_3;
+  br eq_cond_a_3 .true.ret.0 .false.else;
+.true.ret.0:
+  ret false_1;
+.false.else:
+  new_vector_var_3: vector = veczero;
+  new_vector_idx_10: int = const 0;
+  one_2: int = const 1;
+  vecload new_vector_var_3 new_vector_idx_10 vali_3;
+  new_vector_idx_11: int = add new_vector_idx_10 one_2;
+  vecload new_vector_var_3 new_vector_idx_11 valn_3;
+  new_vector_idx_12: int = add new_vector_idx_11 one_2;
+  vecload new_vector_var_3 new_vector_idx_12 n_1;
+  new_vector_var_4: vector = veczero;
+  new_vector_idx_13: int = const 0;
+  vecload new_vector_var_4 new_vector_idx_13 valn_3;
+  new_vector_idx_14: int = add new_vector_idx_13 one_2;
+  vecload new_vector_var_4 new_vector_idx_14 vali_3;
+  new_vector_idx_15: int = add new_vector_idx_14 one_2;
+  vecload new_vector_var_4 new_vector_idx_15 ite_2;
+  result_vector_var_2: vector = vecsub new_vector_var_3 new_vector_var_4;
+  new_vector_idx_16: int = const 0;
+  sub_a_3: vector = vecstore result_vector_var_2 new_vector_idx_16;
+  new_vector_idx_17: int = add new_vector_idx_16 one_2;
+  sub_b_3: vector = vecstore result_vector_var_2 new_vector_idx_17;
+  new_vector_idx_18: int = add new_vector_idx_17 one_2;
+  sub_c_3: vector = vecstore result_vector_var_2 new_vector_idx_18;
+  eq_cond_b_3: bool = eq sub_a_3 sub_c_3;
+  eq_cond_c_3: bool = eq sub_b_3 sub_c_3;
+  eq_cond_bc_3: bool = or eq_cond_b_3 eq_cond_c_3;
+  br eq_cond_bc_3 .true.ret.1 .false.loop;
+.true.ret.1:
+  ret false_1;
+.false.loop:
+  ite_3: int = add ite_2 one_1;
+  eq_cond_bc_2: bool = id eq_cond_bc_3;
+  eq_cond_c_2: bool = id eq_cond_c_3;
+  eq_cond_b_2: bool = id eq_cond_b_3;
+  sub_c_2: int = id sub_c_3;
+  sub_b_2: int = id sub_b_3;
+  sub_a_2: int = id sub_a_3;
+  eq_cond_a_2: bool = id eq_cond_a_3;
+  valn_2: int = id valn_3;
+  vali_2: int = id vali_3;
+  nptr_2: ptr<int> = id nptr_3;
+  iptr_2: ptr<int> = id iptr_3;
+  help_a_2: int = id help_a_3;
+  for_cond_2: bool = id for_cond_3;
+  ite_2: int = id ite_3;
+  jmp .for.cond;
+.ret.end:
+  ret true_1;
+.emergency.ret:
+  ret;
+}

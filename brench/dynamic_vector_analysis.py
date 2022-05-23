@@ -39,19 +39,17 @@ with open('results-vector.csv', newline='') as csvfile:
     width = 0.35  # the width of the bars
 
     fig, ax = plt.subplots()
-    rects1 = ax.bar(x - width/2, baseline, width, label='Baseline')
     rects2 = ax.bar(x + width/2, naive, width, label='Naive')
-    rects3 = ax.bar(x + width/2, op, width, label='Naive')
+    rects3 = ax.bar(x + width/2, op, width, label='Opportunistic')
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel('Number of Vectors Created')
     ax.set_title(
-        'Number of Vectors Created in 2 Different Vectorization Strategies')
+        'Number of Vectors Created Dynamically in 2 Different Vectorization Strategies')
     ax.set_xticks(x, benchmark_names)
     plt.xticks(rotation=45)
     ax.legend()
 
-    ax.bar_label(rects1, padding=3)
     ax.bar_label(rects2, padding=3)
     ax.bar_label(rects3, padding=3)
 

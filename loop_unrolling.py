@@ -5,15 +5,15 @@ TODO: How to identify loops that can be unrolled (e.g. a for loop)
 IDEA: Can we feed the loop to a synthesizer sketch with the sketch already
 being partly unrolled??
 
-The sketch would have to be built around the Bril language though, or you 
+The sketch would have to be built around the Bril language though, or you
 would have to build your own sketcher.
 
 The idea is given a natural loop N, you can sometimes unroll N in to a fixed degree
 or completely.
 
-Loop Header H 
-Loop Bodies B 
----> 
+Loop Header H
+Loop Bodies B
+--->
 H B B B B (N TIMES)... H B B B B (N TIMES)...
 
 Where N is chosen appropriately large. A syntehsizer can figure out what N is
@@ -28,13 +28,13 @@ and exit through the header of the natural loop, e.g. only single entry and exit
 loops.
 
 The branch MUST be in the header. The branch condition must be some affine combination
-of integer based varaibles, e.g. ai + b 
+of integer based varaibles, e.g. ai + b
 
 The body of the loop must have an update on i in ONE place.
 
 We also forbid side effects in the loop like print statements or function calls.
 
-For this type of loop, we can immediately solve out how many iterations the loop should 
+For this type of loop, we can immediately solve out how many iterations the loop should
 execute. We can then fully unroll the loop, and add the remainder at the end.
 
 We can do a "cheaper" unroll for something like a while loop as well. Wikipedia
@@ -71,15 +71,16 @@ class FullyUnrollableLoop(object):
     """
     Represents a Fully Unrollable Loop
     """
+
     def __init__(self, header, body, var_name, start_val, bump_val, end_val, is_incr, comp_op):
-        assert type(header) == str 
-        assert type(body) == set # of str
+        assert type(header) == str
+        assert type(body) == set  # of str
         assert type(var_name) == str
-        assert type(start_val) == int 
-        assert type(bump_val) == int 
-        assert bump_val == 1 # for now, has to be 1
-        assert type(end_val) == int 
-        assert type(is_incr) == bool 
+        assert type(start_val) == int
+        assert type(bump_val) == int
+        assert bump_val == 1  # for now, has to be 1
+        assert type(end_val) == int
+        assert type(is_incr) == bool
         assert comp_op in COMP_OPS
 
         self.header = header
@@ -102,29 +103,29 @@ class FullyUnrollableLoop(object):
                 raise RuntimeError(f"Please check will terminate before")
         elif self.end_val > self.start_val:
             if self.comp_op == EQ:
-                return self.end_val - self.start_val
-            elif self.comp_op == LE:
-                return 0
-            elif self.comp_op == GE:
-                return self.end_val - self.start_val
-            elif self.comp_op == LT:
-                return 0
-            elif self.comp_op == GT:
                 return self.end_val - self.start_val + 1
-            else: 
+            elif self.comp_op == LE:
+                return self.end_val - self.start_val + 1
+            elif self.comp_op == GE:
+                return 0
+            elif self.comp_op == LT:
+                return self.end_val - self.start_val
+            elif self.comp_op == GT:
+                return 0
+            else:
                 RuntimeError(f"Unmatched comparison operation {self.comp_op}.")
         else:
             if self.comp_op == EQ:
-                return self.start_val - self.end_val
-            elif self.comp_op == LE:
-                return self.start_val - self.end_val
-            elif self.comp_op == GE:
-                return 0
-            elif self.comp_op == LT:
                 return self.start_val - self.end_val + 1
-            elif self.comp_op == GT:
+            elif self.comp_op == LE:
                 return 0
-            else: 
+            elif self.comp_op == GE:
+                return self.start_val - self.end_val + 1
+            elif self.comp_op == LT:
+                return 0
+            elif self.comp_op == GT:
+                return self.start_val - self.end_val
+            else:
                 RuntimeError(f"Unmatched comparison operation {self.comp_op}.")
 
     def will_terminate(self):
@@ -133,17 +134,17 @@ class FullyUnrollableLoop(object):
         """
         if self.end_val == self.start_val:
             if self.comp_op == LT and self.is_incr:
-                return False 
+                return False
             elif self.comp_op == GT and not self.is_incr:
                 return False
             return True
         elif self.end_val > self.start_val:
             if not self.is_incr:
-                return False 
-            return True 
+                return False
+            return True
         else:
             if self.is_incr:
-                return False 
+                return False
             return True
 
     def cmp_to_str(self):
@@ -171,7 +172,6 @@ class FullyUnrollableLoop(object):
         return f"{self.var_name} := {self.start_val}; {self.var_name} {self.cmp_to_str()} {self.end_val}; {self.var_name} {self.is_incr_to_str()}= {self.bump_val}"
 
 
-
 def is_fully_unrollable(natural_loop, natural_loops, cfg, domby):
     """
     A loop is fully unrollable if the loop has:
@@ -182,7 +182,7 @@ def is_fully_unrollable(natural_loop, natural_loops, cfg, domby):
         - A start value
         - Exactly one increment in the loop
         - Exactly 1 jump back to the header
-        - Loop Iteration conditions guarantee loop will terminate 
+        - Loop Iteration conditions guarantee loop will terminate
     """
     if not loop_has_single_exit(natural_loop):
         return False
@@ -205,7 +205,7 @@ def is_fully_unrollable(natural_loop, natural_loops, cfg, domby):
 def fully_unroll_loop(unrollable_object, natural_loop, cfg):
     """
     Fully Unrolls Natural Loop in CFG
-    
+
     DOES NOT ATTEMPT TO CHANGE SUCCS AND PREDS
     """
     (natural_loop, _, header, exits) = natural_loop
@@ -227,7 +227,7 @@ def fully_unroll_loop(unrollable_object, natural_loop, cfg):
         if block != header:
             loop_labels.append(block)
 
-    # grab loop exit label 
+    # grab loop exit label
     assert len(exits) == 1
     loop_exit_name = None
     for (a, b) in exits:
@@ -235,17 +235,17 @@ def fully_unroll_loop(unrollable_object, natural_loop, cfg):
             loop_exit_name = a
         elif b not in natural_loop:
             loop_exit_name = b
-        break 
+        break
     assert loop_exit_name != None
 
     # grab loop entry name
-    loop_entry_name = None 
+    loop_entry_name = None
     for header_instr in cfg[header][INSTRS]:
         if is_br(header_instr):
             labels = get_br_labels(header_instr)
             for label in labels:
                 if label in loop_labels:
-                    loop_entry_name = label 
+                    loop_entry_name = label
     assert loop_entry_name != None
 
     # insert  __unroll_niter - 1__ copies of solely loop bodies into the cfg [exclude loop headers]
@@ -282,7 +282,6 @@ def fully_unroll_loop(unrollable_object, natural_loop, cfg):
             ith_iter_labels.append(f"{label}.{i}")
         modify_loop_jumps(ith_iter_labels, cfg, header, f"{header}.{i + 1}")
 
-
     # modify original [aka FIRST] loop iteration to jump to first unroll header rather than header
     first_unroll_header = f"{header}.{0}"
     modify_loop_jumps(loop_labels, cfg, header, first_unroll_header)
@@ -314,9 +313,10 @@ def fully_unroll_func(func):
 
     # start unrolling
     for natural_loop in natural_loops:
-        is_unrollable = is_fully_unrollable(natural_loop, natural_loops, cfg, domby)
+        is_unrollable = is_fully_unrollable(
+            natural_loop, natural_loops, cfg, domby)
         if type(is_unrollable) == bool and is_unrollable == False:
-            continue 
+            continue
         fully_unroll_loop(is_unrollable, natural_loop, cfg)
 
     # DO JOINING ON CFG
@@ -413,12 +413,12 @@ def loop_has_one_iteration_var(natural_loop, cfg, domby):
                 if j >= i:
                     break
                 if not has_dest(other_instr):
-                    continue 
+                    continue
                 dest = get_dest(other_instr)
                 if dest != cond_var:
-                    continue 
+                    continue
                 if not is_cmp(other_instr):
-                    continue 
+                    continue
                 comp_op = other_instr[OP]
                 args = get_args(other_instr)
 
@@ -436,12 +436,14 @@ def loop_has_one_iteration_var(natural_loop, cfg, domby):
             # for now, we REQUIRE the incr/decr to be by 1!!!
             # The Other argument, the non iteration variable, must be defined as a constant once in the cfg
             # Should both args satisfy this, we cannot disambiguate, and bail by returning false
-            final_args = [] # holds the arg names that could be iteration vars
-            bump_val = [] # holds the amount an iteration var is bumped each time
-            is_incr = [] # whether the iteration var is bumped incrementally (true) or decrementally (false)
-            cmp_op = [] # what type of comparison for the iteration var
-            end_val = [] # what the non-iteration var's start value is (termination condition/ end val for the iteration var)
-            start_val = [] # what the iteration variable starts at
+            final_args = []  # holds the arg names that could be iteration vars
+            bump_val = []  # holds the amount an iteration var is bumped each time
+            # whether the iteration var is bumped incrementally (true) or decrementally (false)
+            is_incr = []
+            cmp_op = []  # what type of comparison for the iteration var
+            # what the non-iteration var's start value is (termination condition/ end val for the iteration var)
+            end_val = []
+            start_val = []  # what the iteration variable starts at
             for arg in args:
                 for loop_block in loop_blocks:
                     if loop_block == header:
@@ -449,21 +451,23 @@ def loop_has_one_iteration_var(natural_loop, cfg, domby):
 
                     for loop_instr in cfg[loop_block][INSTRS]:
                         if not has_dest(loop_instr):
-                            continue 
-                        dst = get_dest(loop_instr) 
+                            continue
+                        dst = get_dest(loop_instr)
                         if dst != arg:
-                            continue 
+                            continue
                         if not has_args(loop_instr):
                             continue
                         instr_args = get_args(loop_instr)
                         if arg not in instr_args:
                             continue
                         if set(instr_args) == set(arg):
-                            continue  
+                            continue
                         if not is_add(loop_instr) and not is_sub(loop_instr):
                             continue
-                        remaining_arg = list(set(instr_args).difference({arg}))[0]
-                        remaining_arg_is_const = arg_is_constant(remaining_arg, cfg)
+                        remaining_arg = list(
+                            set(instr_args).difference({arg}))[0]
+                        remaining_arg_is_const = arg_is_constant(
+                            remaining_arg, cfg)
                         if remaining_arg_is_const == False:
                             continue
 
@@ -479,15 +483,15 @@ def loop_has_one_iteration_var(natural_loop, cfg, domby):
                         # We check the dominator tree, and check for the final constant assignment to the iteration variable
                         # before the loop header, strictly excluding the header itself
                         # thus we us strict dominators
-                        strictly_dominating_blocks = get_strict_dominators(domby)[header]
-                        most_recent_const_assignment = None 
+                        strictly_dominating_blocks = get_strict_dominators(domby)[
+                            header]
+                        most_recent_const_assignment = None
                         for strict_dom_block in strictly_dominating_blocks:
                             for instr in cfg[strict_dom_block][INSTRS]:
                                 if is_const(instr) and get_dest(instr) == arg:
                                     most_recent_const_assignment = instr
                         if most_recent_const_assignment == None:
-                            continue 
-
+                            continue
 
                         final_args.append(arg)
                         bump_val.append(remaining_arg_is_const)
@@ -496,16 +500,15 @@ def loop_has_one_iteration_var(natural_loop, cfg, domby):
                         end_val.append(other_arg_is_const)
                         start_val.append(most_recent_const_assignment[VALUE])
 
-
             if len(final_args) == 0 or len(final_args) >= 2:
                 return False
 
-            assert 1 == len(final_args) == len(bump_val) == len(is_incr) == len(cmp_op) == len(end_val) == len(start_val)
+            assert 1 == len(final_args) == len(bump_val) == len(
+                is_incr) == len(cmp_op) == len(end_val) == len(start_val)
             return FullyUnrollableLoop(header, body_blocks, final_args[0], start_val[0], bump_val[0], end_val[0], is_incr[0], cmp_op[0])
 
     # no branch found. Bail by returning False
     return False
-
 
 
 def loop_has_single_exit(natural_loop):

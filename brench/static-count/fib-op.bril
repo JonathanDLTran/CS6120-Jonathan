@@ -1,0 +1,84 @@
+@main(input_1: int) {
+.UNIQUE.HEADER:
+.b0:
+  i_1: int = const 2;
+  neg_one_1: int = const -1;
+  one_1: int = const 1;
+  zero_1: int = const 0;
+  vals_1: ptr<int> = alloc input_1;
+  store vals_1 zero_1;
+  vals_i_1: ptr<int> = ptradd vals_1 one_1;
+  i_minus_one_1: int = add i_1 neg_one_1;
+  i_minus_two_1: int = add i_minus_one_1 neg_one_1;
+  store vals_i_1 one_1;
+  tmp2_1: int = const 0;
+  tmp_1: int = const 0;
+  vals_i_minus_two_1: ptr<int> = const 0;
+  vals_i_minus_one_1: ptr<int> = const 0;
+  cond_1: bool = const true;
+  tmp2_2: int = id tmp2_1;
+  tmp_2: int = id tmp_1;
+  vals_i_minus_two_2: ptr<int> = id vals_i_minus_two_1;
+  vals_i_minus_one_2: ptr<int> = id vals_i_minus_one_1;
+  cond_2: bool = id cond_1;
+  i_minus_two_2: int = id i_minus_two_1;
+  i_minus_one_2: int = id i_minus_one_1;
+  vals_i_2: ptr<int> = id vals_i_1;
+  i_2: int = id i_1;
+.loop:
+  cond_3: bool = lt i_2 input_1;
+  br cond_3 .body .done;
+.body:
+  vals_i_3: ptr<int> = ptradd vals_1 i_2;
+  vals_i_minus_one_3: ptr<int> = ptradd vals_1 i_minus_one_2;
+  vals_i_minus_two_3: ptr<int> = ptradd vals_1 i_minus_two_2;
+  tmp_3: int = load vals_i_minus_one_3;
+  tmp2_3: int = load vals_i_minus_two_3;
+  new_vector_var_1: vector = veczero;
+  new_vector_idx_1: int = const 0;
+  one_1: int = const 1;
+  vecload new_vector_var_1 new_vector_idx_1 tmp_3;
+  new_vector_idx_2: int = add new_vector_idx_1 one_1;
+  vecload new_vector_var_1 new_vector_idx_2 i_2;
+  new_vector_idx_3: int = add new_vector_idx_2 one_1;
+  vecload new_vector_var_1 new_vector_idx_3 i_minus_one_2;
+  new_vector_idx_4: int = add new_vector_idx_3 one_1;
+  vecload new_vector_var_1 new_vector_idx_4 i_minus_two_2;
+  new_vector_var_2: vector = veczero;
+  new_vector_idx_5: int = const 0;
+  vecload new_vector_var_2 new_vector_idx_5 tmp2_3;
+  new_vector_idx_6: int = add new_vector_idx_5 one_1;
+  vecload new_vector_var_2 new_vector_idx_6 one_1;
+  new_vector_idx_7: int = add new_vector_idx_6 one_1;
+  vecload new_vector_var_2 new_vector_idx_7 one_1;
+  new_vector_idx_8: int = add new_vector_idx_7 one_1;
+  vecload new_vector_var_2 new_vector_idx_8 one_1;
+  result_vector_var_1: vector = vecadd new_vector_var_1 new_vector_var_2;
+  new_vector_idx_9: int = const 0;
+  tmp_4: vector = vecstore result_vector_var_1 new_vector_idx_9;
+  new_vector_idx_10: int = add new_vector_idx_9 one_1;
+  i_3: vector = vecstore result_vector_var_1 new_vector_idx_10;
+  new_vector_idx_11: int = add new_vector_idx_10 one_1;
+  i_minus_one_3: vector = vecstore result_vector_var_1 new_vector_idx_11;
+  new_vector_idx_12: int = add new_vector_idx_11 one_1;
+  i_minus_two_3: vector = vecstore result_vector_var_1 new_vector_idx_12;
+  store vals_i_3 tmp_4;
+  tmp2_2: int = id tmp2_3;
+  tmp_2: int = id tmp_4;
+  vals_i_minus_two_2: ptr<int> = id vals_i_minus_two_3;
+  vals_i_minus_one_2: ptr<int> = id vals_i_minus_one_3;
+  cond_2: bool = id cond_3;
+  i_minus_two_2: int = id i_minus_two_3;
+  i_minus_one_2: int = id i_minus_one_3;
+  vals_i_2: ptr<int> = id vals_i_3;
+  i_2: int = id i_3;
+  jmp .loop;
+.done:
+  last_1: ptr<int> = ptradd vals_1 i_minus_one_2;
+  tmp_5: int = load last_1;
+  free vals_1;
+  print tmp_5;
+  ret;
+.emergency.ret:
+  ret;
+}

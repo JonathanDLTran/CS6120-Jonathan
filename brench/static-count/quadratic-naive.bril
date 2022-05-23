@@ -1,0 +1,282 @@
+@main(a: int, b: int, c: int) {
+.b0:
+  c_3_inlined: int = id c;
+  b_3_inlined: int = id b;
+  a_3_inlined: int = id a;
+.b0.inlined.3:
+  v13_3_inlined: int = id b_3_inlined;
+  v10_3_inlined: int = id a_3_inlined;
+  v6_3_inlined: int = id c_3_inlined;
+  v4_3_inlined: int = id a_3_inlined;
+  v1_3_inlined: int = id b_3_inlined;
+  v0_3_inlined: int = id b_3_inlined;
+  v12_3_inlined: int = const 0;
+  v9_3_inlined: int = const 2;
+  v3_3_inlined: int = const 4;
+  one_1: int = const 1;
+  new_vector_idx_1: int = const 0;
+  new_vector_var_1: vector = veczero;
+  new_vector_var_2: vector = veczero;
+  vecload new_vector_var_1 new_vector_idx_1 v0_3_inlined;
+  vecload new_vector_var_2 new_vector_idx_1 v1_3_inlined;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  vecload new_vector_var_1 new_vector_idx_1 v3_3_inlined;
+  vecload new_vector_var_2 new_vector_idx_1 v4_3_inlined;
+  result_vector_var_1: vector = vecmul new_vector_var_1 new_vector_var_2;
+  new_vector_idx_1: int = const 0;
+  v2_3_inlined: vector = vecstore result_vector_var_1 new_vector_idx_1;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  v5_3_inlined: vector = vecstore result_vector_var_1 new_vector_idx_1;
+  v7_3_inlined: int = mul v5_3_inlined v6_3_inlined;
+  v8_3_inlined: int = sub v2_3_inlined v7_3_inlined;
+  s_3_inlined: int = id v8_3_inlined;
+  v15_3_inlined: int = id s_3_inlined;
+  x_1_inlined_3_inlined: int = id v15_3_inlined;
+  v11_3_inlined: int = mul v9_3_inlined v10_3_inlined;
+  d_3_inlined: int = id v11_3_inlined;
+  v14_3_inlined: int = sub v12_3_inlined v13_3_inlined;
+.b0.inlined.1.inlined.3:
+  v1_1_inlined_3_inlined: int = const 1;
+  i_1_inlined_3_inlined: int = id v1_1_inlined_3_inlined;
+.new.loop.preheader.1.inlined.1.inlined.3:
+  v15_1_inlined_3_inlined: int = const 1;
+  v4_1_inlined_3_inlined: int = const 1;
+.for.cond.0.inlined.1.inlined.3:
+  v3_1_inlined_3_inlined: int = id x_1_inlined_3_inlined;
+  v2_1_inlined_3_inlined: int = id i_1_inlined_3_inlined;
+  v5_1_inlined_3_inlined: int = sub v3_1_inlined_3_inlined v4_1_inlined_3_inlined;
+  v6_1_inlined_3_inlined: bool = lt v2_1_inlined_3_inlined v5_1_inlined_3_inlined;
+  br v6_1_inlined_3_inlined .for.body.0.inlined.1.inlined.3 .for.end.0.inlined.1.inlined.3;
+.for.body.0.inlined.1.inlined.3:
+  v11_1_inlined_3_inlined: int = id x_1_inlined_3_inlined;
+  v9_1_inlined_3_inlined: int = id i_1_inlined_3_inlined;
+  v8_1_inlined_3_inlined: int = id i_1_inlined_3_inlined;
+  v10_1_inlined_3_inlined: int = mul v8_1_inlined_3_inlined v9_1_inlined_3_inlined;
+  v12_1_inlined_3_inlined: bool = ge v10_1_inlined_3_inlined v11_1_inlined_3_inlined;
+  br v12_1_inlined_3_inlined .then.7.inlined.1.inlined.3 .else.7.inlined.1.inlined.3;
+.then.7.inlined.1.inlined.3:
+  v13_1_inlined_3_inlined: int = id i_1_inlined_3_inlined;
+  return_var.1.UNIQUE_3_inlined: int = id v13_1_inlined_3_inlined;
+  jmp .return.loc.1.inlined.3;
+.else.7.inlined.1.inlined.3:
+.endif.7.inlined.1.inlined.3:
+  v14_1_inlined_3_inlined: int = id i_1_inlined_3_inlined;
+  v16_1_inlined_3_inlined: int = add v14_1_inlined_3_inlined v15_1_inlined_3_inlined;
+  i_1_inlined_3_inlined: int = id v16_1_inlined_3_inlined;
+  jmp .for.cond.0.inlined.1.inlined.3;
+.for.end.0.inlined.1.inlined.3:
+  v17_1_inlined_3_inlined: int = const 0;
+  return_var.1.UNIQUE_3_inlined: int = id v17_1_inlined_3_inlined;
+.return.loc.1.inlined.3:
+  v21_3_inlined: int = id s_3_inlined;
+  x_2_inlined_3_inlined: int = id v21_3_inlined;
+  v19_3_inlined: int = id b_3_inlined;
+  v16_3_inlined: int = id return_var.1.UNIQUE_3_inlined;
+  v18_3_inlined: int = const 0;
+  v17_3_inlined: int = add v14_3_inlined v16_3_inlined;
+  r1_3_inlined: int = id v17_3_inlined;
+  v20_3_inlined: int = sub v18_3_inlined v19_3_inlined;
+.b0.inlined.2.inlined.3:
+  v1_2_inlined_3_inlined: int = const 1;
+  i_2_inlined_3_inlined: int = id v1_2_inlined_3_inlined;
+.new.loop.preheader.1.inlined.2.inlined.3:
+  v15_2_inlined_3_inlined: int = const 1;
+  v4_2_inlined_3_inlined: int = const 1;
+.for.cond.0.inlined.2.inlined.3:
+  v3_2_inlined_3_inlined: int = id x_2_inlined_3_inlined;
+  v2_2_inlined_3_inlined: int = id i_2_inlined_3_inlined;
+  v5_2_inlined_3_inlined: int = sub v3_2_inlined_3_inlined v4_2_inlined_3_inlined;
+  v6_2_inlined_3_inlined: bool = lt v2_2_inlined_3_inlined v5_2_inlined_3_inlined;
+  br v6_2_inlined_3_inlined .for.body.0.inlined.2.inlined.3 .for.end.0.inlined.2.inlined.3;
+.for.body.0.inlined.2.inlined.3:
+  v11_2_inlined_3_inlined: int = id x_2_inlined_3_inlined;
+  v9_2_inlined_3_inlined: int = id i_2_inlined_3_inlined;
+  v8_2_inlined_3_inlined: int = id i_2_inlined_3_inlined;
+  v10_2_inlined_3_inlined: int = mul v8_2_inlined_3_inlined v9_2_inlined_3_inlined;
+  v12_2_inlined_3_inlined: bool = ge v10_2_inlined_3_inlined v11_2_inlined_3_inlined;
+  br v12_2_inlined_3_inlined .then.7.inlined.2.inlined.3 .else.7.inlined.2.inlined.3;
+.then.7.inlined.2.inlined.3:
+  v13_2_inlined_3_inlined: int = id i_2_inlined_3_inlined;
+  return_var.2.UNIQUE_3_inlined: int = id v13_2_inlined_3_inlined;
+  jmp .return.loc.2.inlined.3;
+.else.7.inlined.2.inlined.3:
+.endif.7.inlined.2.inlined.3:
+  v14_2_inlined_3_inlined: int = id i_2_inlined_3_inlined;
+  v16_2_inlined_3_inlined: int = add v14_2_inlined_3_inlined v15_2_inlined_3_inlined;
+  i_2_inlined_3_inlined: int = id v16_2_inlined_3_inlined;
+  jmp .for.cond.0.inlined.2.inlined.3;
+.for.end.0.inlined.2.inlined.3:
+  v17_2_inlined_3_inlined: int = const 0;
+  return_var.2.UNIQUE_3_inlined: int = id v17_2_inlined_3_inlined;
+.return.loc.2.inlined.3:
+  v29_3_inlined: int = id d_3_inlined;
+  v25_3_inlined: int = id d_3_inlined;
+  v24_3_inlined: int = id r1_3_inlined;
+  v22_3_inlined: int = id return_var.2.UNIQUE_3_inlined;
+  v23_3_inlined: int = sub v20_3_inlined v22_3_inlined;
+  r2_3_inlined: int = id v23_3_inlined;
+  v28_3_inlined: int = id r2_3_inlined;
+  v26_3_inlined: int = div v24_3_inlined v25_3_inlined;
+  v30_3_inlined: int = div v28_3_inlined v29_3_inlined;
+  print v26_3_inlined;
+  print v30_3_inlined;
+.return.loc.3:
+.emergency.ret:
+  ret;
+}
+@sqrt(x: int): int {
+.b0:
+  v1: int = const 1;
+  i: int = id v1;
+.new.loop.preheader.1:
+  v15: int = const 1;
+  v4: int = const 1;
+.for.cond.0:
+  v3: int = id x;
+  v2: int = id i;
+  v5: int = sub v3 v4;
+  v6: bool = lt v2 v5;
+  br v6 .for.body.0 .for.end.0;
+.for.body.0:
+  v11: int = id x;
+  v9: int = id i;
+  v8: int = id i;
+  v10: int = mul v8 v9;
+  v12: bool = ge v10 v11;
+  br v12 .then.7 .else.7;
+.then.7:
+  v13: int = id i;
+  ret v13;
+.else.7:
+.endif.7:
+  v14: int = id i;
+  v16: int = add v14 v15;
+  i: int = id v16;
+  jmp .for.cond.0;
+.for.end.0:
+  v17: int = const 0;
+  ret v17;
+.emergency.ret:
+  ret;
+}
+@quadratic(a: int, b: int, c: int) {
+.b0:
+  v13: int = id b;
+  v10: int = id a;
+  v6: int = id c;
+  v4: int = id a;
+  v1: int = id b;
+  v0: int = id b;
+  v12: int = const 0;
+  v9: int = const 2;
+  v3: int = const 4;
+  one_2: int = const 1;
+  new_vector_idx_2: int = const 0;
+  new_vector_var_3: vector = veczero;
+  new_vector_var_4: vector = veczero;
+  vecload new_vector_var_3 new_vector_idx_2 v0;
+  vecload new_vector_var_4 new_vector_idx_2 v1;
+  new_vector_idx_2: int = add new_vector_idx_2 one_2;
+  vecload new_vector_var_3 new_vector_idx_2 v3;
+  vecload new_vector_var_4 new_vector_idx_2 v4;
+  result_vector_var_2: vector = vecmul new_vector_var_3 new_vector_var_4;
+  new_vector_idx_2: int = const 0;
+  v2: vector = vecstore result_vector_var_2 new_vector_idx_2;
+  new_vector_idx_2: int = add new_vector_idx_2 one_2;
+  v5: vector = vecstore result_vector_var_2 new_vector_idx_2;
+  v7: int = mul v5 v6;
+  v8: int = sub v2 v7;
+  s: int = id v8;
+  v15: int = id s;
+  x_1_inlined: int = id v15;
+  v11: int = mul v9 v10;
+  d: int = id v11;
+  v14: int = sub v12 v13;
+.b0.inlined.1:
+  v1_1_inlined: int = const 1;
+  i_1_inlined: int = id v1_1_inlined;
+.new.loop.preheader.1.inlined.1:
+  v15_1_inlined: int = const 1;
+  v4_1_inlined: int = const 1;
+.for.cond.0.inlined.1:
+  v3_1_inlined: int = id x_1_inlined;
+  v2_1_inlined: int = id i_1_inlined;
+  v5_1_inlined: int = sub v3_1_inlined v4_1_inlined;
+  v6_1_inlined: bool = lt v2_1_inlined v5_1_inlined;
+  br v6_1_inlined .for.body.0.inlined.1 .for.end.0.inlined.1;
+.for.body.0.inlined.1:
+  v11_1_inlined: int = id x_1_inlined;
+  v9_1_inlined: int = id i_1_inlined;
+  v8_1_inlined: int = id i_1_inlined;
+  v10_1_inlined: int = mul v8_1_inlined v9_1_inlined;
+  v12_1_inlined: bool = ge v10_1_inlined v11_1_inlined;
+  br v12_1_inlined .then.7.inlined.1 .else.7.inlined.1;
+.then.7.inlined.1:
+  v13_1_inlined: int = id i_1_inlined;
+  return_var.1.UNIQUE: int = id v13_1_inlined;
+  jmp .return.loc.1;
+.else.7.inlined.1:
+.endif.7.inlined.1:
+  v14_1_inlined: int = id i_1_inlined;
+  v16_1_inlined: int = add v14_1_inlined v15_1_inlined;
+  i_1_inlined: int = id v16_1_inlined;
+  jmp .for.cond.0.inlined.1;
+.for.end.0.inlined.1:
+  v17_1_inlined: int = const 0;
+  return_var.1.UNIQUE: int = id v17_1_inlined;
+.return.loc.1:
+  v21: int = id s;
+  x_2_inlined: int = id v21;
+  v19: int = id b;
+  v16: int = id return_var.1.UNIQUE;
+  v18: int = const 0;
+  v17: int = add v14 v16;
+  r1: int = id v17;
+  v20: int = sub v18 v19;
+.b0.inlined.2:
+  v1_2_inlined: int = const 1;
+  i_2_inlined: int = id v1_2_inlined;
+.new.loop.preheader.1.inlined.2:
+  v15_2_inlined: int = const 1;
+  v4_2_inlined: int = const 1;
+.for.cond.0.inlined.2:
+  v3_2_inlined: int = id x_2_inlined;
+  v2_2_inlined: int = id i_2_inlined;
+  v5_2_inlined: int = sub v3_2_inlined v4_2_inlined;
+  v6_2_inlined: bool = lt v2_2_inlined v5_2_inlined;
+  br v6_2_inlined .for.body.0.inlined.2 .for.end.0.inlined.2;
+.for.body.0.inlined.2:
+  v11_2_inlined: int = id x_2_inlined;
+  v9_2_inlined: int = id i_2_inlined;
+  v8_2_inlined: int = id i_2_inlined;
+  v10_2_inlined: int = mul v8_2_inlined v9_2_inlined;
+  v12_2_inlined: bool = ge v10_2_inlined v11_2_inlined;
+  br v12_2_inlined .then.7.inlined.2 .else.7.inlined.2;
+.then.7.inlined.2:
+  v13_2_inlined: int = id i_2_inlined;
+  return_var.2.UNIQUE: int = id v13_2_inlined;
+  jmp .return.loc.2;
+.else.7.inlined.2:
+.endif.7.inlined.2:
+  v14_2_inlined: int = id i_2_inlined;
+  v16_2_inlined: int = add v14_2_inlined v15_2_inlined;
+  i_2_inlined: int = id v16_2_inlined;
+  jmp .for.cond.0.inlined.2;
+.for.end.0.inlined.2:
+  v17_2_inlined: int = const 0;
+  return_var.2.UNIQUE: int = id v17_2_inlined;
+.return.loc.2:
+  v29: int = id d;
+  v25: int = id d;
+  v24: int = id r1;
+  v22: int = id return_var.2.UNIQUE;
+  v23: int = sub v20 v22;
+  r2: int = id v23;
+  v28: int = id r2;
+  v26: int = div v24 v25;
+  v30: int = div v28 v29;
+  print v26;
+  print v30;
+.emergency.ret:
+  ret;
+}

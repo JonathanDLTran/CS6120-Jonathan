@@ -1,5 +1,5 @@
 from bril_float_constants import *
-from bril_core_constants import OP, TYPE, DEST, ARGS
+from bril_core_constants import FUNCTIONS, INSTRS, OP, TYPE, DEST, ARGS
 
 
 def is_float(instr):
@@ -46,3 +46,11 @@ def build_fmul(dest, arg1, arg2):
 
 def build_fdiv(dest, arg1, arg2):
     return build_float_binop(dest, FDIV, arg1, arg2)
+
+
+def has_float_ops(prog):
+    for func in prog[FUNCTIONS]:
+        for instr in func[INSTRS]:
+            if is_float(instr):
+                return True
+    return False

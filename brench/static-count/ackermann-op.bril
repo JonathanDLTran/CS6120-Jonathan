@@ -1,0 +1,48 @@
+@ack(m_1: int, n_1: int): int {
+.UNIQUE.HEADER:
+.b0:
+  one_1: int = const 1;
+  zero_1: int = const 0;
+  cond_m_1: bool = eq m_1 zero_1;
+  br cond_m_1 .m_zero .m_nonzero;
+.m_zero:
+  tmp_1: int = add n_1 one_1;
+  ret tmp_1;
+.m_nonzero:
+  cond_n_1: bool = eq n_1 zero_1;
+  br cond_n_1 .n_zero .n_nonzero;
+.n_zero:
+  m1_1: int = sub m_1 one_1;
+  tmp_2: int = call @ack m1_1 one_1;
+  ret tmp_2;
+.n_nonzero:
+  new_vector_var_1: vector = veczero;
+  new_vector_idx_1: int = const 0;
+  one_1: int = const 1;
+  vecload new_vector_var_1 new_vector_idx_1 m_1;
+  new_vector_idx_2: int = add new_vector_idx_1 one_1;
+  vecload new_vector_var_1 new_vector_idx_2 n_1;
+  new_vector_var_2: vector = veczero;
+  new_vector_idx_3: int = const 0;
+  vecload new_vector_var_2 new_vector_idx_3 one_1;
+  new_vector_idx_4: int = add new_vector_idx_3 one_1;
+  vecload new_vector_var_2 new_vector_idx_4 one_1;
+  result_vector_var_1: vector = vecsub new_vector_var_1 new_vector_var_2;
+  new_vector_idx_5: int = const 0;
+  m1_2: vector = vecstore result_vector_var_1 new_vector_idx_5;
+  new_vector_idx_6: int = add new_vector_idx_5 one_1;
+  n1_1: vector = vecstore result_vector_var_1 new_vector_idx_6;
+  t1_1: int = call @ack m_1 n1_1;
+  t2_1: int = call @ack m1_2 t1_1;
+  ret t2_1;
+.emergency.ret:
+  ret;
+}
+@main(m_1: int, n_1: int) {
+.UNIQUE.HEADER:
+.b0:
+  tmp_1: int = call @ack m_1 n_1;
+  print tmp_1;
+.emergency.ret:
+  ret;
+}

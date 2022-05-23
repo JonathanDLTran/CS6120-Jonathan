@@ -1,0 +1,87 @@
+@main(input: int) {
+.b0:
+  v1: int = const 1;
+  index: int = id v1;
+.new.loop.preheader.1:
+  v42: int = const 1;
+  v36: int = const 3;
+  v35: int = const 0;
+  v30: int = const 2;
+  v29: int = const 0;
+  v26: int = const 1;
+  v25: int = const 0;
+  v17: int = const 5;
+  v14: int = const 5;
+  v9: int = const 3;
+  v6: int = const 3;
+  one_1: int = const 1;
+  new_vector_idx_1: int = const 0;
+  new_vector_var_1: vector = veczero;
+  new_vector_var_2: vector = veczero;
+  vecload new_vector_var_1 new_vector_idx_1 v25;
+  vecload new_vector_var_2 new_vector_idx_1 v26;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  vecload new_vector_var_1 new_vector_idx_1 v29;
+  vecload new_vector_var_2 new_vector_idx_1 v30;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  vecload new_vector_var_1 new_vector_idx_1 v35;
+  vecload new_vector_var_2 new_vector_idx_1 v36;
+  result_vector_var_1: vector = vecsub new_vector_var_1 new_vector_var_2;
+  new_vector_idx_1: int = const 0;
+  v27: vector = vecstore result_vector_var_1 new_vector_idx_1;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  v31: vector = vecstore result_vector_var_1 new_vector_idx_1;
+  new_vector_idx_1: int = add new_vector_idx_1 one_1;
+  v37: vector = vecstore result_vector_var_1 new_vector_idx_1;
+.for.cond.0:
+  v2: int = id index;
+  v4: bool = lt v2 input;
+  br v4 .for.body.0 .for.end.0;
+.for.body.0:
+  v19: int = id index;
+  v13: int = id index;
+  v11: int = id index;
+  v5: int = id index;
+  v7: int = div v5 v6;
+  div3: int = id v7;
+  v8: int = id div3;
+  v10: int = mul v8 v9;
+  v12: bool = eq v10 v11;
+  isFizz: bool = id v12;
+  v22: bool = id isFizz;
+  v15: int = div v13 v14;
+  div5: int = id v15;
+  v16: int = id div5;
+  v18: int = mul v16 v17;
+  v20: bool = eq v18 v19;
+  isBuzz: bool = id v20;
+  br v22 .then.21 .else.21;
+.then.21:
+  v24: bool = id isBuzz;
+  br v24 .then.23 .else.23;
+.then.23:
+  print v27;
+  jmp .endif.23;
+.else.23:
+  print v31;
+.endif.23:
+  jmp .endif.21;
+.else.21:
+  v34: bool = id isBuzz;
+  br v34 .then.33 .else.33;
+.then.33:
+  print v37;
+  jmp .endif.33;
+.else.33:
+  v39: int = id index;
+  print v39;
+.endif.33:
+.endif.21:
+  v41: int = id index;
+  v43: int = add v41 v42;
+  index: int = id v43;
+  jmp .for.cond.0;
+.for.end.0:
+.emergency.ret:
+  ret;
+}
