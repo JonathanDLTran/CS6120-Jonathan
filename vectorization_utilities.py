@@ -261,5 +261,77 @@ def canonicalize_prog(prog):
     return prog
 
 
-def topological_sort():
-    pass
+def constant_movement_basic_block(basic_block_instrs):
+    """
+    Move constant definitions as far upwards (earlier) in the basic block
+
+    Cannot move a const definition before a use
+    """
+    new_basic_block = []
+    for instr in basic_block_instrs:
+        # add all non constants to the new basic block
+        if not is_const(instr):
+            new_basic_block.append(instr)
+            continue
+
+        # when the basic block still has instructions
+        collector = []
+        while new_basic_block != []:
+            last_instr = new_basic_block.pop()
+            # do not move before a label or a phi instruction
+            if is_label(last_instr) or is_phi(instr):
+                new_basic_block.append(last_instr)
+                break
+
+            const_dest = instr[DEST]
+            if ARGS in last_instr:
+                last_instr_uses = last_instr[ARGS]
+                # cannot swap constant and prior instruction
+                if const_dest in last_instr_uses:
+                    new_basic_block.append(last_instr)
+                    break
+                # can swap constant and prior instruction
+                else:
+                    collector.append(last_instr)
+            # do not swap order of defintions
+            elif DEST in last_instr:
+                last_instr_dest = last_instr[DEST]
+                if last_instr_dest == const_dest:
+                    new_basic_block.append(last_instr)
+                    break
+                else:
+                    collector.append(last_instr)
+            else:
+                # constant can go before last instruction
+                collector.append(last_instr)
+
+        # add the constant
+        new_basic_block.append(instr)
+        new_basic_block += list(reversed(collector))
+
+    return new_basic_block
+
+
+def constant_movement_func(func):
+    """
+    Constant Movement for functions
+    """
+    cfg = form_cfg_w_blocks(func)
+    for basic_block in cfg:
+        new_instrs = constant_movement_basic_block(
+            cfg[basic_block][INSTRS])
+        cfg[basic_block][INSTRS] = new_instrs
+
+    final_instrs = join_cfg(cfg)
+    func[INSTRS] = final_instrs
+    return func
+
+
+def constant_movement(prog):
+    """
+    Move constant definitions as early as possible in basic blocks
+    to allow for greater vectorization potential
+    """
+    for func in prog[FUNCTIONS]:
+        constant_movement_func(func)
+    return prog

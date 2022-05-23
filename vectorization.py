@@ -32,7 +32,7 @@ from store_movement import move_stores_prog
 
 from naive_vectorization import naive_vectorization_prog
 from opportunistic_lvn_slp import lvn_slp_prog
-from vectorization_utilities import canonicalize_prog
+from vectorization_utilities import canonicalize_prog, constant_movement
 
 
 def preprocess_prog(prog):
@@ -50,7 +50,8 @@ def preprocess_prog(prog):
     canonical_prog = canonicalize_prog(preprocessed_prog)
     unrolled_prog = fully_unroll_prog(canonical_prog)
     moved_stores_prog = move_stores_prog(unrolled_prog)
-    coalesced_prog = coalesce_prog(moved_stores_prog)
+    constant_moved_prog = constant_movement(moved_stores_prog)
+    coalesced_prog = coalesce_prog(constant_moved_prog)
     return coalesced_prog
 
 

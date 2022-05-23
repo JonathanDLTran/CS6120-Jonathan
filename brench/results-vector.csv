@@ -108,5 +108,5 @@ eight-queens,baseline,0
 eight-queens,op,0
 eight-queens,naive,0
 fizz-buzz,baseline,0
-fizz-buzz,op,0
-fizz-buzz,naive,606
+fizz-buzz,op,2
+fizz-buzz,naive,602
