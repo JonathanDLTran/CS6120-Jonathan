@@ -47,6 +47,14 @@ def move_stores_basic_block(basic_block_instrs, end_basic_block_alias_analysis):
                     # for frees/allocs/ptradds, to avoid complications, just don't allow stores to move past them.
                     new_basic_block_instrs.append(instr)
                     break
+            # do not go beyond calls
+            elif is_call(last_instr):
+                new_basic_block_instrs.append(instr)
+                break
+            # do not go beyond terminator
+            elif is_terminator(last_instr):
+                new_basic_block_instrs.append(instr)
+                break
             # if the code is not in ssa form, the data argument of the store could get updated!
             elif has_dest(last_instr):
                 last_instr_dest = get_dest(last_instr)
@@ -56,7 +64,8 @@ def move_stores_basic_block(basic_block_instrs, end_basic_block_alias_analysis):
                     break
             last_instr = new_basic_block_instrs.pop()
             move_before_store_list.append(last_instr)
-        new_basic_block_instrs += move_before_store_list
+
+        new_basic_block_instrs += list(reversed(move_before_store_list))
 
     # finish by changing to un-reversed order
     new_basic_block_instrs = list(reversed(new_basic_block_instrs))

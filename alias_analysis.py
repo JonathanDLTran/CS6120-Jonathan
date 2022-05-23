@@ -44,7 +44,7 @@ def deregularize_type(typ):
 
 def merge(variables_lst):
     if len(variables_lst) < 1:
-        raise RuntimeError("Expects 1 or more list of variables")
+        return variables_lst
     final_variables = variables_lst[0]
     for lst in variables_lst:
         for v in lst:

@@ -25,7 +25,6 @@ from bril_memory_extension_constants import *
 from bril_memory_extension_utilities import *
 
 from dce import dce
-from lvn import lvn
 from licm import licm_main
 from cfg import coalesce_prog
 from loop_unrolling import fully_unroll_prog
@@ -50,8 +49,8 @@ def preprocess_prog(prog):
         preprocessed_prog = licm_prog
     canonical_prog = canonicalize_prog(preprocessed_prog)
     unrolled_prog = fully_unroll_prog(canonical_prog)
-    # moved_stores_prog = move_stores_prog(unrolled_prog)
-    coalesced_prog = coalesce_prog(unrolled_prog)
+    moved_stores_prog = move_stores_prog(unrolled_prog)
+    coalesced_prog = coalesce_prog(moved_stores_prog)
     return coalesced_prog
 
 

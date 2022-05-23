@@ -90,8 +90,8 @@ armstrong,baseline,133
 armstrong,op,433
 armstrong,naive,363
 fib,baseline,121
-fib,op,434
-fib,naive,329
+fib,op,410
+fib,naive,297
 collatz,baseline,169
 collatz,op,502
 collatz,naive,377

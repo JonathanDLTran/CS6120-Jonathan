@@ -2,6 +2,8 @@ import click
 from copy import deepcopy
 import sys
 import json
+
+from scipy.fft import dst
 from bril_speculation_utilities import is_guard
 
 
@@ -26,7 +28,7 @@ def gen_fresh_lvn_num():
 def gen_fresh_variable(var):
     global VARIABLE_NUMBER
     VARIABLE_NUMBER += 1
-    return f"{var}_{VARIABLE_NUMBER}"
+    return f"{var}_{VARIABLE_NUMBER}_lvn"
 
 
 def arg_to_lvn_value(arg, var_to_num, num_value_loc):
