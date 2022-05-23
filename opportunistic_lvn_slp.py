@@ -24,6 +24,8 @@ MAX_RUNS_HANDLED = 4
 
 MIN_MATCHES_FOR_PARTIAL = 2
 
+RUN_THRESHOLD = 2
+
 
 def run_to_triples(run):
     """
@@ -301,6 +303,14 @@ def walk_and_build_packs(runs, previously_computed_packs, previously_computed_co
     return walk_and_build_packs(runs[1:], previously_computed_packs, previously_computed_constants, run_idx + 1, run_to_packs)
 
 
+def filter_runs(runs, threshold):
+    filted_runs = []
+    for run in runs:
+        if len(run) >= threshold:
+            filted_runs.append(run)
+    return filted_runs
+
+
 def lvn_slp_basic_block(basic_block_instrs):
     """
     Perform SLP on a basic block
@@ -310,6 +320,9 @@ def lvn_slp_basic_block(basic_block_instrs):
     """
     # build run of vectorizable instruction
     runs = build_runs(basic_block_instrs)
+
+    # filter out runs that are 1 instructions or less
+    runs = filter_runs(runs, RUN_THRESHOLD)
 
     # generate instructions for every run
     run_to_packs = walk_and_build_packs(runs, dict(), dict(), 0, dict())
