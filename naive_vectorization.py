@@ -125,6 +125,7 @@ def naive_vectorization_basic_block(basic_block_instrs, func):
     """
     # build runs of vectors
     runs = build_runs(basic_block_instrs)
+    runs = filter_runs(runs, RUN_THRESHOLD)
 
     # Now Change Each Run to use Vector Instructions and Stitch Back into Basic Block
     # insert these vector instructions right after the last instruction in the run

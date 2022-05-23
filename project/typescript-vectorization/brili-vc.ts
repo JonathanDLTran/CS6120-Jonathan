@@ -386,6 +386,7 @@ function evalCall(instr: bril.Operation, state: State): Action {
     }
     let retVal = evalFunc(func, newState);
     state.icount = newState.icount;
+    state.vcount = newState.vcount;
 
     // Dynamically check the function's return value and type.
     if (!('dest' in instr)) {  // `instr` is an `EffectOperation`.
