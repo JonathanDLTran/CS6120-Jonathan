@@ -230,7 +230,7 @@ def is_id(instr):
 def build_id(dest, typ, arg):
     assert type(dest) == str
     assert type(arg) == str
-    assert type(typ) == str
+    assert type(typ) == str or type(typ) == dict
     return {DEST: dest, TYPE: typ, OP: ID, ARGS: [arg]}
 
 
