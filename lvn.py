@@ -3,7 +3,7 @@ from copy import deepcopy
 import sys
 import json
 
-from scipy.fft import dst
+
 from bril_speculation_utilities import is_guard
 
 
