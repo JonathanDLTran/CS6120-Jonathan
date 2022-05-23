@@ -28,13 +28,15 @@ The common workflow to run transformation passes and analyses on bril is
 # Transformations
 - To SSA and out of SSA
 - Loop Unrolling
-- Store Movement
+- Store Movement, Constant Movement, Print Movement, Id Movement
+- Aggressive Inlining (builds call graph, topologically sorts it, and inlines callees into callers whenever and wherever possible)
+- TODO: Loop Fusion
 
 # Infrastructure
-- Sample LLVM Pass as part of Lesson 7
+- Sample LLVM Pass as part of Lesson 7, which implements a very basic form of inlining
 
 # Garbage Collection
-- A garbage collector in the reference collector style is implemented in brili-gc. This is in the bril fork. Recursive update of reference counters is in progress.
+- A garbage collector in the reference collector style is implemented in brili-gc. This is in the bril fork. Recursive update of reference counters is supported.
 
 # Synthesis
 - Playing around with the idea of synthesis as covered in class and discussions
