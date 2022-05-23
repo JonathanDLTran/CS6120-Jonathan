@@ -329,6 +329,9 @@ type State = {
     // For profiling: a total count of the number of instructions executed.
     icount: bigint,
 
+    // For Vectorization: a total count of the number of vectors created.
+    vcount: bigint,
+
     // For SSA (phi-node) execution: keep track of recently-seen labels.j
     curlabel: string | null,
     lastlabel: string | null,
@@ -376,6 +379,7 @@ function evalCall(instr: bril.Operation, state: State): Action {
         heap: state.heap,
         funcs: state.funcs,
         icount: state.icount,
+        vcount: state.vcount,
         lastlabel: null,
         curlabel: null,
         specparent: null,  // Speculation not allowed.
@@ -738,6 +742,7 @@ function evalInstr(instr: bril.Instruction, state: State): Action {
         case "veczero": {
             let zero = BigInt(0);
             state.env.set(instr.dest, { "size": bril.vectorSize, "type": "int", "values": [zero, zero, zero, zero] })
+            state.vcount += BigInt(1);
             return NEXT;
         }
 
@@ -941,6 +946,8 @@ function evalInstr(instr: bril.Instruction, state: State): Action {
             let newVec: Vector = { "size": bril.vectorSize, "type": "int", "values": copied_vec };
             let dest = instr.dest;
             state.env.set(dest, newVec);
+
+            // reuse vector so state.vcount does not increase!
             return NEXT;
         }
     }
@@ -1075,6 +1082,14 @@ function evalProg(prog: bril.Program) {
         args.splice(pidx, 1);
     }
 
+    // Silly argument parsing to find the `-v' flag.
+    let count_vectors = false;
+    let vidx = args.indexOf('-v');
+    if (vidx > -1) {
+        count_vectors = true;
+        args.splice(vidx, 1);
+    }
+
     // Remaining arguments are for the main function.k
     let expected = main.args || [];
     let newEnv = parseMainArguments(expected, args);
@@ -1084,6 +1099,7 @@ function evalProg(prog: bril.Program) {
         heap,
         env: newEnv,
         icount: BigInt(0),
+        vcount: BigInt(0),
         lastlabel: null,
         curlabel: null,
         specparent: null,
@@ -1096,6 +1112,10 @@ function evalProg(prog: bril.Program) {
 
     if (profiling) {
         console.error(`total_dyn_inst: ${state.icount}`);
+    }
+
+    if (count_vectors) {
+        console.error(`total_vectors_created: ${state.vcount}`)
     }
 
 }
