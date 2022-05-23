@@ -29,6 +29,7 @@ from licm import licm_main
 from cfg import coalesce_prog
 from loop_unrolling import fully_unroll_prog
 from store_movement import move_stores_prog
+from inlining import inline
 
 from naive_vectorization import naive_vectorization_prog
 from opportunistic_lvn_slp import lvn_slp_prog
@@ -47,7 +48,8 @@ def preprocess_prog(prog):
         dce_prog = dce(prog, 1, 1, False, False)
         licm_prog = licm_main(dce_prog)
         preprocessed_prog = licm_prog
-    canonical_prog = canonicalize_prog(preprocessed_prog)
+    inlined_prog = inline(preprocessed_prog)
+    canonical_prog = canonicalize_prog(inlined_prog)
     unrolled_prog = fully_unroll_prog(canonical_prog)
     moved_stores_prog = move_stores_prog(unrolled_prog)
     constant_moved_prog = constant_movement(moved_stores_prog)

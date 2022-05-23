@@ -3,7 +3,6 @@ Aggresively Inline Every Possible Function into a main function
 """
 
 from copy import deepcopy
-from re import L
 import click
 import sys
 import json
@@ -91,8 +90,18 @@ def add_new_unique_exit(func, unique_exit_name, new_ret_var_name):
     for instr in func[INSTRS]:
         if is_ret(instr) and ARGS in instr:
             ret_arg_name = instr[ARGS][0]
+            # search the func for the right type
+            var_type = None
+            for other_instr in func[INSTRS]:
+                if TYPE in other_instr and DEST in other_instr and other_instr[DEST] == ret_arg_name:
+                    var_type = other_instr[TYPE]
+            if ARGS in func:
+                for a in func[ARGS]:
+                    if a[NAME] == ret_arg_name:
+                        var_type = a[TYPE]
+            assert var_type != None
             new_id = build_id(
-                new_ret_var_name, "Unknown_Type:From_Ret", ret_arg_name)
+                new_ret_var_name, var_type, ret_arg_name)
             new_instrs.append(new_id)
             new_jmp = build_jmp(unique_exit_name)
             new_instrs.append(new_jmp)
