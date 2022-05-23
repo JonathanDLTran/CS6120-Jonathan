@@ -36,6 +36,26 @@ def is_ptr_type(instr):
     return TYPE in instr and PTR in instr[TYPE]
 
 
+def build_alloc(dest, typ, arg):
+    return {DEST: dest, TYPE: typ, OP: ALLOC, ARGS: [arg]}
+
+
+def build_free(dest, typ, arg):
+    return {OP: FREE, ARGS: [arg]}
+
+
+def build_load(dest, typ, addr):
+    return {DEST: dest, TYPE: typ, OP: LOAD, ARGS: [addr]}
+
+
+def build_store(typ, addr, data):
+    return {OP: STORE, ARGS: [addr, data]}
+
+
+def build_ptradd(dest, typ, ptr, offset):
+    return {DEST: dest, TYPE: typ, OP: PTRADD, ARGS: [ptr, offset]}
+
+
 def has_mem_ops(prog):
     for func in prog[FUNCTIONS]:
         for instr in func[INSTRS]:
