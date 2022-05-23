@@ -73,3 +73,48 @@ def build_vecmove(dest, vector):
     assert type(vector) == str
     assert type(dest) == str
     return {DEST: dest, TYPE: VECTOR, OP: VECMOVE, ARGS: [vector]}
+
+
+def is_vec_op(instr, op):
+    assert type(instr) == dict
+    return OP in instr and instr[OP] == op
+
+
+def is_vecadd(instr):
+    return is_vec_op(instr, VECADD)
+
+
+def is_vecsub(instr):
+    return is_vec_op(instr, VECSUB)
+
+
+def is_vecmul(instr):
+    return is_vec_op(instr, VECMUL)
+
+
+def is_vecdiv(instr):
+    return is_vec_op(instr, VECDIV)
+
+
+def is_vecneg(instr):
+    return is_vec_op(instr, VECNEG)
+
+
+def is_vecmac(instr):
+    return is_vec_op(instr, VECMAC)
+
+
+def is_vecload(instr):
+    return is_vec_op(instr, VECLOAD)
+
+
+def is_vecstore(instr):
+    return is_vec_op(instr, VECSTORE)
+
+
+def is_veczero(instr):
+    return is_vec_op(instr, VECZERO)
+
+
+def is_vecmove(instr):
+    return is_vec_op(instr, VECMOVE)
