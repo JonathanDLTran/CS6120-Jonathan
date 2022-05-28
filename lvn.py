@@ -1,5 +1,14 @@
 """
-TODO: Fix this to remove bugs!
+The point of LVN is to "disentangle" variables and the values behind each variable.
+
+We build 2 data structures:
+A table with LVN Number - LVN Value - Variable Home
+and a map from Variable to LVN Number
+
+is (Print, arg) a value number? Actually, a value number should be anything that is assigned,
+and this is not. You could make a psuedo assignment to a variable called _ though.But this is probably
+not the best result, as you can't replace a (print, arg) with another variable! the side effect
+is that the print actually occurs, not that an assignment occurs.
 """
 
 

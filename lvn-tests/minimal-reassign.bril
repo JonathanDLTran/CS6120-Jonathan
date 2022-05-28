@@ -1,0 +1,6 @@
+@main(a : int) {
+    b: int = id a;
+    a: int = const 10;
+    print b;
+    print a;
+}
