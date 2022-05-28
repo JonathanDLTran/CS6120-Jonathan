@@ -1,0 +1,25 @@
+@main(a : int) {
+    b: int = id a;
+    a: int = const 10;
+    print b;
+    print a;
+    jmp .first;
+.first:
+    c: int = id a;
+    print c;
+    print a;
+    jmp .second;
+.second:
+    d: int = id a;
+    print d;
+    print a;
+    jmp .third;
+.third:
+    e: int = id a;
+    a: int = const 100;
+    print e;
+    print a;
+    jmp .fourth;
+.fourth:
+    print a;
+}

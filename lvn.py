@@ -9,6 +9,9 @@ is (Print, arg) a value number? Actually, a value number should be anything that
 and this is not. You could make a psuedo assignment to a variable called _ though.But this is probably
 not the best result, as you can't replace a (print, arg) with another variable! the side effect
 is that the print actually occurs, not that an assignment occurs.
+
+Key idea is that one may want to track "block vars", e.g. incoming args, or vars defined in a prior basic block
+and then make sure appropriate actions are occuring with the lvn values for these block vars
 """
 
 
