@@ -12,6 +12,12 @@ is that the print actually occurs, not that an assignment occurs.
 
 Key idea is that one may want to track "block vars", e.g. incoming args, or vars defined in a prior basic block
 and then make sure appropriate actions are occuring with the lvn values for these block vars
+
+Maybe assign a block var (Arg, _) lvn value as appropriate at the location where an block var is used
+and also create an id instruction for renaming purposes.
+
+The idea is similar to Issue 77 on Bril
+I will need to create copies before uses of a Block variable, including arguments.
 """
 
 
