@@ -1,0 +1,7 @@
+# ARGS: 2
+@main(y: int) {
+    x: int = id y;
+    z: int = const 3;
+    w: int = add z x;
+    print w;
+}

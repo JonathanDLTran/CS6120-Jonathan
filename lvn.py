@@ -192,11 +192,11 @@ def add_instr_to_basic_block_front(instr, instrs):
 
 def rename_vars(old_var_name, new_var_name, instrs):
     """
-    Renames beginning instances of old_var_name in bb_instrs with new_var_names 
+    Renames beginning instances of old_var_name in bb_instrs with new_var_names
     by changing all uses of old var name to new var name, BUT only before
-    a definition to new_var_name 
+    a definition to new_var_name
 
-    ONLY APPLY BEFORE add_instr_to_basic_block_front 
+    ONLY APPLY BEFORE add_instr_to_basic_block_front
     AND ONLY if instrs contains at least one defintion to old_var_name
     """
     has_old_var_def = False
@@ -254,6 +254,7 @@ def handle_block_vars(instrs, var2typ):
     block_vars = get_block_vars(instrs)
 
     n_inserts = 0
+    updated_block_vars = set()
     for old_var_name in block_vars:
 
         has_old_var_def = False
@@ -263,6 +264,7 @@ def handle_block_vars(instrs, var2typ):
 
         if has_old_var_def:
             n_inserts += 1
+            updated_block_vars.add(old_var_name)
 
             new_var_name = gen_fresh_variable(old_var_name)
             rename_vars(old_var_name, new_var_name, instrs)
@@ -271,20 +273,26 @@ def handle_block_vars(instrs, var2typ):
                 new_var_name, var2typ[old_var_name], old_var_name)
             add_instr_to_basic_block_front(new_id_instr, instrs)
 
-    return block_vars, n_inserts
+    return block_vars, n_inserts, updated_block_vars
 
 
 def var_will_be_overwritten(instrs, idx, var):
     """
     True iff var will be overwritten after index idx in instrs
     """
-    # print(var)
-    # print(idx)
-    # print(instrs)
     for instr in instrs[idx + 1:]:
         if DEST in instr and instr[DEST] == var:
             return True
     return False
+
+
+def value_is_id(value):
+    """
+    True iff num is ID
+    """
+    assert type(value) == tuple
+    assert len(value) >= 1
+    return value[0] == ID
 
 
 def lvn_basic_block(basic_block, var2typ):
@@ -300,7 +308,8 @@ def lvn_basic_block(basic_block, var2typ):
     table = OrderedDict()
 
     instrs = basic_block[INSTRS]
-    block_vars, n_inserts = handle_block_vars(instrs, var2typ)
+    block_vars, n_inserts, updated_block_vars = handle_block_vars(
+        instrs, var2typ)
 
     # add in block vars into data structures
     for block_var in block_vars:
@@ -335,10 +344,11 @@ def lvn_basic_block(basic_block, var2typ):
                 if ARGS in instr:
                     new_args = []
                     for arg in instr[ARGS]:
-                        # print(table)
-                        # print(var2num)
-                        # print(arg)
-                        new_args.append(list(table.values())[var2num[arg]][1])
+                        value, (_, new_arg) = list(
+                            table.items())[var2num[arg]]
+                        if value_is_id(value) and value[1] not in updated_block_vars:
+                            new_arg = value[1]
+                        new_args.append(new_arg)
                     instr[ARGS] = new_args
 
                 new_instrs.append(instr)
@@ -352,7 +362,11 @@ def lvn_basic_block(basic_block, var2typ):
             if ARGS in instr:
                 new_args = []
                 for arg in instr[ARGS]:
-                    new_args.append(list(table.values())[var2num[arg]][1])
+                    value, (_, new_arg) = list(
+                        table.items())[var2num[arg]]
+                    if value_is_id(value) and value[1] not in updated_block_vars:
+                        new_arg = value[1]
+                    new_args.append(new_arg)
                 instr[ARGS] = new_args
 
             new_instrs.append(instr)
