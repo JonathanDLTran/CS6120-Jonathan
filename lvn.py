@@ -34,15 +34,15 @@ from collections import OrderedDict
 from bril_core_utilities import build_id, commutes
 
 
-from bril_speculation_utilities import is_guard
-
-
 from cfg import form_cfg_w_blocks, join_cfg
 from bril_core_constants import *
 
 
 LVN_NUMBER = -1
 VARIABLE_NUMBER = -1
+
+
+BLOCK_VAR = "Block Var"
 
 
 def reset_lvn_num():
@@ -60,91 +60,6 @@ def gen_fresh_variable(var):
     global VARIABLE_NUMBER
     VARIABLE_NUMBER += 1
     return f"{var}_{VARIABLE_NUMBER}_lvn"
-
-
-ARG_LVN_VALUE = "arg-value"
-PREV_DEFINED_VAR = "prev-defined-var"
-
-
-BLOCK_VAR = "Block Var"
-
-
-class Interpretable_values(object):
-    def __init__(self) -> None: raise RuntimeError("Unimplemented")
-    def is_interpretable(self): raise RuntimeError("Unimplemented")
-
-    def __repr__(self) -> str:
-        return self.__str__()
-
-    def __ne__(self, __o: object) -> bool:
-        return not self.__eq__(__o)
-
-
-class Lvn_number(Interpretable_values):
-    def __init__(self, num) -> None:
-        assert type(num) == int
-        self.num = num
-
-    def is_interpretable(self): return False
-
-    def __eq__(self, __o: object) -> bool:
-        if not isinstance(__o, Lvn_number):
-            return False
-        return self.num == __o.num
-
-    def __str__(self) -> str:
-        return f"(LVN Num {self.num})"
-
-
-class Constant(Interpretable_values):
-    def __init__(self, val) -> None:
-        assert type(val) == int
-        self.val = val
-
-    def is_interpretable(self): return True
-
-    def __eq__(self, __o: object) -> bool:
-        if not isinstance(__o, Constant):
-            return False
-        return self.val == __o.val
-
-    def __str__(self) -> str:
-        return f"(Constant {self.val})"
-
-
-class Lvn_value(object):
-    def __init__(self, instr, var2num) -> None:
-        assert DEST in instr
-        assert ARGS in instr or VALUE in instr
-        assert TYPE in instr
-        assert OP in instr
-
-        self.op = instr[OP]
-        self.args = []
-        if VALUE in instr:
-            self.args.append(Constant(instr[VALUE]))
-        elif ARGS in instr:
-            for arg in instr[ARGS]:
-                self.args.append(Lvn_number(var2num[arg]))
-        else:
-            raise RuntimeError(
-                f"Match Failure for Arguments of Instruction: {instr}.")
-        self.typ = instr[TYPE]
-        self.dest = instr[DEST]
-
-    def __eq__(self, __o: object) -> bool:
-        if not isinstance(__o, Lvn_value):
-            return False
-        return self.op == __o.op and self.args == __o.args and self.typ == __o.typ and self.dest == __o.typ
-
-    def __ne__(self, __o: object) -> bool:
-        return not self.__eq__(__o)
-
-    def __str__(self) -> str:
-        return f"({self.op}, {', '.join(self.args)})"
-
-    def __repr__(self) -> str:
-        return self.__str__()
 
 
 def lvn_value_to_instr(dst, lvn_value, table, original_instr):
