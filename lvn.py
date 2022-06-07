@@ -31,7 +31,7 @@ import sys
 import json
 
 from collections import OrderedDict
-from bril_core_utilities import build_id
+from bril_core_utilities import build_id, commutes
 
 
 from bril_speculation_utilities import is_guard
@@ -147,13 +147,18 @@ class Lvn_value(object):
         return self.__str__()
 
 
-def instr_to_lvn_value(instr):
+def instr_to_lvn_value(instr, var2num):
     assert type(instr) == dict
     assert OP in instr
 
     args = []
     if ARGS in instr:
-        args = instr[ARGS]
+        # basic commutativity for algebraic identity
+        if commutes(instr):
+            args = sorted(instr[ARGS])
+        else:
+            args = instr[ARGS]
+        args = list(map(lambda a: var2num[a], args))
     else:
         args = [instr[VALUE]]
 
@@ -295,6 +300,65 @@ def value_is_id(value):
     return value[0] == ID
 
 
+def get_from_table(table, num):
+    return list(table.items())[num][1]
+
+
+def lvn_value_equality(lvn_val1, lvn_val2, table):
+    """
+    True if 2 LVN Values are Semantically equivalent
+    """
+    if lvn_val1 == lvn_val2:
+        return True
+
+    # Do Algebraic Simplication
+    op1 = lvn_val1[0]
+    op2 = lvn_val2[0]
+
+    # A + A = 2 * A
+    if op1 == ADD and op2 == MUL:
+        if lvn_val1[1] == lvn_val1[2] and lvn_val2[1] == lvn_val1[1] and get_from_table(table, lvn_val2[2]) == (CONST, 2):
+            return True
+        elif lvn_val1[1] == lvn_val1[2] and lvn_val2[2] == lvn_val1[1] and get_from_table(table, lvn_val2[1]) == (CONST, 2):
+            return True
+    elif op1 == MUL and op2 == ADD:
+        if lvn_val2[1] == lvn_val2[2] and lvn_val1[1] == lvn_val2[1] and get_from_table(table, lvn_val1[2]) == (CONST, 2):
+            return True
+        elif lvn_val2[1] == lvn_val2[2] and lvn_val1[2] == lvn_val2[1] and get_from_table(table, lvn_val1[1]) == (CONST, 2):
+            return True
+
+    # gt == le
+    elif op1 == GT and op2 == LE:
+        if lvn_val1[1] == lvn_val1[2] and lvn_val2[2] == lvn_val1[1]:
+            return True
+    elif op1 == LE and op2 == GT:
+        if lvn_val1[1] == lvn_val1[2] and lvn_val2[2] == lvn_val1[1]:
+            return True
+    # lt == ge
+    elif op1 == LT and op2 == GE:
+        if lvn_val1[1] == lvn_val1[2] and lvn_val2[2] == lvn_val1[1]:
+            return True
+    elif op1 == GE and op2 == LT:
+        if lvn_val1[1] == lvn_val1[2] and lvn_val2[2] == lvn_val1[1]:
+            return True
+
+    # add on more identities here...
+    return False
+
+
+def value_in_table(value, table):
+    """
+    True, value in table if Value is in the Table, else False, None
+    """
+    assert type(value) == tuple
+
+    for table_value, pair in table.items():
+        if lvn_value_equality(value, table_value, table):
+            return True, pair
+
+    return False, (None, None)
+
+
 def lvn_basic_block(basic_block, var2typ):
     """
     Perform LVN on a basic block
@@ -324,10 +388,11 @@ def lvn_basic_block(basic_block, var2typ):
         if DEST in instr:
             dst = instr[DEST]
             old_dst = deepcopy(dst)
-            value = instr_to_lvn_value(instr)
+            value = instr_to_lvn_value(instr, var2num)
 
-            if value in table:
-                num, var = table[value]
+            value_is_in_table, pair = value_in_table(value, table)
+            if value_is_in_table:
+                num, var = pair
                 new_id_instr = build_id(dst, var2typ[dst], var)
                 new_instrs.append(new_id_instr)
             else:
@@ -346,8 +411,8 @@ def lvn_basic_block(basic_block, var2typ):
                     for arg in instr[ARGS]:
                         value, (_, new_arg) = list(
                             table.items())[var2num[arg]]
-                        if value_is_id(value) and value[1] not in updated_block_vars:
-                            new_arg = value[1]
+                        if value_is_id(value) and get_from_table(table, value[1])[1] not in updated_block_vars:
+                            new_arg = get_from_table(table, value[1])[1]
                         new_args.append(new_arg)
                     instr[ARGS] = new_args
 
@@ -364,8 +429,8 @@ def lvn_basic_block(basic_block, var2typ):
                 for arg in instr[ARGS]:
                     value, (_, new_arg) = list(
                         table.items())[var2num[arg]]
-                    if value_is_id(value) and value[1] not in updated_block_vars:
-                        new_arg = value[1]
+                    if value_is_id(value) and get_from_table(table, value[1])[1] not in updated_block_vars:
+                        new_arg = get_from_table(table, value[1])[1]
                     new_args.append(new_arg)
                 instr[ARGS] = new_args
 

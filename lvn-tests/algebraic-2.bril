@@ -1,0 +1,11 @@
+# ARGS: 1 2
+@main(n: int, m: int) {
+    x: bool = gt n m;
+    y: bool = le m n;
+    print x;
+    print y;
+    a: bool = lt n m;
+    b: bool = ge m n;
+    print a;
+    print b;
+}
