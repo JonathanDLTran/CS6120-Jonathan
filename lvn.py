@@ -18,6 +18,10 @@ and also create an id instruction for renaming purposes.
 
 The idea is similar to Issue 77 on Bril
 I will need to create copies before uses of a Block variable, including arguments.
+
+Here, the scheme is that whenever a block variable gets overriden, then there must be an extra assignment meade
+
+The invariant is that at the beginning and end of the block, each variable has its original name
 """
 
 
@@ -32,7 +36,7 @@ from collections import OrderedDict
 from bril_speculation_utilities import is_guard
 
 
-from cfg import form_blocks, join_blocks
+from cfg import form_cfg_w_blocks, join_cfg
 from bril_core_constants import *
 
 
@@ -139,13 +143,62 @@ def instr_to_lvn_value(instr, var2num):
     return Lvn_value(instr, var2num)
 
 
-def lvn_func(func):
+def add_instr_to_basic_block_front(instr, bb_instrs):
+    """
+    APPLY ONLY if instrs contains at least one defintion to old_var_name
+    """
+    bb_instrs.insert(instr, 0)
 
-    # set up preliminary data structures for lvn pass
+
+def rename_vars(old_var_name, new_var_name, instrs):
+    """
+    Renames beginning instances of old_var_name in bb_instrs with new_var_names 
+    by changing all uses of old var name to new var name, BUT only before
+    a definition to new_var_name 
+
+    ONLY APPLY BEFORE add_instr_to_basic_block_front 
+    AND ONLY if instrs contains at least one defintion to old_var_name
+    """
+    new_instrs = []
+    has_defined_old_var_name = False
+    for instr in instrs:
+        if has_defined_old_var_name:
+            new_instrs.append(instr)
+            continue
+
+        new_instr = deepcopy(instr)
+        # rename args first
+        if ARGS in instr:
+            new_args = []
+            for a in instr[ARGS]:
+                if a == old_var_name:
+                    new_args.append(new_var_name)
+                else:
+                    new_args.append(a)
+            new_instr[ARGS] = new_args
+        # then consider destination
+        if DEST in instr and instr[DEST] == old_var_name:
+            has_defined_old_var_name = True
+        new_instrs.append(new_instr)
+
+
+def get_block_vars(instrs):
+    for instr in instrs:
+        pass
+
+
+def lvn_basic_block(basic_block):
+    """
+    Perform LVN on a basic block
+    """
+
+    # set up preliminary data structures for lvn pass on basic block
     var2num = dict()
     table = OrderedDict()
 
-    for instr in func[INSTRS]:
+    new_instrs = []
+
+    for instr in basic_block[INSTRS]:
         if DEST in instr and ARGS in instr:
             num = instr_to_lvn_value(instr, var2num)
             print(num)
@@ -156,10 +209,23 @@ def lvn_func(func):
         else:
             pass
 
+    return new_instrs
+
+
+def lvn_func(func):
+    cfg = form_cfg_w_blocks(func)
+    for block in cfg:
+        new_instrs = lvn_basic_block(block)
+        cfg[block][INSTRS] = new_instrs
+    final_instrs = join_cfg(cfg)
+    return final_instrs
+
 
 def lvn(program):
     for func in program[FUNCTIONS]:
-        lvn_func(func)
+        new_instrs = lvn_func(func)
+        func[INSTRS] = new_instrs
+    return program
 
 
 @click.command()
