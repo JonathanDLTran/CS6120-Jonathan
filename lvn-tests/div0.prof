@@ -9,4 +9,4 @@ RangeError: Division by zero
     at /Users/wandang/Desktop/CS6120/bril/bril-ts/build/brili.js:762:13
     at Generator.next (<anonymous>)
     at fulfilled (/Users/wandang/Desktop/CS6120/bril/bril-ts/build/brili.js:6:58)
-    at processTicksAndRejections (internal/process/task_queues.js:97:5)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)

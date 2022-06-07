@@ -233,13 +233,13 @@ def get_block_vars(instrs):
     Grab all variables that are not defined with the basic block
     """
     defined_vars = set()
-    block_vars = set()
+    block_vars = []
     for instr in instrs:
         # check args first
         if ARGS in instr:
             for a in instr[ARGS]:
                 if a not in defined_vars:
-                    block_vars.add(a)
+                    block_vars.append(a)
         # then check dest
         if DEST in instr:
             dst = instr[DEST]
@@ -278,6 +278,9 @@ def var_will_be_overwritten(instrs, idx, var):
     """
     True iff var will be overwritten after index idx in instrs
     """
+    # print(var)
+    # print(idx)
+    # print(instrs)
     for instr in instrs[idx + 1:]:
         if DEST in instr and instr[DEST] == var:
             return True
@@ -301,8 +304,8 @@ def lvn_basic_block(basic_block, var2typ):
 
     # add in block vars into data structures
     for block_var in block_vars:
-        block_value = (BLOCK_VAR,)
         block_num = gen_fresh_lvn_num()
+        block_value = (f"{BLOCK_VAR}_{block_num}",)
         var2num[block_var] = block_num
         table[block_value] = block_num, block_var
 
@@ -311,6 +314,7 @@ def lvn_basic_block(basic_block, var2typ):
     for idx, instr in enumerate(instrs[n_inserts:], n_inserts):
         if DEST in instr:
             dst = instr[DEST]
+            old_dst = deepcopy(dst)
             value = instr_to_lvn_value(instr)
 
             if value in table:
@@ -331,11 +335,16 @@ def lvn_basic_block(basic_block, var2typ):
                 if ARGS in instr:
                     new_args = []
                     for arg in instr[ARGS]:
+                        # print(table)
+                        # print(var2num)
+                        # print(arg)
                         new_args.append(list(table.values())[var2num[arg]][1])
                     instr[ARGS] = new_args
 
                 new_instrs.append(instr)
 
+            # MAP WITH OLD VARIABLE DESTINATION
+            dst = old_dst
             var2num[dst] = num
 
         # does not have a dest: replace args as appropriate

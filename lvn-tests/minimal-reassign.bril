@@ -1,3 +1,4 @@
+# ARGS: 5
 @main(a : int) {
     b: int = id a;
     a: int = const 10;
