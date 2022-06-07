@@ -1,3 +1,4 @@
+# ARGS: 5
 @main(a : int) {
     x: int = id a;
     temp: int = id a;

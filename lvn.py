@@ -31,6 +31,7 @@ import sys
 import json
 
 from collections import OrderedDict
+from bril_core_utilities import build_id
 
 
 from bril_speculation_utilities import is_guard
@@ -40,12 +41,32 @@ from cfg import form_cfg_w_blocks, join_cfg
 from bril_core_constants import *
 
 
-LVN_NUMBER = 0
-VARIABLE_NUMBER = 0
+LVN_NUMBER = -1
+VARIABLE_NUMBER = -1
+
+
+def reset_lvn_num():
+    global LVN_NUMBER
+    LVN_NUMBER = -1
+
+
+def gen_fresh_lvn_num():
+    global LVN_NUMBER
+    LVN_NUMBER += 1
+    return LVN_NUMBER
+
+
+def gen_fresh_variable(var):
+    global VARIABLE_NUMBER
+    VARIABLE_NUMBER += 1
+    return f"{var}_{VARIABLE_NUMBER}_lvn"
 
 
 ARG_LVN_VALUE = "arg-value"
 PREV_DEFINED_VAR = "prev-defined-var"
+
+
+BLOCK_VAR = "Block Var"
 
 
 class Interpretable_values(object):
@@ -126,28 +147,47 @@ class Lvn_value(object):
         return self.__str__()
 
 
-def gen_fresh_lvn_num():
-    global LVN_NUMBER
-    LVN_NUMBER += 1
-    return LVN_NUMBER
-
-
-def gen_fresh_variable(var):
-    global VARIABLE_NUMBER
-    VARIABLE_NUMBER += 1
-    return f"{var}_{VARIABLE_NUMBER}_lvn"
-
-
-def instr_to_lvn_value(instr, var2num):
+def instr_to_lvn_value(instr):
     assert type(instr) == dict
-    return Lvn_value(instr, var2num)
+    assert OP in instr
+
+    args = []
+    if ARGS in instr:
+        args = instr[ARGS]
+    else:
+        args = [instr[VALUE]]
+
+    return (instr[OP], *args)
 
 
-def add_instr_to_basic_block_front(instr, bb_instrs):
+def get_var_types(func):
+    """
+    Build map from vars to typs in a function
+    """
+    var2typ = dict()
+
+    # get args
+    if ARGS in func:
+        for arg in func[ARGS]:
+            name = arg[NAME]
+            typ = arg[TYPE]
+            var2typ[name] = typ
+
+    # get regular instructions
+    for instr in func[INSTRS]:
+        if DEST in instr:
+            dst = instr[DEST]
+            typ = instr[TYPE]
+            var2typ[dst] = typ
+
+    return var2typ
+
+
+def add_instr_to_basic_block_front(instr, instrs):
     """
     APPLY ONLY if instrs contains at least one defintion to old_var_name
     """
-    bb_instrs.insert(instr, 0)
+    instrs.insert(0, instr)
 
 
 def rename_vars(old_var_name, new_var_name, instrs):
@@ -159,6 +199,12 @@ def rename_vars(old_var_name, new_var_name, instrs):
     ONLY APPLY BEFORE add_instr_to_basic_block_front 
     AND ONLY if instrs contains at least one defintion to old_var_name
     """
+    has_old_var_def = False
+    for instr in instrs:
+        if DEST in instr and instr[DEST] == old_var_name:
+            has_old_var_def = True
+    assert has_old_var_def
+
     new_instrs = []
     has_defined_old_var_name = False
     for instr in instrs:
@@ -183,39 +229,133 @@ def rename_vars(old_var_name, new_var_name, instrs):
 
 
 def get_block_vars(instrs):
+    """
+    Grab all variables that are not defined with the basic block
+    """
+    defined_vars = set()
+    block_vars = set()
     for instr in instrs:
-        pass
+        # check args first
+        if ARGS in instr:
+            for a in instr[ARGS]:
+                if a not in defined_vars:
+                    block_vars.add(a)
+        # then check dest
+        if DEST in instr:
+            dst = instr[DEST]
+            defined_vars.add(dst)
+    return block_vars
 
 
-def lvn_basic_block(basic_block):
+def handle_block_vars(instrs, var2typ):
+    """
+    Insert necesary instructions if block vars exist in basic blocks
+    """
+    block_vars = get_block_vars(instrs)
+
+    n_inserts = 0
+    for old_var_name in block_vars:
+
+        has_old_var_def = False
+        for instr in instrs:
+            if DEST in instr and instr[DEST] == old_var_name:
+                has_old_var_def = True
+
+        if has_old_var_def:
+            n_inserts += 1
+
+            new_var_name = gen_fresh_variable(old_var_name)
+            rename_vars(old_var_name, new_var_name, instrs)
+            assert old_var_name in var2typ
+            new_id_instr = build_id(
+                new_var_name, var2typ[old_var_name], old_var_name)
+            add_instr_to_basic_block_front(new_id_instr, instrs)
+
+    return block_vars, n_inserts
+
+
+def var_will_be_overwritten(instrs, idx, var):
+    """
+    True iff var will be overwritten after index idx in instrs
+    """
+    for instr in instrs[idx + 1:]:
+        if DEST in instr and instr[DEST] == var:
+            return True
+    return False
+
+
+def lvn_basic_block(basic_block, var2typ):
     """
     Perform LVN on a basic block
     """
+
+    # reset counters
+    reset_lvn_num()
 
     # set up preliminary data structures for lvn pass on basic block
     var2num = dict()
     table = OrderedDict()
 
-    new_instrs = []
+    instrs = basic_block[INSTRS]
+    block_vars, n_inserts = handle_block_vars(instrs, var2typ)
 
-    for instr in basic_block[INSTRS]:
-        if DEST in instr and ARGS in instr:
-            num = instr_to_lvn_value(instr, var2num)
-            print(num)
-        # special case values
-        elif DEST in instr and ARGS not in instr:
-            pass
-        # all other cases
+    # add in block vars into data structures
+    for block_var in block_vars:
+        block_value = (BLOCK_VAR,)
+        block_num = gen_fresh_lvn_num()
+        var2num[block_var] = block_num
+        table[block_value] = block_num, block_var
+
+    new_instrs = []
+    # skip over an inserted block var instructions
+    for idx, instr in enumerate(instrs[n_inserts:], n_inserts):
+        if DEST in instr:
+            dst = instr[DEST]
+            value = instr_to_lvn_value(instr)
+
+            if value in table:
+                num, var = table[value]
+                new_id_instr = build_id(dst, var2typ[dst], var)
+                new_instrs.append(new_id_instr)
+            else:
+                num = gen_fresh_lvn_num()
+
+                if var_will_be_overwritten(instrs, idx, dst):
+                    dst = gen_fresh_variable(dst)
+                    instr[DEST] = dst
+                else:
+                    dst = instr[DEST]
+
+                table[value] = num, dst
+
+                if ARGS in instr:
+                    new_args = []
+                    for arg in instr[ARGS]:
+                        new_args.append(list(table.values())[var2num[arg]][1])
+                    instr[ARGS] = new_args
+
+                new_instrs.append(instr)
+
+            var2num[dst] = num
+
+        # does not have a dest: replace args as appropriate
         else:
-            pass
+            if ARGS in instr:
+                new_args = []
+                for arg in instr[ARGS]:
+                    new_args.append(list(table.values())[var2num[arg]][1])
+                instr[ARGS] = new_args
+
+            new_instrs.append(instr)
 
     return new_instrs
 
 
 def lvn_func(func):
     cfg = form_cfg_w_blocks(func)
+    var2typ = get_var_types(func)
     for block in cfg:
-        new_instrs = lvn_basic_block(block)
+        new_instrs = lvn_basic_block(cfg[block], var2typ)
         cfg[block][INSTRS] = new_instrs
     final_instrs = join_cfg(cfg)
     return final_instrs
