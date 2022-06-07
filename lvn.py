@@ -147,7 +147,165 @@ class Lvn_value(object):
         return self.__str__()
 
 
-def instr_to_lvn_value(instr, var2num):
+def lvn_value_to_instr(dst, lvn_value, table, original_instr):
+    assert type(lvn_value) == tuple
+    assert len(lvn_value) >= 2
+    first = lvn_value[0]
+    if first == CONST:
+        assert len(lvn_value) == 2
+        return {DEST: dst, OP: CONST, TYPE: INT, VALUE: lvn_value[1]}
+    elif first in [ADD, SUB, MUL, DIV]:
+        assert len(lvn_value) == 3
+        arg1 = get_from_table(table, lvn_value[1])[1]
+        arg2 = get_from_table(table, lvn_value[2])[1]
+        return {DEST: dst, OP: first, TYPE: INT, ARGS: [arg1, arg2]}
+    elif first in [EQ, LT, GT, LE, GE, AND, OR]:
+        assert len(lvn_value) == 3
+        arg1 = get_from_table(table, lvn_value[1])[1]
+        arg2 = get_from_table(table, lvn_value[2])[1]
+        return {DEST: dst, OP: first, TYPE: BOOL, ARGS: [arg1, arg2]}
+    elif first in [NOT]:
+        assert len(lvn_value) == 2
+        arg1 = get_from_table(table, lvn_value[1])[1]
+        return {DEST: dst, OP: NOT, TYPE: BOOL, ARGS: [arg1]}
+    elif first in [CALL]:
+        assert len(lvn_value) >= 2
+        args = list(map(lambda a: get_from_table(table, a)[1], lvn_value[1:]))
+        return {DEST: dst, OP: CALL, ARGS: args, FUNCS: original_instr[FUNCS], TYPE: original_instr[TYPE]}
+    elif first in [ID]:
+        assert len(lvn_value) == 2
+        arg1 = get_from_table(table, lvn_value[1])[1]
+        return {DEST: dst, OP: ID, ARGS: [arg1]}
+    else:
+        raise RuntimeError(f"Unmatched LVN Value type {lvn_value}")
+
+
+def lvn_value_is_const(lvn_value):
+    assert type(lvn_value) == tuple
+    return lvn_value[0] == CONST
+
+
+def lvn_value_is_block_var(lvn_value):
+    assert type(lvn_value) == tuple
+    return lvn_value[0][:len(BLOCK_VAR)] == BLOCK_VAR
+
+
+def lvn_value_is_id(lvn_value):
+    assert type(lvn_value) == tuple
+    return lvn_value[0] == ID
+
+
+def interpret_lvn_value(lvn_value, table):
+    assert type(lvn_value) == tuple
+    if lvn_value_is_const(lvn_value):
+        return lvn_value
+    elif lvn_value_is_block_var(lvn_value):
+        return lvn_value
+    new_args = []
+    for arg_lvn_num in lvn_value[1:]:
+        arg_lvn_value = get_value_from_table(table, arg_lvn_num)
+        new_args.append(interpret_lvn_value(arg_lvn_value, table))
+    all_constants = True
+    for a in new_args:
+        if not lvn_value_is_const(a):
+            all_constants = False
+
+    op = lvn_value[0]
+    # we disallow semi interpreted expressions, e.g. (ADD, const 1, 3)
+    if not all_constants:
+        # However, there are some other algebraic simplications possible.
+        if op == EQ:
+            if lvn_value[1] == lvn_value[2]:
+                return (CONST, True)
+        elif op == LT:
+            if lvn_value[1] == lvn_value[2]:
+                return (CONST, False)
+        elif op == GT:
+            if lvn_value[1] == lvn_value[2]:
+                return (CONST, False)
+        elif op == LE:
+            if lvn_value[1] == lvn_value[2]:
+                return (CONST, True)
+        elif op == GE:
+            if lvn_value[1] == lvn_value[2]:
+                return (CONST, True)
+        return lvn_value
+
+    if op == CONST:
+        raise RuntimeError(
+            f"Constants are the base case: should be returned earlier.")
+    elif op == ID:
+        assert len(new_args) == 1
+        return new_args[0]
+    elif op == CALL:
+        # unfortunately have to treat as uninterpreted function
+        return lvn_value
+    elif op == NOT:
+        assert len(new_args) == 1
+        (_, result) = new_args[0]
+        return (CONST, not result)
+    elif op == AND:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, result1 and result2)
+    elif op == OR:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, result1 or result2)
+    elif op == EQ:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, result1 == result2)
+    elif op == LE:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, result1 <= result2)
+    elif op == GE:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, result1 >= result2)
+    elif op == LT:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, result1 < result2)
+    elif op == GT:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, result1 > result2)
+    elif op == ADD:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, result1 + result2)
+    elif op == SUB:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, result1 - result2)
+    elif op == MUL:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        return (CONST, result1 * result2)
+    elif op == DIV:
+        assert len(new_args) == 2
+        (_, result1) = new_args[0]
+        (_, result2) = new_args[1]
+        # bail on interpretation if divisor is 0
+        if result2 == 0:
+            return lvn_value
+        return (CONST, result1 // result2)
+    raise RuntimeError(f"LVN Interpretation: Unmatched type {op}.")
+
+
+def instr_to_lvn_value(instr, var2num, table):
     assert type(instr) == dict
     assert OP in instr
 
@@ -162,7 +320,11 @@ def instr_to_lvn_value(instr, var2num):
     else:
         args = [instr[VALUE]]
 
-    return (instr[OP], *args)
+    lvn_value = (instr[OP], *args)
+    final_lvn_value = interpret_lvn_value(lvn_value, table)
+
+    has_changed = lvn_value != final_lvn_value
+    return final_lvn_value, has_changed
 
 
 def get_var_types(func):
@@ -291,17 +453,13 @@ def var_will_be_overwritten(instrs, idx, var):
     return False
 
 
-def value_is_id(value):
-    """
-    True iff num is ID
-    """
-    assert type(value) == tuple
-    assert len(value) >= 1
-    return value[0] == ID
-
-
 def get_from_table(table, num):
-    return list(table.items())[num][1]
+    var = list(table.items())[num][1]
+    return var
+
+
+def get_value_from_table(table, num):
+    return list(table.keys())[num]
 
 
 def lvn_value_equality(lvn_val1, lvn_val2, table):
@@ -388,7 +546,8 @@ def lvn_basic_block(basic_block, var2typ):
         if DEST in instr:
             dst = instr[DEST]
             old_dst = deepcopy(dst)
-            value = instr_to_lvn_value(instr, var2num)
+            value, value_has_changed = instr_to_lvn_value(
+                instr, var2num, table)
 
             value_is_in_table, pair = value_in_table(value, table)
             if value_is_in_table:
@@ -397,26 +556,32 @@ def lvn_basic_block(basic_block, var2typ):
                 new_instrs.append(new_id_instr)
             else:
                 num = gen_fresh_lvn_num()
+                new_instr = deepcopy(instr)
 
                 if var_will_be_overwritten(instrs, idx, dst):
                     dst = gen_fresh_variable(dst)
-                    instr[DEST] = dst
                 else:
                     dst = instr[DEST]
+                new_instr[DEST] = dst
 
                 table[value] = num, dst
 
-                if ARGS in instr:
-                    new_args = []
-                    for arg in instr[ARGS]:
-                        value, (_, new_arg) = list(
-                            table.items())[var2num[arg]]
-                        if value_is_id(value) and get_from_table(table, value[1])[1] not in updated_block_vars:
-                            new_arg = get_from_table(table, value[1])[1]
-                        new_args.append(new_arg)
-                    instr[ARGS] = new_args
+                # if value did not change, keep changing the new instr
+                if not value_has_changed:
+                    if ARGS in instr:
+                        new_args = []
+                        for arg in instr[ARGS]:
+                            value, (_, new_arg) = list(
+                                table.items())[var2num[arg]]
+                            if lvn_value_is_id(value) and get_from_table(table, value[1])[1] not in updated_block_vars:
+                                new_arg = get_from_table(table, value[1])[1]
+                            new_args.append(new_arg)
+                        new_instr[ARGS] = new_args
+                # otherwise generate a new instruction completely
+                else:
+                    new_instr = lvn_value_to_instr(dst, value, table, instr)
 
-                new_instrs.append(instr)
+                new_instrs.append(new_instr)
 
             # MAP WITH OLD VARIABLE DESTINATION
             dst = old_dst
@@ -429,7 +594,7 @@ def lvn_basic_block(basic_block, var2typ):
                 for arg in instr[ARGS]:
                     value, (_, new_arg) = list(
                         table.items())[var2num[arg]]
-                    if value_is_id(value) and get_from_table(table, value[1])[1] not in updated_block_vars:
+                    if lvn_value_is_id(value) and get_from_table(table, value[1])[1] not in updated_block_vars:
                         new_arg = get_from_table(table, value[1])[1]
                     new_args.append(new_arg)
                 instr[ARGS] = new_args
