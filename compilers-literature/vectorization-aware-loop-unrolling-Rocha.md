@@ -10,6 +10,8 @@ VALU is a method of doing loop unrolling, influenced by vectorization benefit. V
 
 ## Approach
 
+The main idea is to consider various loop unrollings, see if vectorization is profitable, and then do the unrolling, forward seed information to SLP, and allow SLP to use this seed information. First, a potential SLP graph is built.
+
 ## Evaluation
 
 ## Related Works
