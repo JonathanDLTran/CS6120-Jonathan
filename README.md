@@ -23,8 +23,10 @@ The common workflow to run transformation passes and analyses on bril is
 
 # Utilities
 - CFG construction / dot display
+- Random CFG Construction
+- Random Bril program construction
 - Bril Language Utilities / Basic Interpretation / Builders / isa
-
+  
 # Transformations
 - To SSA and out of SSA
 - Loop Unrolling
