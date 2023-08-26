@@ -52,7 +52,7 @@ def gen_cfg(num_nodes):
 
     # add edges
     for node in nodes_list:
-        num_neighbors = random.randint(0, len(nodes_list))
+        num_neighbors = random.randint(0, min(len(nodes_list), 2))
         new_neighbors = random.sample(nodes_list, num_neighbors)
         node.set_neighbors(new_neighbors)
 

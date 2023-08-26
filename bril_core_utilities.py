@@ -507,3 +507,61 @@ def interpret_lvn_value(lvn_value, var2value_num, expr2value_num):
             return lvn_value
         return (CONST, result1 // result2, INT)
     raise RuntimeError(f"LVN Interpretation: Unmatched type {op}.")
+
+
+def build_arg(name, typ):
+    assert type(name) == str
+    assert (type(typ) == str) or (type(typ) == dict)
+    return {
+        NAME: name,
+        TYPE: typ,
+    }
+
+
+def build_func(name, args, typ, instrs):
+    assert type(name) == str
+    assert type(args) == list
+    assert (type(typ) == str) or (type(typ) == dict) or typ == None
+    assert type(instrs) == list
+    if typ == None:
+        return {
+            NAME: name,
+            ARGS: args,
+            INSTRS: instrs,
+        }
+    return {
+        NAME: name,
+        ARGS: args,
+        TYPE: typ,
+        INSTRS: instrs,
+    }
+
+
+def build_program(functions):
+    assert type(functions) == list
+    return {
+        FUNCTIONS: functions
+    }
+
+
+def isa_core_type(typ):
+    assert (type(typ) == str) or (type(typ) == dict)
+    if typ == INT:
+        return True
+    elif typ == BOOL:
+        return True
+    assert (type(typ) == dict)
+    assert (len(typ) == 1)
+    for _, v in typ.items():
+        return isa_core_type(v)
+    raise RuntimeError("Cannot Reach This Position in: isa_core_type")
+
+
+def isa_int(typ):
+    assert (type(typ) == str) or (type(typ) == dict)
+    return typ == INT
+
+
+def isa_bool(typ):
+    assert (type(typ) == str) or (type(typ) == dict)
+    return typ == BOOL
