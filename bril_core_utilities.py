@@ -295,6 +295,14 @@ def build_bool_ret(bool_var: str):
     return {OP: RET, ARGS: [bool_var], TYPE: BOOL}
 
 
+def build_ret(var, typ):
+    assert type(var) == str or var == None
+    assert (type(typ) == str) or (type(typ) == dict) or typ == None
+    if typ == None:
+        return build_void_ret()
+    return {OP: RET, ARGS: [var], TYPE: typ}
+
+
 def is_nop(instr):
     assert type(instr) == dict
     return OP in instr and instr[OP] == NOP

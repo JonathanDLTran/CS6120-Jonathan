@@ -298,6 +298,16 @@ def gen_function(func_name, max_cfg_nodes=MAX_NODES_PER_CFG):
     if func_name == MAIN:
         args = {}
     live_initialized_vars = {**args}
+
+    return_type = randint(0, 2)
+    constructed_return_type = None
+    if return_type == 0:
+        constructed_return_type = INT
+    elif return_type == 1:
+        constructed_return_type = BOOL
+    else:
+        constructed_return_type = None
+
     function_instrs = []
     for node in nodes:
         basic_block_instrs = []
@@ -306,21 +316,34 @@ def gen_function(func_name, max_cfg_nodes=MAX_NODES_PER_CFG):
         for neighbor_node in neighbor_nodes:
             neighbor_name = str(neighbor_node.get_name())
             neighbors.append(neighbor_name)
+        name = str(node.get_name())
+        (new_live_vars, basic_block_instrs) = gen_basic_block(name, neighbors,
+                                                              live_initialized_vars, MAX_INSTRS_PER_BASIC_BLOCK)
+
+        # first node is a dominator, can update all live vars
         if node == entry_node:
-            name = str(node.get_name())
-            (new_live_vars, basic_block_instrs) = gen_basic_block(name, neighbors,
-                                                                  live_initialized_vars, MAX_INSTRS_PER_BASIC_BLOCK)
             live_initialized_vars = new_live_vars
-        else:
-            name = str(node.get_name())
-            (_, basic_block_instrs) = gen_basic_block(name, neighbors,
-                                                      live_initialized_vars, MAX_INSTRS_PER_BASIC_BLOCK)
+
+        # if neighbors is none and there is an expected return type, add in returns of the correct type
+        if neighbors == None and constructed_return_type != None:
+            if exists_var_type(new_live_vars, constructed_return_type):
+                var_to_return = choose_var(
+                    new_live_vars, constructed_return_type)
+                ret_instr = build_ret(var_to_return, constructed_return_type)
+                basic_block_instrs.append(ret_instr)
+            else:
+                var_to_return = gen_var()
+                const_instr = build_const(
+                    var_to_return, constructed_return_type, gen_int() if constructed_return_type == INT else gen_bool())
+                ret_instr = build_ret(var_to_return, constructed_return_type)
+                basic_block_instrs.append(const_instr)
+                basic_block_instrs.append(ret_instr)
 
         function_instrs += basic_block_instrs
 
     constructed_args = [build_arg(arg_name, arg_type)
                         for arg_name, arg_type in args.items()]
-    return build_func(func_name, constructed_args, None, function_instrs)
+    return build_func(func_name, constructed_args, constructed_return_type, function_instrs)
 
 
 def gen_program():
