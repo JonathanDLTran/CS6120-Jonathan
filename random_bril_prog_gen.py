@@ -338,6 +338,9 @@ def gen_function(func_name, max_cfg_nodes=MAX_NODES_PER_CFG):
                 ret_instr = build_ret(var_to_return, constructed_return_type)
                 basic_block_instrs.append(const_instr)
                 basic_block_instrs.append(ret_instr)
+        elif neighbors == None and constructed_return_type == None:
+            ret_instr = build_ret(None, constructed_return_type)
+            basic_block_instrs.append(ret_instr)
 
         function_instrs += basic_block_instrs
 
